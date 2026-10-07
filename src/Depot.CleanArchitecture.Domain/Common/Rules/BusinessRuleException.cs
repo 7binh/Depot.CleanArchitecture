@@ -4,7 +4,7 @@ public class BusinessRuleException : Exception
 {
     public IBusinessRule BrokenRule { get; }
 
-    public BusinessRuleException(IBusinessRule brokenRule) 
+    public BusinessRuleException(IBusinessRule brokenRule)
         : base($"[Vi phạm quy tắc {brokenRule.RuleCode}]: {brokenRule.Message}")
     {
         BrokenRule = brokenRule;

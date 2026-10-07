@@ -22,12 +22,16 @@ public class Result<TValue> : Result
 {
     private readonly TValue? _value;
 
-    public TValue Value => IsSuccess 
-        ? _value! 
-        : throw new InvalidOperationException("Không thể lấy giá trị khi kết quả thất bại.");
+    public TValue Value =>
+        IsSuccess
+            ? _value!
+            : throw new InvalidOperationException("Không thể lấy giá trị khi kết quả thất bại.");
 
-    internal Result(TValue? value, bool isSuccess, Error error) 
-        : base(isSuccess, error) 
+    internal Result(
+        TValue? value,
+        bool isSuccess,
+        Error error)
+        : base(isSuccess, error)
     {
         _value = value;
     }
