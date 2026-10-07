@@ -480,3 +480,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+#ẩn tài liệu 
+docs/7days/
+docs/HUONG_DAN_CHI_TIET_7_NGAY_DEPOT_CLEAN_ARCHITECTURE.md
+docs/superpowers/plans
