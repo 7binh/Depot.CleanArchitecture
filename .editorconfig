@@ -1,5 +1,9 @@
+# Top-most EditorConfig file
 root = true
 
+# ==============================================================================
+# 1. ĐỊNH DẠNG CHUNG CHO TẤT CẢ FILE (CORE FORMATTING)
+# ==============================================================================
 [*]
 indent_style = space
 indent_size = 4
@@ -8,29 +12,197 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+# ==============================================================================
+# 2. CẤU HÌNH CHO PROJECT & CÁC TẬP TIN DỮ LIỆU/CẤU HÌNH
+# ==============================================================================
 [*.{csproj,props,targets,slnx}]
 indent_size = 2
 
 [*.{json,yml,yaml}]
 indent_size = 2
 
+[*.md]
+trim_trailing_whitespace = false
+
+# ==============================================================================
+# 3. QUY CHUẨN C# DOANH NGHIỆP & CLEAN ARCHITECTURE (.NET 10 / C# 12-13)
+# ==============================================================================
 [*.cs]
-# Namespace
+
+# ------------------------------------------------------------------------------
+# 3.1. NAMESPACE & USINGS (Kế thừa từ Mentor + Nâng cấp)
+# ------------------------------------------------------------------------------
+# Ưu tiên file-scoped namespace (Clean, gọn gàng, giảm 1 cấp lùi dòng)
 csharp_style_namespace_declarations = file_scoped:warning
 
-# Using directives
+# Sắp xếp System directives lên đầu tiên, theo sau là bảng chữ cái
 dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Khai báo using ngoài namespace
 csharp_using_directive_placement = outside_namespace:warning
 
-# Primary constructors
+# ------------------------------------------------------------------------------
+# 3.2. MODERN C# LANGUAGE RULES (C# 10, 12, 13)
+# ------------------------------------------------------------------------------
+# Primary Constructors (C# 12+)
 csharp_style_prefer_primary_constructors = true:suggestion
 
-# var preferences
+# Collection expressions [ ... ] (C# 12+) thay vì new List<T>(), new int[]
+csharp_style_prefer_collection_expression = true:suggestion
+
+# Khai báo biến với 'var': cho kiểu nguyên thủy, khi type hiển thị rõ ràng hoặc nơi khác
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = true:suggestion
+
+# Target-typed new expression (ví dụ: ContainerNumber num = new(...);)
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+
+# Simple using statement (using var x = ...; thay vì khối using (...){})
+csharp_prefer_simple_using_statement = true:suggestion
+
+# Pattern matching & switch expressions
+csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+csharp_style_prefer_switch_expression = true:suggestion
+
+# Null checking preferences: Ưu tiên 'is null' và 'is not null'
+dotnet_style_null_propagation = true:warning
+csharp_style_null_check = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
 
 # Expression-bodied members
 csharp_style_expression_bodied_methods = when_on_single_line:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
 csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_expression_bodied_constructors = false:suggestion
+csharp_style_expression_bodied_operators = true:suggestion
+
+# ------------------------------------------------------------------------------
+# 3.3. CODE QUALITY & MODIFIERS (CLEAN ARCHITECTURE STANDARDS)
+# ------------------------------------------------------------------------------
+# Luôn ghi rõ Accessibility Modifiers (public, private, internal...) tường minh
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# Thứ tự modifiers chuẩn của Microsoft
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+
+# Tự động gợi ý readonly cho các private field không bị sửa đổi
+dotnet_style_readonly_field = true:warning
+
+# Tự động gợi ý auto-properties
+dotnet_style_prefer_auto_properties = true:suggestion
+
+# Bỏ qua giá trị không sử dụng bằng Discard '_' (vd: _ = Task.Run(...);)
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+csharp_style_unused_value_expression_statement_preference = discard_variable:suggestion
+
+# ------------------------------------------------------------------------------
+# 3.4. FORMATTING & SPACING (Allman Style)
+# ------------------------------------------------------------------------------
+# Dấu mở ngoặc nhọn xuống dòng mới (chuẩn C# Allman)
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+# Khoảng cách toán tử & cú pháp
+csharp_space_around_binary_operators = before_and_after
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_after_comma = true
+csharp_space_before_semicolon_in_for_statement = false
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_after_cast = false
+
+# ==============================================================================
+# 4. NAMING CONVENTIONS DOANH NGHIỆP (ROSLYN ANALYZERS)
+# ==============================================================================
+
+# --- 4.1. Interface: Bắt buộc tiền tố 'I' ---
+dotnet_naming_rule.interface_should_be_prefixed_with_i.severity = warning
+dotnet_naming_rule.interface_should_be_prefixed_with_i.symbols = interface_symbols
+dotnet_naming_rule.interface_should_be_prefixed_with_i.style = prefix_with_i_style
+
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbols.applicable_accessibilities = *
+dotnet_naming_style.prefix_with_i_style.capitalization = pascal_case
+dotnet_naming_style.prefix_with_i_style.required_prefix = I
+
+# --- 4.2. Types (Class, Struct, Enum, Record, Delegate): PascalCase ---
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = type_symbols
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.type_symbols.applicable_kinds = class, struct, enum, record, delegate
+dotnet_naming_symbols.type_symbols.applicable_accessibilities = *
+
+# --- 4.3. Type Parameters (Generics): Tiền tố 'T' (vd: TEntity, TDto) ---
+dotnet_naming_rule.type_parameters_must_be_prefixed_with_t.severity = suggestion
+dotnet_naming_rule.type_parameters_must_be_prefixed_with_t.symbols = type_parameter_symbols
+dotnet_naming_rule.type_parameters_must_be_prefixed_with_t.style = prefix_with_t_style
+
+dotnet_naming_symbols.type_parameter_symbols.applicable_kinds = type_parameter
+dotnet_naming_symbols.type_parameter_symbols.applicable_accessibilities = *
+dotnet_naming_style.prefix_with_t_style.capitalization = pascal_case
+dotnet_naming_style.prefix_with_t_style.required_prefix = T
+
+# --- 4.4. Non-field members (Methods, Properties, Events): PascalCase ---
+dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_member_symbols
+dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.non_field_member_symbols.applicable_kinds = property, method, event
+dotnet_naming_symbols.non_field_member_symbols.applicable_accessibilities = *
+
+# --- 4.5. Private & Internal Fields: Tiền tố '_' + camelCase (vd: _containerRepository) ---
+dotnet_naming_rule.private_internal_fields_should_be_prefixed_with_underscore.severity = warning
+dotnet_naming_rule.private_internal_fields_should_be_prefixed_with_underscore.symbols = private_internal_fields_symbols
+dotnet_naming_rule.private_internal_fields_should_be_prefixed_with_underscore.style = prefix_underscore_style
+
+dotnet_naming_symbols.private_internal_fields_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_internal_fields_symbols.applicable_accessibilities = private, internal, private_protected
+dotnet_naming_style.prefix_underscore_style.capitalization = camel_case
+dotnet_naming_style.prefix_underscore_style.required_prefix = _
+
+# --- 4.6. Constants & Static Readonly: PascalCase ---
+dotnet_naming_rule.constants_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constant_symbols
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.constant_symbols.applicable_kinds = field, local
+dotnet_naming_symbols.constant_symbols.required_modifiers = const
+dotnet_naming_symbols.constant_symbols.applicable_accessibilities = *
+
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = static_readonly_field_symbols
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.static_readonly_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_field_symbols.required_modifiers = static, readonly
+dotnet_naming_symbols.static_readonly_field_symbols.applicable_accessibilities = public, internal, protected, protected_internal
+
+# --- 4.7. Parameters & Local Variables: camelCase ---
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.symbols = parameter_and_local_symbols
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.style = camel_case_style
+
+dotnet_naming_symbols.parameter_and_local_symbols.applicable_kinds = parameter, local
+dotnet_naming_symbols.parameter_and_local_symbols.applicable_accessibilities = *
+
+# --- 4.8. Async Methods: Hậu tố 'Async' (vd: GetByIdAsync) ---
+dotnet_naming_rule.async_methods_should_end_with_async.severity = suggestion
+dotnet_naming_rule.async_methods_should_end_with_async.symbols = async_method_symbols
+dotnet_naming_rule.async_methods_should_end_with_async.style = end_with_async_style
+
+dotnet_naming_symbols.async_method_symbols.applicable_kinds = method
+dotnet_naming_symbols.async_method_symbols.required_modifiers = async
+dotnet_naming_symbols.async_method_symbols.applicable_accessibilities = *
+dotnet_naming_style.end_with_async_style.capitalization = pascal_case
+dotnet_naming_style.end_with_async_style.required_suffix = Async
+
+# --- Định nghĩa Style chung cho Naming ---
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case
