@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 docs/
 
 tests/
+.agent/
