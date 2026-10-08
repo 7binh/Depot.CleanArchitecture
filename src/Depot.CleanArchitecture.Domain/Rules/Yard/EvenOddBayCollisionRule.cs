@@ -10,10 +10,7 @@ public class EvenOddBayCollisionRule : IBusinessRule
     private readonly int _containerSize;
     private readonly IEnumerable<YardSlot> _occupiedSlotsInSameRowAndTier;
 
-    public EvenOddBayCollisionRule(
-        SlotCoordinate target,
-        int containerSize,
-        IEnumerable<YardSlot> occupiedSlotsInSameRowAndTier)
+    public EvenOddBayCollisionRule(SlotCoordinate target, int containerSize, IEnumerable<YardSlot> occupiedSlotsInSameRowAndTier)
     {
         _target = target;
         _containerSize = containerSize;
