@@ -1,8 +1,9 @@
 namespace Depot.CleanArchitecture.Domain.ValueObjects;
 
+using System.Text.RegularExpressions;
 using Depot.CleanArchitecture.Domain.Common;
 
-public sealed class ContainerNumber : ValueObject
+public sealed partial class ContainerNumber : ValueObject
 {
     private static readonly Dictionary<char, int> CharMap = new()
     {
@@ -11,6 +12,9 @@ public sealed class ContainerNumber : ValueObject
         {'O', 26}, {'P', 27}, {'Q', 28}, {'R', 29}, {'S', 30}, {'T', 31}, {'U', 32},
         {'V', 34}, {'W', 35}, {'X', 36}, {'Y', 37}, {'Z', 38}
     };
+    [GeneratedRegex(@"^[A-Z]{3}[UJZ]\d{7}$")]
+    private static partial Regex IsoFormatRegex();
+
 
     public string Value { get; }
     public string OwnerCode => Value[..3];
@@ -28,6 +32,11 @@ public sealed class ContainerNumber : ValueObject
         var upper = raw.Trim().ToUpperInvariant();
         if (upper.Length != 11)
             return Result.Failure<ContainerNumber>(Error.Validation("Container.InvalidLength", "Số container phải có đúng 11 ký tự."));
+
+        if (!IsoFormatRegex().IsMatch(upper))
+            return Result.Failure<ContainerNumber>(Error.Validation(
+                "Container.InvalidFormat",
+                "Số container không đúng định dạng chuẩn ISO 6346 (phải gồm 3 chữ cái mã chủ vỏ, 1 ký tự phân loại thiết bị U/J/Z, 6 chữ số dãy và 1 ký tự kiểm tra)."));
 
         if (!ValidateModulo11(upper))
             return Result.Failure<ContainerNumber>(Error.Validation("Container.InvalidCheckDigit", $"Số container {upper} không đúng số kiểm tra Modulo 11 (ISO 6346)."));
@@ -62,7 +71,7 @@ public sealed class ContainerNumber : ValueObject
         }
 
         int remainder = sum % 11;
-        char expectedCheckDigit = remainder == 10 ? 'X' : (char)('0' + remainder);
+        char expectedCheckDigit = remainder == 10 ? '0' : (char)('0' + remainder);
 
         return containerNumber[10] == expectedCheckDigit;
     }
