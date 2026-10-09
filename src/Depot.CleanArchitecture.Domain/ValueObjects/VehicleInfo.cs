@@ -4,10 +4,12 @@ using Depot.CleanArchitecture.Domain.Common;
 
 public sealed class VehicleInfo : ValueObject
 {
-    public string TractorNo { get; }  // Biển số xe đầu kéo (VD: 51C-123.45)
-    public string TrailerNo { get; }  // Biển số rơ-moóc (VD: 51R-678.90)
-    public string DriverName { get; } // Họ tên tài xế
-    public string? DriverPhone { get; }
+    public string TractorNo { get; private set; } = null!;  // Biển số xe đầu kéo (VD: 51C-123.45)
+    public string TrailerNo { get; private set; } = null!;  // Biển số rơ-moóc (VD: 51R-678.90)
+    public string DriverName { get; private set; } = null!; // Họ tên tài xế
+    public string? DriverPhone { get; private set; }
+
+    private VehicleInfo() { } // Dành cho EF Core
 
     private VehicleInfo(string tractorNo, string trailerNo, string driverName, string? driverPhone)
     {

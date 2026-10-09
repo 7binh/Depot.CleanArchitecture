@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup Label="Validation &amp; Caching">
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.4.0" />
   </ItemGroup>
   <ItemGroup Label="API &amp; Docs">

@@ -6,6 +6,7 @@
     <Project Path="src/Depot.CleanArchitecture.Infrastructure/Depot.CleanArchitecture.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Depot.CleanArchitecture.Application.UnitTests/Depot.CleanArchitecture.Application.UnitTests.csproj" />
     <Project Path="tests/Depot.CleanArchitecture.Domain.UnitTests/Depot.CleanArchitecture.Domain.UnitTests.csproj" />
   </Folder>
 </Solution>
