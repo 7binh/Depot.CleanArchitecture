@@ -22,6 +22,16 @@ public class EvenOddBayCollisionRule : IBusinessRule
 
     public bool IsBroken()
     {
+        if (_containerSize == 40 && _target.IsOddBay)
+        {
+            return true;
+        }
+
+        if (_containerSize == 20 && _target.IsEvenBay)
+        {
+            return true;
+        }
+
         var occupiedBays = _occupiedSlotsInSameRowAndTier.Select(s => s.Bay).ToHashSet();
 
         if (_containerSize == 40)

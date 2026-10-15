@@ -17,7 +17,23 @@ public class ReeferYardAssignmentRule : IBusinessRule
         _maxReeferTier = maxReeferTier;
     }
 
-    public string RuleCode => "Yard.ReeferRequiresPowerReceptacle";
-    public string Message => $"Container lạnh bắt buộc phải xếp vào Block có giàn cắm điện lạnh và chiều cao tối đa không quá {_maxReeferTier} tầng!";
-    public bool IsBroken() => _isReefer && (!_hasReeferPower || _tier > _maxReeferTier);
+    public string RuleCode => _isReefer && !_hasReeferPower
+        ? "Yard.ReeferRequiresPowerReceptacle"
+        : (!_isReefer && _hasReeferPower
+            ? "Yard.DryContainerCannotOccupyReeferSlot"
+            : "Yard.ReeferMaxTierExceeded");
+
+    public string Message => _isReefer && !_hasReeferPower
+        ? "Container lạnh (Reefer) bắt buộc phải xếp vào Block có giàn cắm điện lạnh (Block B)!"
+        : (!_isReefer && _hasReeferPower
+            ? "Container khô thường không được chiếm dụng ô bãi chuyên dụng có giàn cắm điện lạnh!"
+            : $"Chiều cao xếp dỡ container lạnh không được vượt quá tầng {_maxReeferTier}!");
+
+    public bool IsBroken()
+    {
+        if (_isReefer && !_hasReeferPower) return true;
+        if (!_isReefer && _hasReeferPower) return true;
+        if (_isReefer && _tier > _maxReeferTier) return true;
+        return false;
+    }
 }

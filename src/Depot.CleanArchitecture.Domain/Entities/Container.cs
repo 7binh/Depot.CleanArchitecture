@@ -18,6 +18,26 @@ public class Container : AuditableEntity, ITenantEntity
     public ContainerGrade Grade { get; private set; }
     public string? DamageNotes { get; private set; }
 
+    public bool IsReefer => Type == ContainerType.Reefer ||
+                            (!string.IsNullOrEmpty(IsoCode) && (IsoCode.StartsWith("45R") || IsoCode.StartsWith("22R")));
+
+    public static (decimal Tare, decimal MaxGross, string IsoCode) GetDefaultSpecs(int size, ContainerType type)
+    {
+        if (type == ContainerType.Reefer)
+        {
+            return size == 20
+                ? (2900m, 30480m, "22R1")
+                : (4400m, 32500m, "45R1");
+        }
+
+        return size switch
+        {
+            20 => (2200m, 30480m, "22G1"),
+            45 => (4200m, 32500m, "45G1"),
+            _ => (3800m, 32500m, "42G1")
+        };
+    }
+
     private Container() { } // Dành cho EF Core
 
     public static Result<Container> Create(
