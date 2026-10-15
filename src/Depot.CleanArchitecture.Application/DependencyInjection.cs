@@ -21,6 +21,7 @@ public static class DependencyInjection
     {
         var handlerInterfaceTypes = new[]
         {
+            typeof(ICommandHandler<>),
             typeof(ICommandHandler<,>),
             typeof(IQueryHandler<,>)
         };

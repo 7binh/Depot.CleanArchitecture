@@ -10,10 +10,12 @@ public sealed record TenantInfo
     public string? ConnectionString { get; init; }
     public bool IsActive { get; init; } = true;
 
+    public static readonly Guid DefaultDepotCatLaiId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
     /// <summary>Tenant mặc định cho Depot Tân Cảng Cát Lái.</summary>
     public static TenantInfo Default => new()
     {
-        Id = "catlai-depot",
+        Id = DefaultDepotCatLaiId.ToString(),
         Name = "Tân Cảng Cát Lái",
         IsActive = true
     };

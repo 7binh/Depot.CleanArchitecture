@@ -9,6 +9,9 @@ public interface ITenantProvider
     /// <summary>ID của Tenant hiện tại (ví dụ: Depot Cát Lái, Hiệp Phước...). Null cho thao tác system/global.</summary>
     string? TenantId { get; }
 
+    /// <summary>ID dạng Guid của Tenant hiện tại để lọc EF Core và gán cho ITenantEntity.</summary>
+    Guid CurrentTenantId { get; }
+
     /// <summary>Metadata chi tiết của Tenant hiện tại.</summary>
     TenantInfo? CurrentTenant { get; }
 }

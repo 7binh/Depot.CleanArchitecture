@@ -22,8 +22,9 @@ public sealed class GateOutCommandHandler(IAppDbContext dbContext)
             return Result.Failure<GateOutResponse>(containerNumberResult.Error);
         }
 
+        var containerNumber = containerNumberResult.Value!;
         var container = await dbContext.Containers
-            .FirstOrDefaultAsync(c => c.Number.Value == containerNumberResult.Value!.Value, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Number == containerNumber, cancellationToken);
 
         if (container is null)
         {
@@ -32,6 +33,7 @@ public sealed class GateOutCommandHandler(IAppDbContext dbContext)
         }
 
         var activeVisit = await dbContext.ContainerVisits
+            .Include(v => v.Holds)
             .FirstOrDefaultAsync(v => v.ContainerId == container.Id &&
                                       v.Status != ContainerVisitStatus.GatedOut &&
                                       v.Status != ContainerVisitStatus.Completed, cancellationToken);
@@ -40,6 +42,13 @@ public sealed class GateOutCommandHandler(IAppDbContext dbContext)
         {
             return Result.Failure<GateOutResponse>(
                 Error.NotFound("Visit.NotFound", $"Không tìm thấy lượt vào bãi (visit) đang hoạt động của container '{command.ContainerNumber}'!"));
+        }
+
+        // 0. Kiểm tra Khóa giữ hiệu lực (Hold Rule)
+        var activeHoldRule = new ActiveHoldPreventsGateOutRule(activeVisit.Holds);
+        if (activeHoldRule.IsBroken())
+        {
+            return Result.Failure<GateOutResponse>(Error.Validation(activeHoldRule.RuleCode, activeHoldRule.Message));
         }
 
         var order = await dbContext.DeliveryOrders

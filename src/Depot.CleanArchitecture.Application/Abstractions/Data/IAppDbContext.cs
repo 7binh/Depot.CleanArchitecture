@@ -10,6 +10,12 @@ public interface IAppDbContext
     DbSet<Container> Containers { get; }
     DbSet<ContainerVisit> ContainerVisits { get; }
     DbSet<DeliveryOrder> DeliveryOrders { get; }
+    DbSet<ConditionSurvey> ConditionSurveys { get; }
+    DbSet<StayHold> StayHolds { get; }
+    DbSet<MovementEvent> MovementEvents { get; }
+
+    Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
+    Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker ChangeTracker { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
