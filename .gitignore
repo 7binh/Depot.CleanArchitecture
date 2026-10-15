@@ -482,7 +482,12 @@ $RECYCLE.BIN/
 *.swp
 
 #ẩn tài liệu 
-docs/
+docs/*
+!docs/superpowers/
 
-tests/
 .agent/
+
+# Standalone Angular UI Sandbox (decoupled from backend git)
+depot-angular-ui/
+stitch_ui/
+
