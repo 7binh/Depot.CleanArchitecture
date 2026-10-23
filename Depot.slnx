@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Depot.Api/Depot.Api.csproj" />
+    <Project Path="src/Depot.Application/Depot.Application.csproj" />
+    <Project Path="src/Depot.Domain/Depot.Domain.csproj" />
+    <Project Path="src/Depot.Infrastructure/Depot.Infrastructure.csproj" />
+  </Folder>
+</Solution>

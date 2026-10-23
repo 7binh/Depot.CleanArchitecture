@@ -1,0 +1,44 @@
+<div class="flex flex-col gap-2">
+  <label [attr.for]="id" class="text-caption font-medium text-ink-2">{{ label() }}</label>
+  <div class="relative">
+    <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-3">
+      <app-icon [name]="icon()" [size]="16" />
+    </span>
+    <input
+      [id]="id"
+      [formControl]="control()"
+      [type]="inputType()"
+      [placeholder]="placeholder()"
+      [attr.autocomplete]="autocomplete()"
+      [attr.aria-invalid]="error() ? true : null"
+      [attr.aria-describedby]="error() ? id + '-error' : null"
+      class="h-11 w-full rounded-control border pr-4 pl-11 text-body text-ink transition-colors duration-150 ease-out placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+      [class.pr-12]="isPassword()"
+      [class.border-transparent]="!error()"
+      [class.bg-surface-sunken]="!error()"
+      [class.border-danger-fg]="error()"
+      [class.bg-surface]="error()"
+    />
+    @if (isPassword()) {
+      <div class="absolute top-1/2 right-2 -translate-y-1/2">
+        <button
+          appButton
+          variant="icon"
+          size="small"
+          type="button"
+          [attr.aria-label]="revealed() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+          [attr.aria-pressed]="revealed()"
+          (click)="toggleReveal()"
+        >
+          <app-icon [name]="revealed() ? 'eye-off' : 'eye'" [size]="16" />
+        </button>
+      </div>
+    }
+  </div>
+  @if (error(); as message) {
+    <p [id]="id + '-error'" class="flex items-center gap-2 text-caption text-danger-fg">
+      <app-icon name="alert-circle" [size]="16" />
+      {{ message }}
+    </p>
+  }
+</div>

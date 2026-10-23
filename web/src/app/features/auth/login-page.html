@@ -1,0 +1,47 @@
+<header class="flex flex-col gap-2">
+  <h1 class="text-title text-ink">Đăng nhập</h1>
+  <p class="text-body text-ink-2">Nhập email và mật khẩu để vào hệ thống.</p>
+</header>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate class="flex flex-col gap-5">
+  <app-text-field
+    label="Email"
+    icon="mail"
+    type="email"
+    placeholder="ten@congty.vn"
+    autocomplete="email"
+    [control]="form.controls.email"
+    [messages]="emailMessages"
+  />
+  <app-text-field
+    label="Mật khẩu"
+    icon="lock"
+    type="password"
+    placeholder="Nhập mật khẩu"
+    autocomplete="current-password"
+    [control]="form.controls.password"
+    [messages]="passwordMessages"
+  />
+
+  @if (notice(); as message) {
+    <p
+      role="status"
+      class="flex items-start gap-3 rounded-control bg-brand-soft p-4 text-small text-brand"
+    >
+      <app-icon name="alert-circle" />
+      {{ message }}
+    </p>
+  }
+
+  <button appButton variant="primary" type="submit" class="w-full">Đăng nhập</button>
+</form>
+
+<p class="text-body text-ink-2">
+  Chưa có tài khoản?
+  <a
+    routerLink="/register"
+    class="rounded-chip font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+  >
+    Đăng ký
+  </a>
+</p>
