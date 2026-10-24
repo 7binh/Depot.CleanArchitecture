@@ -48,8 +48,8 @@ Sản phẩm: ERD. Đây là thứ mentor mở ra đầu tiên.
 
 Những thứ mọi chức năng đều dùng, làm trước khi làm chức năng đầu tiên.
 
-- [ ] Khung solution theo `AGENTS.md` (Domain, Application, Infrastructure, Api, Tests) và cổng chất lượng `scripts/check.sh`.
-- [ ] Result/Error pattern và `IRule` + `RuleChecker` ở Domain.
+- [x] Khung solution theo `AGENTS.md` (Domain, Application, Infrastructure, Api, Tests) và cổng chất lượng `scripts/check.sh`.
+- [x] Result/Error pattern và `IBusinessRule` + `BusinessRuleValidator` ở Domain.
 - [ ] Khung frontend (Angular, Tailwind) và `web/Design.md`.
 
 ## Giai đoạn 5: Backend theo lát cắt dọc, từ trong ra ngoài
