@@ -8,7 +8,7 @@ public sealed class YardRow : AuditableEntity
 {
     public const int MaxRowNo = 99;
     public const int MinTierCount = 2;
-    public const int MaxTierCount = 10;
+    public const int MaxTierCount = 5;
 
     private YardRow(Guid bayId, int rowNo, int maxTier)
     {

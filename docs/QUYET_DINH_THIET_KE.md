@@ -34,7 +34,7 @@ Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Dep
 | Loại container là bảng `ContainerTypes` có seed sẵn 7 loại (BR-CT-05), không phải `enum` | ERD đã coi `CONTAINER_TYPE` là bảng và dùng khóa ngoại `ContainerTypeId`; bảng cho phép sau này gắn thêm ràng buộc (ví dụ khu vực) mà không đổi ERD. Endpoint tạo loại mới vẫn còn, cần hỏi mentor có giữ không |
 | Mã block tối đa 10 ký tự (tự trim, viết hoa), tên block tối đa 100 ký tự | Đặc tả không nêu độ dài; chọn theo cỡ mã bãi thông thường (ví dụ `A1`) |
 | Số bay 1 đến 999; số row 1 đến 99 | Đặc tả chỉ nói bay và row là số thứ tự; cần cận trên để chặn dữ liệu rác |
-| Số tầng tối đa của row (MaxTier) từ 2 đến 10 | Cận dưới 2 theo BR-YD-07; cận trên 10 là giả định của dự án, cần hỏi mentor |
+| Số tầng tối đa của row (MaxTier) từ 2 đến 5 | Cận dưới 2 theo BR-YD-07; cận trên 5 do bạn thực tập sinh chốt (đặc tả không nêu), cần hỏi mentor có đồng ý không |
 | Block ảo không có bay (BR-YD-10), nên cũng không có row | Row nằm trong bay, bay không có thì row không có |
 | Bay và Row là hai entity riêng (bảng `Bays`, `YardRows`), khóa ngoại `Restrict` | Chặn xóa bay khi còn row, xóa block khi còn bay; số bay duy nhất trong block, số row duy nhất trong bay (chỉ mục duy nhất ghép) |
 | Tạo mới trả 201 kèm header `Location`; danh sách chưa phân trang | Làm gọn cho bản đầu; phân trang dùng `PagedResult` khi dữ liệu lớn |
