@@ -91,6 +91,45 @@ public sealed class GateOutHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ReturnsConflict_WhenAContainerIsStackedAbove_AndAllowsItOnceTheTopOneLeft()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var yard = await GateOutTestData.CreateYardWithContainerInAsync(dbContext, _ct);
+        var topId = await GateOutTestData.CreateSecondCsqContainerAsync(dbContext, _ct);
+        await GateInTestData.CreateHandler(dbContext)
+            .HandleAsync(GateInTestData.Command(topId, yard.BlockId, yard.RowId, tier: 2), _ct);
+        var orderId = await GateOutTestData.CreateOrderAsync(dbContext, 2, _ct);
+        var handler = GateOutTestData.CreateHandler(dbContext);
+
+        var blocked = await handler.HandleAsync(GateOutTestData.Command(yard.ContainerId, orderId), _ct);
+        var topLeaves = await handler.HandleAsync(GateOutTestData.Command(topId, orderId), _ct);
+        var bottomLeaves = await handler.HandleAsync(GateOutTestData.Command(yard.ContainerId, orderId), _ct);
+
+        Assert.True(blocked.IsFailure);
+        Assert.Equal("Stay.HasContainerAbove", blocked.Error.Code);
+        Assert.Equal(ErrorType.Conflict, blocked.Error.Type);
+        Assert.True(topLeaves.IsSuccess);
+        Assert.True(bottomLeaves.IsSuccess);
+    }
+
+    [Fact]
+    public async Task HandleAsync_KeepsTheStayOpen_WhenAContainerIsStackedAbove()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var yard = await GateOutTestData.CreateYardWithContainerInAsync(dbContext, _ct);
+        var topId = await GateOutTestData.CreateSecondCsqContainerAsync(dbContext, _ct);
+        await GateInTestData.CreateHandler(dbContext)
+            .HandleAsync(GateInTestData.Command(topId, yard.BlockId, yard.RowId, tier: 2), _ct);
+        var orderId = await GateOutTestData.CreateOrderAsync(dbContext, 2, _ct);
+
+        await GateOutTestData.CreateHandler(dbContext)
+            .HandleAsync(GateOutTestData.Command(yard.ContainerId, orderId), _ct);
+
+        var stays = await dbContext.ContainerStays.Where(x => x.GateOutAt == null).CountAsync(_ct);
+        Assert.Equal(2, stays);
+    }
+
+    [Fact]
     public async Task HandleAsync_ReturnsDomainError_AndKeepsTheStayOpen_WhenTheOrderIsOfAnotherOperator()
     {
         await using var dbContext = TestDbContextFactory.Create();

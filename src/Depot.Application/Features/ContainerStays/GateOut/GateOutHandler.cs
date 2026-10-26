@@ -51,7 +51,14 @@ public sealed class GateOutHandler(IAppDbContext dbContext, TimeProvider timePro
             command.GateOutAt ?? now,
             new Vehicle(command.OutVehicleType, command.OutVehicleNumber));
 
-        var done = stay.GateOut(container, new GateOutRelease(order, delivered), details, now, DepotDateOf(details.GateOutAt));
+        var hasContainerAbove = await HasContainerAboveAsync(stay, cancellationToken);
+        var done = stay.GateOut(
+            container,
+            new GateOutRelease(order, delivered),
+            details,
+            now,
+            DepotDateOf(details.GateOutAt),
+            hasContainerAbove);
         if (done.IsFailure)
         {
             return Result.Failure<ContainerStayResponse>(done.Error);
@@ -77,6 +84,18 @@ public sealed class GateOutHandler(IAppDbContext dbContext, TimeProvider timePro
         }
 
         return Result.Success(ContainerStayResponse.From(stay));
+    }
+
+    // BR-YD-06: a container on a higher tier of the same row is still resting on this one. A virtual block has no tiers.
+    private Task<bool> HasContainerAboveAsync(ContainerStay stay, CancellationToken cancellationToken)
+    {
+        if (stay.RowId is null || stay.Tier is null)
+        {
+            return Task.FromResult(false);
+        }
+
+        return dbContext.ContainerStays
+            .AnyAsync(x => x.RowId == stay.RowId && x.GateOutAt == null && x.Tier > stay.Tier, cancellationToken);
     }
 
     // BR-RO-06: how many containers already left on this line, across all stays.

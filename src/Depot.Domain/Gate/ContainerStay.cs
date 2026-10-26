@@ -108,19 +108,23 @@ public sealed class ContainerStay : AuditableEntity
     /// Closes the stay when the container leaves on <paramref name="release"/> (BR-GO-01). Nothing changes on failure.
     /// <paramref name="gateOutDate"/> is the calendar day of <c>GateOutAt</c> in the depot's time zone, worked out by
     /// the caller so the Domain stays free of time zones; it decides whether the order has expired.
+    /// <paramref name="hasContainerAbove"/> says whether another container in the yard sits on a higher tier of the
+    /// same row; it must leave first (BR-YD-06).
     /// </summary>
     public Result GateOut(
         Container container,
         GateOutRelease release,
         GateOutDetails details,
         DateTimeOffset now,
-        DateOnly gateOutDate)
+        DateOnly gateOutDate,
+        bool hasContainerAbove)
     {
         var vehicleNumber = details.OutVehicle.Number?.Trim();
         var item = release.Order.FindItemFor(container);
 
         var check = BusinessRuleValidator.Check(
             new StayIsOpenRule(IsOpen),
+            new NothingStackedAboveRule(hasContainerAbove),
             new GateOutNotInFutureRule(details.GateOutAt, now),
             new GateOutNotBeforeGateInRule(GateInAt, details.GateOutAt),
             new DefinedEnumRule<VehicleType>(details.OutVehicle.Type, "OutVehicleType"),

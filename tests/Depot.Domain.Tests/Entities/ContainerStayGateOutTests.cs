@@ -64,9 +64,16 @@ public sealed class ContainerStayGateOutTests
         ReleaseOrder order,
         int delivered = 0,
         GateOutDetails? details = null,
-        DateOnly? gateOutDate = null)
+        DateOnly? gateOutDate = null,
+        bool hasContainerAbove = false)
     {
-        return stay.GateOut(container, new GateOutRelease(order, delivered), details ?? Out(), _now, gateOutDate ?? _today);
+        return stay.GateOut(
+            container,
+            new GateOutRelease(order, delivered),
+            details ?? Out(),
+            _now,
+            gateOutDate ?? _today,
+            hasContainerAbove);
     }
 
     private static void AssertError(Result result, string code, ErrorType type = ErrorType.Validation)
@@ -216,6 +223,18 @@ public sealed class ContainerStayGateOutTests
             GateOut(OpenStay(container), container, order, delivered: 2),
             "ReleaseOrder.LineFull",
             ErrorType.Conflict);
+    }
+
+    [Fact]
+    public void GateOut_Fails_AndKeepsTheStayOpen_WhenAContainerIsStackedAbove()
+    {
+        var container = Container();
+        var stay = OpenStay(container);
+
+        var result = GateOut(stay, container, Order(), hasContainerAbove: true);
+
+        AssertError(result, "Stay.HasContainerAbove", ErrorType.Conflict);
+        Assert.True(stay.IsOpen);
     }
 
     [Fact]
