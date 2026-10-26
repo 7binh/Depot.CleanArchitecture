@@ -41,3 +41,6 @@ dotnet_diagnostic.CA1707.severity = none
 
 [*.{ts,html,css,json}]
 indent_size = 2
+
+[src/Depot.Infrastructure/Persistence/Migrations/**.cs]
+generated_code = true

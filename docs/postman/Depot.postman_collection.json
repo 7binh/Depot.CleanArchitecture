@@ -1,0 +1,2187 @@
+{
+  "info": {
+    "_postman_id": "0c1d6c52-8a6e-4d2a-b3f1-7a1e2f4c9b10",
+    "name": "Depot API",
+    "description": "Bo request mau cho Depot API. Chon environment 'Depot local' truoc khi chay. Trong moi thu muc, chay theo thu tu tu tren xuong (cac request sau dung lai du lieu request 1 vua tao).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Line operators",
+      "item": [
+        {
+          "name": "1. Create - success (code is trimmed and upper-cased)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ma ngau nhien 3 chu cai de request chay lap lai duoc tren cung mot database.",
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) {",
+                  "    code += letters.charAt(Math.floor(Math.random() * letters.length));",
+                  "}",
+                  "pm.collectionVariables.set('code', code);",
+                  "// Gui chu thuong va co khoang trang de kiem tra viec chuan hoa o Domain.",
+                  "pm.collectionVariables.set('codeRaw', ' ' + code.toLowerCase() + ' ');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Code is normalised to upper-case without spaces', function () {",
+                  "    pm.expect(pm.response.json().code).to.eql(pm.collectionVariables.get('code'));",
+                  "});",
+                  "pm.test('Response has an id', function () {",
+                  "    pm.expect(pm.response.json().id).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('Location header points to the new line operator', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/line-operators/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('id', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{codeRaw}}\",\n  \"name\": \"Postman test line operator\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "line-operators"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create - duplicate code returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is LineOperator.CodeExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('LineOperator.CodeExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{code}}\",\n  \"name\": \"Another name, same code\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "line-operators"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create - code with wrong length returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.InvalidLength', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.InvalidLength');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"MS\",\n  \"name\": \"Maersk\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "line-operators"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create - empty body returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "line-operators"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the line operator created by request 1', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.eql(pm.collectionVariables.get('id'));",
+                  "    pm.expect(body.code).to.eql(pm.collectionVariables.get('code'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators/{{id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "line-operators", "{{id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is LineOperator.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('LineOperator.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "line-operators",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. List - contains the line operator from request 1, ordered by code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List contains the code created by request 1', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.code; });",
+                  "    pm.expect(codes).to.include(pm.collectionVariables.get('code'));",
+                  "});",
+                  "pm.test('List is ordered by code', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.code; });",
+                  "    pm.expect(codes).to.eql(codes.slice().sort());",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "line-operators"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Container types",
+      "item": [
+        {
+          "name": "1. Create - success (code is trimmed and upper-cased)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) {",
+                  "    code += letters.charAt(Math.floor(Math.random() * letters.length));",
+                  "}",
+                  "pm.collectionVariables.set('ctCode', code);",
+                  "pm.collectionVariables.set('ctCodeRaw', ' ' + code.toLowerCase() + ' ');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Code is normalised to upper-case without spaces', function () {",
+                  "    pm.expect(pm.response.json().code).to.eql(pm.collectionVariables.get('ctCode'));",
+                  "});",
+                  "pm.test('Location header points to the new container type', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/container-types/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('ctId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{ctCodeRaw}}\",\n  \"name\": \"Postman test container type\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create - duplicate code returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is ContainerType.CodeExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ContainerType.CodeExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{ctCode}}\",\n  \"name\": \"Another name, same code\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create - code too short returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.TooShort', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.TooShort');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"R\",\n  \"name\": \"Reefer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create - code too long returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.TooLong', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.TooLong');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"ABCDEFGHIJKLMNOP\",\n  \"name\": \"Reefer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - empty body returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the container type created by request 1', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.eql(pm.collectionVariables.get('ctId'));",
+                  "    pm.expect(body.code).to.eql(pm.collectionVariables.get('ctCode'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types/{{ctId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types", "{{ctId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is ContainerType.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ContainerType.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "container-types",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. List - contains the container type from request 1, ordered by code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List contains the code created by request 1', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.code; });",
+                  "    pm.expect(codes).to.include(pm.collectionVariables.get('ctCode'));",
+                  "});",
+                  "pm.test('List is ordered by code', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.code; });",
+                  "    pm.expect(codes).to.eql(codes.slice().sort());",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "container-types"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "1. Create - success (tax code is trimmed)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 10 chu so ngau nhien de request chay lap lai duoc tren cung mot database.",
+                  "let taxCode = '';",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    taxCode += Math.floor(Math.random() * 10);",
+                  "}",
+                  "pm.collectionVariables.set('cuTaxCode', taxCode);",
+                  "pm.collectionVariables.set('cuTaxCodeRaw', ' ' + taxCode + ' ');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Tax code is trimmed', function () {",
+                  "    pm.expect(pm.response.json().taxCode).to.eql(pm.collectionVariables.get('cuTaxCode'));",
+                  "});",
+                  "pm.test('Location header points to the new customer', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/customers/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('cuId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"{{cuTaxCodeRaw}}\",\n  \"name\": \"Postman test customer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create - duplicate tax code returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Customer.TaxCodeExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Customer.TaxCodeExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"{{cuTaxCode}}\",\n  \"name\": \"Another name, same tax code\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create - wrong length returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is TaxCode.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('TaxCode.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"12345\",\n  \"name\": \"ABC\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create - letters in tax code returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is TaxCode.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('TaxCode.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"01012345ab\",\n  \"name\": \"ABC\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - empty body returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is TaxCode.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('TaxCode.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the customer created by request 1', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.eql(pm.collectionVariables.get('cuId'));",
+                  "    pm.expect(body.taxCode).to.eql(pm.collectionVariables.get('cuTaxCode'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{cuId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers", "{{cuId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Customer.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Customer.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "customers",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. List - contains the customer from request 1, ordered by tax code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List contains the tax code created by request 1', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.taxCode; });",
+                  "    pm.expect(codes).to.include(pm.collectionVariables.get('cuTaxCode'));",
+                  "});",
+                  "pm.test('List is ordered by tax code', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.taxCode; });",
+                  "    pm.expect(codes).to.eql(codes.slice().sort());",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Blocks",
+      "item": [
+        {
+          "name": "1. Create - success (code is trimmed and uppercased)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ma ngau nhien 'P' + 6 chu so (7 ky tu, <= 10) de chay lap lai duoc tren cung mot database.",
+                  "const code = 'P' + Math.floor(100000 + Math.random() * 900000);",
+                  "pm.collectionVariables.set('blCode', code);",
+                  "pm.collectionVariables.set('blCodeRaw', ' ' + code.toLowerCase() + ' ');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Code is uppercased, flag defaults to false', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.code).to.eql(pm.collectionVariables.get('blCode'));",
+                  "    pm.expect(body.isVirtual).to.eql(false);",
+                  "});",
+                  "pm.test('Location header points to the new block', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/blocks/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('blId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{blCodeRaw}}\",\n  \"name\": \"Postman test block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create - virtual block",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Virtual flag is true', function () {",
+                  "    pm.expect(pm.response.json().isVirtual).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{blCode}}V\",\n  \"name\": \"Postman virtual block\",\n  \"isVirtual\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create - duplicate code returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Block.CodeExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.CodeExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{blCode}}\",\n  \"name\": \"Another name, same code\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create - code too long returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.TooLong', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.TooLong');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"ABCDEFGHIJK\",\n  \"name\": \"Too long\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - empty body returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Code.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Code.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the block created by request 1', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.id).to.eql(pm.collectionVariables.get('blId'));",
+                  "    pm.expect(body.code).to.eql(pm.collectionVariables.get('blCode'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{blId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{blId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Block.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. List - contains the block from request 1, ordered by code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List contains the code created by request 1', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.code; });",
+                  "    pm.expect(codes).to.include(pm.collectionVariables.get('blCode'));",
+                  "});",
+                  "pm.test('List is ordered by code', function () {",
+                  "    const codes = pm.response.json().map(function (x) { return x.code; });",
+                  "    pm.expect(codes).to.eql(codes.slice().sort());",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bays",
+      "item": [
+        {
+          "name": "1. Setup - create a normal block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ma ngau nhien 'B' + 6 chu so (<= 10 ky tu) de chay lap lai duoc tren cung mot database.",
+                  "pm.collectionVariables.set('byCode', 'B' + Math.floor(100000 + Math.random() * 900000));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('byBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{byCode}}\",\n  \"name\": \"Bay test block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Setup - create a virtual block",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('byVirtualBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{byCode}}V\",\n  \"name\": \"Bay test virtual block\",\n  \"isVirtual\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create bay 1 - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Bay belongs to the block, Location header is set', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.blockId).to.eql(pm.collectionVariables.get('byBlockId'));",
+                  "    pm.expect(body.bayNo).to.eql(1);",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/bays/' + body.id);",
+                  "});",
+                  "pm.collectionVariables.set('byBayId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create bay 2 - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - duplicate bay number returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Bay.BayNoExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Bay.BayNoExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Create - bay number 0 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is BayNo.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('BayNo.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 0\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Create - virtual block returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Bay.BlockIsVirtual', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Bay.BlockIsVirtual');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byVirtualBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byVirtualBlockId}}", "bays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Create - unknown block returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Block.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000/bays",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "00000000-0000-0000-0000-000000000000",
+                "bays"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the bay created by request 3', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('byBayId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays/{{byBayId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byBlockId}}", "bays", "{{byBayId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Bay.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Bay.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. List - bays 1 and 2, ordered by bay number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List is [1, 2]', function () {",
+                  "    const nos = pm.response.json().map(function (x) { return x.bayNo; });",
+                  "    pm.expect(nos).to.eql([1, 2]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rows",
+      "item": [
+        {
+          "name": "1. Setup - create a block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ma ngau nhien 'R' + 6 chu so (<= 10 ky tu) de chay lap lai duoc tren cung mot database.",
+                  "pm.collectionVariables.set('rwCode', 'R' + Math.floor(100000 + Math.random() * 900000));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rwBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{rwCode}}\",\n  \"name\": \"Row test block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Setup - create a bay",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rwBayId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blocks", "{{rwBlockId}}", "bays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create row 1 - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Row belongs to the bay, Location header is set', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.bayId).to.eql(pm.collectionVariables.get('rwBayId'));",
+                  "    pm.expect(body.rowNo).to.eql(1);",
+                  "    pm.expect(body.maxTier).to.eql(4);",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/rows/' + body.id);",
+                  "});",
+                  "pm.collectionVariables.set('rwRowId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 1,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create row 2 - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 2,\n  \"maxTier\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - duplicate row number returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is YardRow.RowNoExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('YardRow.RowNoExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 1,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Create - max tier 1 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is MaxTier.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('MaxTier.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 3,\n  \"maxTier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Create - row number 0 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is RowNo.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('RowNo.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 0,\n  \"maxTier\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Create - unknown bay returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Bay.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Bay.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/00000000-0000-0000-0000-000000000000/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "00000000-0000-0000-0000-000000000000",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 1,\n  \"maxTier\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the row created by request 3', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('rwRowId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows/{{rwRowId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows",
+                "{{rwRowId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is YardRow.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('YardRow.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. List - rows 1 and 2, ordered by row number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List is [1, 2]', function () {",
+                  "    const nos = pm.response.json().map(function (x) { return x.rowNo; });",
+                  "    pm.expect(nos).to.eql([1, 2]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays",
+                "{{rwBayId}}",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "code",
+      "value": ""
+    },
+    {
+      "key": "codeRaw",
+      "value": ""
+    },
+    {
+      "key": "id",
+      "value": ""
+    },
+    {
+      "key": "ctCode",
+      "value": ""
+    },
+    {
+      "key": "ctCodeRaw",
+      "value": ""
+    },
+    {
+      "key": "ctId",
+      "value": ""
+    },
+    {
+      "key": "cuTaxCode",
+      "value": ""
+    },
+    {
+      "key": "cuTaxCodeRaw",
+      "value": ""
+    },
+    {
+      "key": "cuId",
+      "value": ""
+    },
+    {
+      "key": "blCode",
+      "value": ""
+    },
+    {
+      "key": "blCodeRaw",
+      "value": ""
+    },
+    {
+      "key": "blId",
+      "value": ""
+    },
+    {
+      "key": "byCode",
+      "value": ""
+    },
+    {
+      "key": "byBlockId",
+      "value": ""
+    },
+    {
+      "key": "byVirtualBlockId",
+      "value": ""
+    },
+    {
+      "key": "byBayId",
+      "value": ""
+    },
+    {
+      "key": "rwCode",
+      "value": ""
+    },
+    {
+      "key": "rwBlockId",
+      "value": ""
+    },
+    {
+      "key": "rwBayId",
+      "value": ""
+    },
+    {
+      "key": "rwRowId",
+      "value": ""
+    }
+  ]
+}

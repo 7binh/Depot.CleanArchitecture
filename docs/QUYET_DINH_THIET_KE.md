@@ -1,0 +1,46 @@
+# Quyết định thiết kế
+
+Ghi lại chỗ dự án chọn khác mẫu của mentor (`TechSpherex.CleanArchitecture`) hoặc tự đưa ra giả định, kèm lý do. Thêm một dòng mỗi khi có quyết định mới.
+
+Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Depot có yêu cầu thật và giải thích được.
+
+## Theo mentor
+
+| Chủ đề | Quyết định |
+|---|---|
+| Cấu trúc | 4 tầng, mỗi hành động một thư mục `Features/<Tên>/<Hành động>/` |
+| Truy cập dữ liệu | Application dùng `IAppDbContext`, không có repository |
+| Use case | `ICommandHandler`/`IQueryHandler` viết tay, không MediatR |
+| Test Application | `AppDbContext` thật trên EF InMemory, không dùng repository giả |
+| Cơ sở dữ liệu | PostgreSQL (EF Core + Npgsql), như `README.md` của mentor. Đặc tả thực tập không chỉ định loại DB. Phase 3 từng dựng SQL Server trong Docker; đã đổi sang `postgres:17-alpine` khi bắt đầu bước Infrastructure của feature đầu tiên (chưa có migration nào nên chi phí đổi thấp) |
+
+## Lệch khỏi mentor
+
+| Chủ đề | Mentor | Depot | Lý do |
+|---|---|---|---|
+| Tạo entity | `new TodoItem { ... }`, setter công khai | `LineOperator.Create(...)` trả `Result`, setter `private` | Depot có nhiều luật nghiệp vụ; không có đường tạo đối tượng sai |
+| Kiểm tra dữ liệu | FluentValidation ở endpoint | `IBusinessRule` + `BusinessRuleValidator` ở Domain | Một nơi cho mỗi luật, không viết hai lần. Thêm FluentValidation sau nếu mentor muốn |
+| Thư mục Domain | `Entities/` gom tất cả | `Catalogs/`, `Yard/`, `Containers/` (sau này `ReleaseOrders/`, `Gate/`), mỗi nhóm giữ entity ở gốc và rule trong thư mục con `Rules/` (như `Common/Rules/`); namespace theo thư mục | Entity kéo theo nhiều file rule, một thư mục phẳng sẽ khó đọc; chia theo nhóm nghiệp vụ khớp với `Features/` bên Application |
+| Interface `ICommand<TResponse>` | Có (marker rỗng) | Không | Analyzer S2326 báo lỗi tham số kiểu không dùng; `ICommandHandler` đã đủ |
+| Multi-tenant, Aspire, ELK, Agents | Có | Không | Ngoài phạm vi (A-13, hệ thống một depot) |
+
+## Giả định tự đặt (ngoài đặc tả)
+
+| Giả định | Lý do |
+|---|---|
+| Tên hãng khai thác tối đa 200 ký tự | Đặc tả không nêu; chọn theo cỡ cột thông thường |
+| Mã loại container 2 đến 15 ký tự, tự trim và viết hoa; tên tối đa 100 ký tự | Đặc tả chỉ liệt kê tên loại, không nêu mã. Tối đa 15 để chứa mã `Specialized` (11 ký tự) trong ERD; seed dùng đúng 7 mã của ERD viết hoa |
+| Loại container là bảng `ContainerTypes` có seed sẵn 7 loại (BR-CT-05), không phải `enum` | ERD đã coi `CONTAINER_TYPE` là bảng và dùng khóa ngoại `ContainerTypeId`; bảng cho phép sau này gắn thêm ràng buộc (ví dụ khu vực) mà không đổi ERD. Endpoint tạo loại mới vẫn còn, cần hỏi mentor có giữ không |
+| Mã block tối đa 10 ký tự (tự trim, viết hoa), tên block tối đa 100 ký tự | Đặc tả không nêu độ dài; chọn theo cỡ mã bãi thông thường (ví dụ `A1`) |
+| Số bay 1 đến 999; số row 1 đến 99 | Đặc tả chỉ nói bay và row là số thứ tự; cần cận trên để chặn dữ liệu rác |
+| Số tầng tối đa của row (MaxTier) từ 2 đến 10 | Cận dưới 2 theo BR-YD-07; cận trên 10 là giả định của dự án, cần hỏi mentor |
+| Block ảo không có bay (BR-YD-10), nên cũng không có row | Row nằm trong bay, bay không có thì row không có |
+| Bay và Row là hai entity riêng (bảng `Bays`, `YardRows`), khóa ngoại `Restrict` | Chặn xóa bay khi còn row, xóa block khi còn bay; số bay duy nhất trong block, số row duy nhất trong bay (chỉ mục duy nhất ghép) |
+| Tạo mới trả 201 kèm header `Location`; danh sách chưa phân trang; chưa có xác thực | Làm gọn cho bản đầu; phân trang dùng `PagedResult` khi dữ liệu lớn, xác thực làm sau |
+
+## Việc làm sau (đã thống nhất, chưa làm)
+
+| Việc | Khi nào | Ghi chú |
+|---|---|---|
+| Ràng buộc loại container theo khu vực: container lạnh (Reefer) chỉ vào block dành riêng cho lạnh, container khô vào block khác | Tính năng 2 (cấu trúc bãi) và 5 (gate in) | Đề bài chưa có luật này. Hướng đề xuất: `Block` có `AllowedContainerTypeId` (có thể trống) và Domain có `block.CanAccept(container)`; Application chỉ tải dữ liệu rồi gọi luật. Hỏi mentor: chặn hay chỉ cảnh báo |
+| Sửa và xóa danh mục (hãng tàu, loại container, khách hàng) | Sau khi có Container và lệnh giao | Chọn chặn xóa (409), xóa mềm hay xóa luôn tùy khóa ngoại thực tế; hỏi mentor |

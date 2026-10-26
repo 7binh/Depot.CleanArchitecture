@@ -10,7 +10,7 @@ Ký hiệu: `[x]` đã xong, `[ ]` chưa làm.
 | Quyết định | Nội dung | Lý do |
 |---|---|---|
 | Hướng dữ liệu | **Code-first**: entity ở Domain, cấu hình EF Core ở Infrastructure, bảng sinh bằng migration | Hệ thống mới, chuẩn Clean Architecture; lịch sử DB nằm trong Git |
-| Docker | Chỉ để chạy SQL Server (và sau này cả app), không phải DB-first | Môi trường giống nhau trên mọi máy |
+| Docker | Chỉ để chạy PostgreSQL (và sau này cả app), không phải DB-first | Môi trường giống nhau trên mọi máy |
 | SQL viết tay | Chỉ cho dữ liệu mẫu (`database/seed`) và SQL thống kê (`database/queries`) | Đề yêu cầu viết SQL thống kê |
 | Số depot | Một depot | Đơn giản; ERD không có bảng `DEPOT` |
 | Đăng nhập, phân quyền | Không làm | Ngoài phạm vi (BR mục 1) |
@@ -40,9 +40,9 @@ Sản phẩm: ERD. Đây là thứ mentor mở ra đầu tiên.
 
 ## Giai đoạn 3: Môi trường và cơ sở dữ liệu
 
-- [x] `docker-compose.yml` chạy SQL Server. Mật khẩu đặt trong `.env`, không commit.
+- [x] `docker-compose.yml` chạy PostgreSQL 17 (đổi từ SQL Server, xem `QUYET_DINH_THIET_KE.md`). Mật khẩu đặt trong `.env`, không commit.
 - [x] Tạo thư mục `database/seed` và `database/queries`.
-- [x] Kiểm tra kết nối được vào SQL Server từ công cụ quản trị.
+- [x] Kiểm tra kết nối được vào PostgreSQL (container `healthy`, `psql` chạy được `select version()`).
 
 ## Giai đoạn 4: Nền tảng dùng chung
 
