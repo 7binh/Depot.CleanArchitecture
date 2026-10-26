@@ -6,6 +6,7 @@
     <Project Path="src/Depot.Infrastructure/Depot.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Depot.Application.Tests/Depot.Application.Tests.csproj" />
     <Project Path="tests/Depot.Domain.Tests/Depot.Domain.Tests.csproj" />
   </Folder>
 </Solution>
