@@ -2895,6 +2895,587 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Containers",
+      "item": [
+        {
+          "name": "1. Prepare - find the seeded DRY container type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const dry = pm.response.json().find(function (x) { return x.code === 'DRY'; });",
+                  "pm.test('DRY container type exists', function () {",
+                  "    pm.expect(dry).to.exist;",
+                  "});",
+                  "pm.collectionVariables.set('cnTypeId', dry.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Prepare - create a line operator that will own the container",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) {",
+                  "    code += letters.charAt(Math.floor(Math.random() * letters.length));",
+                  "}",
+                  "pm.collectionVariables.set('cnOwner', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('cnOperatorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{cnOwner}}\",\n  \"name\": \"Postman container owner\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create - success (operator is found from the owner code)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// So container = 3 chu cai chu so huu + U + 6 chu so + 1 chu so kiem tra (ISO 6346).",
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('cnOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) {",
+                  "    serial += Math.floor(Math.random() * 10);",
+                  "}",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "const check = (sum % 11) % 10;",
+                  "pm.collectionVariables.set('cnNumber', body + check);",
+                  "pm.collectionVariables.set('cnNumberBadCheck', body + ((check + 1) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Number is saved as sent', function () {",
+                  "    pm.expect(pm.response.json().number).to.eql(pm.collectionVariables.get('cnNumber'));",
+                  "});",
+                  "pm.test('Line operator comes from the owner code', function () {",
+                  "    pm.expect(pm.response.json().lineOperatorId).to.eql(pm.collectionVariables.get('cnOperatorId'));",
+                  "});",
+                  "pm.test('Location header points to the new container', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/containers/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('cnId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{cnNumber}}\",\n  \"containerTypeId\": \"{{cnTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create - duplicate number returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Container.NumberExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Container.NumberExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{cnNumber}}\",\n  \"containerTypeId\": \"{{cnTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - wrong check digit returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is ContainerNumber.InvalidCheckDigit', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ContainerNumber.InvalidCheckDigit');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{cnNumberBadCheck}}\",\n  \"containerTypeId\": \"{{cnTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Create - owner code of no line operator returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Container.OperatorNotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Container.OperatorNotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"QQQU1234567\",\n  \"containerTypeId\": \"{{cnTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Create - unknown container type returns 400",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// So container = 3 chu cai chu so huu + U + 6 chu so + 1 chu so kiem tra (ISO 6346).",
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('cnOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) {",
+                  "    serial += Math.floor(Math.random() * 10);",
+                  "}",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "const check = (sum % 11) % 10;",
+                  "pm.collectionVariables.set('cnNumber', body + check);",
+                  "pm.collectionVariables.set('cnNumberBadCheck', body + ((check + 1) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Container.TypeNotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Container.TypeNotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{cnNumber}}\",\n  \"containerTypeId\": \"00000000-0000-0000-0000-000000000000\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Create - tare above max weight returns 400",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// So container = 3 chu cai chu so huu + U + 6 chu so + 1 chu so kiem tra (ISO 6346).",
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('cnOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) {",
+                  "    serial += Math.floor(Math.random() * 10);",
+                  "}",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "const check = (sum % 11) % 10;",
+                  "pm.collectionVariables.set('cnNumber', body + check);",
+                  "pm.collectionVariables.set('cnNumberBadCheck', body + ((check + 1) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is TareWeightKg.ExceedsMax', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('TareWeightKg.ExceedsMax');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{cnNumber}}\",\n  \"containerTypeId\": \"{{cnTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 40000,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Create - empty body returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the container from request 3', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('cnId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers/{{cnId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers",
+                "{{cnId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Container.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Container.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. List - contains the container from request 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Container from request 3 is listed', function () {",
+                  "    const ids = pm.response.json().map(function (x) { return x.id; });",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('cnId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -2988,6 +3569,30 @@
     },
     {
       "key": "oldRefreshToken",
+      "value": ""
+    },
+    {
+      "key": "cnTypeId",
+      "value": ""
+    },
+    {
+      "key": "cnOwner",
+      "value": ""
+    },
+    {
+      "key": "cnOperatorId",
+      "value": ""
+    },
+    {
+      "key": "cnNumber",
+      "value": ""
+    },
+    {
+      "key": "cnNumberBadCheck",
+      "value": ""
+    },
+    {
+      "key": "cnId",
       "value": ""
     }
   ],

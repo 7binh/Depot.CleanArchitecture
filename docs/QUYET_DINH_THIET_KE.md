@@ -42,6 +42,10 @@ Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Dep
 | Tài khoản đầu tiên (admin) tạo khi API khởi động từ cấu hình `Seed:AdminEmail` / `Seed:AdminPassword`; không có màn hình đăng ký | Tài khoản nội bộ do quản trị tạo; mật khẩu và `Jwt:Secret` chỉ nằm trong user-secrets / biến môi trường, không vào Git |
 | Audit: mọi entity có `CreatedAt/CreatedBy/LastModifiedAt/LastModifiedBy`, tự điền khi lưu từ `ICurrentUser` + `TimeProvider`; `CreatedBy` là chuỗi id người dùng, `null` khi không có người dùng (seed, công cụ) | Biết nhân viên nào tạo/sửa; Domain không đọc đồng hồ hay người dùng. Dòng có sẵn trước khi thêm audit mang `CreatedAt = 0001-01-01` |
 | Refresh token: lưu băm SHA-256 trong bảng `RefreshTokens`, mỗi lần dùng đổi sang token mới (xoay vòng); token đã dùng bị dùng lại thì thu hồi mọi phiên của người đó; `POST /api/auth/logout` thu hồi refresh token | Đăng xuất thật sự và hạn chế thiệt hại khi lộ token. Access token đang cầm vẫn dùng được tới khi hết hạn (tối đa 15 phút). Chưa dọn token hết hạn, chưa xử lý hai request đổi cùng một token đồng thời |
+| Container: hãng khai thác lấy từ 3 chữ cái đầu của số container, không gửi `LineOperatorId` trong request (A-15) | Tránh để người dùng nhập hãng mâu thuẫn với số container (BR-CT-09) |
+| Mã ISO của container gồm đúng 4 ký tự chữ-số; ngày sản xuất không được ở tương lai; trọng lượng bì không vượt trọng lượng tối đa | Đặc tả chỉ nêu có các trường này; cận kiểm tra là giả định của dự án |
+| Hãng khai thác hoặc loại container không tồn tại trả 400 (không phải 404) | Hai giá trị này nằm trong nội dung request, không nằm trên URL; 404 chỉ dùng khi URL trỏ tới thứ không có |
+| Container chưa có Update/Delete | Chờ hỏi mentor về chiến lược xóa, vì lệnh giao và gate sau này sẽ tham chiếu container |
 
 ## Việc làm sau (đã thống nhất, chưa làm)
 

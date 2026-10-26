@@ -38,6 +38,7 @@ app.MapCustomerEndpoints();
 app.MapBlockEndpoints();
 app.MapBayEndpoints();
 app.MapYardRowEndpoints();
+app.MapContainerEndpoints();
 
 await app.Services.SeedAdminAsync();
 
