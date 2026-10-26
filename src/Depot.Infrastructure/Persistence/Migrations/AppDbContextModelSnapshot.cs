@@ -241,6 +241,184 @@ namespace Depot.Infrastructure.Persistence.Migrations
                     b.ToTable("Containers");
                 });
 
+            modelBuilder.Entity("Depot.Domain.Gate.ContainerStay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BlockId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("ContainerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DamageNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset>("GateInAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("GateOutAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("InVehicleNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("InVehicleType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OutVehicleNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("OutVehicleType")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid?>("ReleaseOrderItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RowId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Tier")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockId");
+
+                    b.HasIndex("ContainerId")
+                        .IsUnique()
+                        .HasFilter("\"GateOutAt\" IS NULL");
+
+                    b.HasIndex("ReleaseOrderItemId");
+
+                    b.HasIndex("RowId", "Tier")
+                        .IsUnique()
+                        .HasFilter("\"GateOutAt\" IS NULL");
+
+                    b.ToTable("ContainerStays");
+                });
+
+            modelBuilder.Entity("Depot.Domain.ReleaseOrders.ReleaseOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("ExpiryDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ExportVessel")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateOnly>("IssuedDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LineOperatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OrderNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("LineOperatorId", "OrderNo")
+                        .IsUnique();
+
+                    b.ToTable("ReleaseOrders");
+                });
+
+            modelBuilder.Entity("Depot.Domain.ReleaseOrders.ReleaseOrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContainerTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ReleaseOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SizeFeet")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerTypeId");
+
+                    b.HasIndex("ReleaseOrderId", "ContainerTypeId", "SizeFeet")
+                        .IsUnique();
+
+                    b.ToTable("ReleaseOrderItems", (string)null);
+                });
+
             modelBuilder.Entity("Depot.Domain.Yard.Bay", b =>
                 {
                     b.Property<Guid>("Id")
@@ -524,6 +702,61 @@ namespace Depot.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Depot.Domain.Gate.ContainerStay", b =>
+                {
+                    b.HasOne("Depot.Domain.Yard.Block", null)
+                        .WithMany()
+                        .HasForeignKey("BlockId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Depot.Domain.Containers.Container", null)
+                        .WithMany()
+                        .HasForeignKey("ContainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Depot.Domain.ReleaseOrders.ReleaseOrderItem", null)
+                        .WithMany()
+                        .HasForeignKey("ReleaseOrderItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Depot.Domain.Yard.YardRow", null)
+                        .WithMany()
+                        .HasForeignKey("RowId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Depot.Domain.ReleaseOrders.ReleaseOrder", b =>
+                {
+                    b.HasOne("Depot.Domain.Catalogs.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Depot.Domain.Catalogs.LineOperator", null)
+                        .WithMany()
+                        .HasForeignKey("LineOperatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Depot.Domain.ReleaseOrders.ReleaseOrderItem", b =>
+                {
+                    b.HasOne("Depot.Domain.Catalogs.ContainerType", null)
+                        .WithMany()
+                        .HasForeignKey("ContainerTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Depot.Domain.ReleaseOrders.ReleaseOrder", null)
+                        .WithMany("Items")
+                        .HasForeignKey("ReleaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Depot.Domain.Yard.Bay", b =>
                 {
                     b.HasOne("Depot.Domain.Yard.Block", null)
@@ -576,6 +809,11 @@ namespace Depot.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Depot.Domain.ReleaseOrders.ReleaseOrder", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

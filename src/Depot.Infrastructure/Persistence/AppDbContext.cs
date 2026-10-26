@@ -3,6 +3,8 @@ using Depot.Application.Abstractions.Data;
 using Depot.Domain.Catalogs;
 using Depot.Domain.Common;
 using Depot.Domain.Containers;
+using Depot.Domain.Gate;
+using Depot.Domain.ReleaseOrders;
 using Depot.Infrastructure.Identity;
 using Depot.Domain.Yard;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -28,6 +30,10 @@ public sealed class AppDbContext(
     public DbSet<YardRow> YardRows => Set<YardRow>();
 
     public DbSet<Container> Containers => Set<Container>();
+
+    public DbSet<ReleaseOrder> ReleaseOrders => Set<ReleaseOrder>();
+
+    public DbSet<ContainerStay> ContainerStays => Set<ContainerStay>();
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 

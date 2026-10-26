@@ -45,7 +45,11 @@ public sealed class CreateLineOperatorHandlerTests
         await using var inner = TestDbContextFactory.Create(databaseName);
         await using var rival = TestDbContextFactory.Create(databaseName);
         var rivalEntity = LineOperator.Create("MSC", "Saved By Rival").Value;
-        var handler = new CreateLineOperatorHandler(new RacingDbContext(inner, rival, rivalEntity));
+        var handler = new CreateLineOperatorHandler(new RacingDbContext(inner, async ct =>
+        {
+            rival.LineOperators.Add(rivalEntity);
+            await rival.SaveChangesAsync(ct);
+        }));
 
         var result = await handler.HandleAsync(new CreateLineOperatorCommand("MSC", "Mediterranean Shipping"), _ct);
 

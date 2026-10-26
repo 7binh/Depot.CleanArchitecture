@@ -46,6 +46,15 @@ Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Dep
 | Mã ISO của container gồm đúng 4 ký tự chữ-số; ngày sản xuất không được ở tương lai; trọng lượng bì không vượt trọng lượng tối đa | Đặc tả chỉ nêu có các trường này; cận kiểm tra là giả định của dự án |
 | Hãng khai thác hoặc loại container không tồn tại trả 400 (không phải 404) | Hai giá trị này nằm trong nội dung request, không nằm trên URL; 404 chỉ dùng khi URL trỏ tới thứ không có |
 | Container chưa có Update/Delete | Chờ hỏi mentor về chiến lược xóa, vì lệnh giao và gate sau này sẽ tham chiếu container |
+| Lệnh giao: hãng, khách hàng, loại container nằm trong body nên không tồn tại trả 400; số lệnh tối đa 50 ký tự, chuyến tàu xuất bắt buộc và tối đa 100 ký tự | Đặc tả không nêu độ dài; chọn theo cỡ cột thông thường. Chuyến tàu xuất là một trong các thông tin bắt buộc của lệnh (SNP mục 3) |
+| Mỗi lệnh có tối đa một dòng cho mỗi cặp (loại, kích thước); số lượng thêm thì cộng vào dòng đó | Khớp unique index của ERD; tránh hai dòng cùng loại làm sai phép đếm số lượng còn lại khi gate out |
+| Lệnh chưa có Update/Delete; response chỉ có cờ `IsExpired` (quá hạn khi hôm nay sau ngày hạn lệnh) | Trạng thái đầy đủ (chưa giao, đang giao, đã giao đủ) suy ra từ số container đã gate out theo từng dòng, nên làm cùng Gate out |
+| Gate in: bay lẻ nhận 20ft, bay chẵn nhận 40ft; chưa kiểm tra việc 40ft chiếm hai bay lẻ liền kề | Làm bản cơ bản trước (BR-YD-03); phần chiếm chỗ hai bay là mở rộng sau, hỏi mentor có cần không |
+| Gate in: giờ vào do nhân viên nhập (mặc định là giờ hiện tại, không ở tương lai); mô tả hư hỏng tối đa 500 ký tự, số hiệu phương tiện tối đa 20 ký tự; tình trạng Bình thường thì bỏ mô tả hư hỏng | Đặc tả không nêu; cho phép nhập bù khi ghi chậm |
+| `Grade`, `Condition`, `InVehicleType` lưu dạng chuỗi (`A`, `Damaged`, `Truck`) trong bảng `ContainerStays` | SQL thống kê đọc được trực tiếp, không phải nhớ số |
+| Unique index của `ContainerStays` (`ContainerId`; `RowId`+`Tier`) chỉ tính lần lưu bãi đang mở (`WHERE "GateOutAt" IS NULL`) | Container ra rồi vào lại được (BR-GI-04), vị trí được giải phóng khi container ra (BR-GO-09) |
+| Gate out: nhận `ContainerId` (không nhận id lần lưu bãi), tìm lần lưu bãi đang mở của container; ngày xét hạn lệnh là ngày của giờ ra theo múi giờ của depot; danh sách lần lưu bãi có bộ lọc `InYard` | Nhân viên cổng biết container; hạn lệnh là ngày lịch của depot, không phải ngày UTC |
+| Gate out chưa chặn hai người thao tác cùng lúc (cùng đóng một lần lưu bãi, hoặc cùng giao thùng cuối của một dòng lệnh) | Cách chặn là concurrency token (`xmin`); để sau, chờ hỏi mentor có cần ở mức này không |
 
 ## Việc làm sau (đã thống nhất, chưa làm)
 

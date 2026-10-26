@@ -3476,6 +3476,1706 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Release orders",
+      "item": [
+        {
+          "name": "1. Prepare - find the seeded DRY container type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const dry = pm.response.json().find(function (x) { return x.code === 'DRY'; });",
+                  "pm.test('DRY container type exists', function () { pm.expect(dry).to.exist; });",
+                  "pm.collectionVariables.set('roTypeId', dry.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Prepare - create the line operator that issues the order",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('roOwner', code);",
+                  "pm.collectionVariables.set('roOrderNo', 'RO-' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('roOperatorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{roOwner}}\",\n  \"name\": \"Postman release order operator\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Prepare - create the customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let tax = '';",
+                  "for (let i = 0; i < 10; i++) { tax += Math.floor(Math.random() * 10); }",
+                  "pm.collectionVariables.set('roTaxCode', tax);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('roCustomerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"{{roTaxCode}}\",\n  \"name\": \"Postman release order customer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create - success (order with a 20ft and a 40ft line)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Both lines are saved, ordered by size', function () {",
+                  "    pm.expect(pm.response.json().items.map(function (x) { return x.sizeFeet; })).to.eql([20, 40]);",
+                  "});",
+                  "pm.test('Order is not expired', function () {",
+                  "    pm.expect(pm.response.json().isExpired).to.eql(false);",
+                  "});",
+                  "pm.test('Location header points to the new order', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/release-orders/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('roId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{roOperatorId}}\",\n  \"customerId\": \"{{roCustomerId}}\",\n  \"orderNo\": \"{{roOrderNo}}\",\n  \"issuedDate\": \"2026-10-26\",\n  \"expiryDate\": \"2026-11-05\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 5\n    },\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 40,\n      \"quantity\": 2\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Create - same order number for the same operator returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is ReleaseOrder.OrderNoExists', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ReleaseOrder.OrderNoExists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{roOperatorId}}\",\n  \"customerId\": \"{{roCustomerId}}\",\n  \"orderNo\": \"{{roOrderNo}}\",\n  \"issuedDate\": \"2026-10-26\",\n  \"expiryDate\": \"2026-11-05\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 5\n    },\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 40,\n      \"quantity\": 2\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Create - expiry date before issued date returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is ExpiryDate.BeforeIssuedDate', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ExpiryDate.BeforeIssuedDate');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{roOperatorId}}\",\n  \"customerId\": \"{{roCustomerId}}\",\n  \"orderNo\": \"{{roOrderNo}}-B\",\n  \"issuedDate\": \"2026-10-26\",\n  \"expiryDate\": \"2026-10-25\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 5\n    },\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 40,\n      \"quantity\": 2\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Create - no lines returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Lines.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Lines.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{roOperatorId}}\",\n  \"customerId\": \"{{roCustomerId}}\",\n  \"orderNo\": \"{{roOrderNo}}-C\",\n  \"issuedDate\": \"2026-10-26\",\n  \"expiryDate\": \"2026-11-05\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": []\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Create - same type and size twice returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Lines.Duplicate', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Lines.Duplicate');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{roOperatorId}}\",\n  \"customerId\": \"{{roCustomerId}}\",\n  \"orderNo\": \"{{roOrderNo}}-D\",\n  \"issuedDate\": \"2026-10-26\",\n  \"expiryDate\": \"2026-11-05\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 1\n    },\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 2\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Create - unknown customer returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is ReleaseOrder.CustomerNotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ReleaseOrder.CustomerNotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{roOperatorId}}\",\n  \"customerId\": \"00000000-0000-0000-0000-000000000001\",\n  \"orderNo\": \"{{roOrderNo}}-E\",\n  \"issuedDate\": \"2026-10-26\",\n  \"expiryDate\": \"2026-11-05\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 5\n    },\n    {\n      \"containerTypeId\": \"{{roTypeId}}\",\n      \"sizeFeet\": 40,\n      \"quantity\": 2\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Get by id - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns the order from request 4 with two lines', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('roId'));",
+                  "    pm.expect(pm.response.json().items.length).to.eql(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders/{{roId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders",
+                "{{roId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. Get by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is ReleaseOrder.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ReleaseOrder.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders/00000000-0000-0000-0000-000000000001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders",
+                "00000000-0000-0000-0000-000000000001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. List - contains the order from request 4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List contains the order', function () {",
+                  "    const id = pm.collectionVariables.get('roId');",
+                  "    pm.expect(pm.response.json().some(function (x) { return x.id === id; })).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Gate in and out",
+      "item": [
+        {
+          "name": "1. Setup - find the seeded DRY container type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const dry = pm.response.json().find(function (x) { return x.code === 'DRY'; });",
+                  "pm.collectionVariables.set('giTypeId', dry.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Setup - create the line operator",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('giOwner', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giOperatorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{giOwner}}\",\n  \"name\": \"Postman gate operator\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Setup - register container 1",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('giOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('giNumber1', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giContainer1', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{giNumber1}}\",\n  \"containerTypeId\": \"{{giTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Setup - register container 2",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('giOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('giNumber2', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giContainer2', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{giNumber2}}\",\n  \"containerTypeId\": \"{{giTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Setup - create the customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let tax = '';",
+                  "for (let i = 0; i < 10; i++) { tax += Math.floor(Math.random() * 10); }",
+                  "pm.collectionVariables.set('giTaxCode', tax);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giCustomerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"{{giTaxCode}}\",\n  \"name\": \"Postman gate customer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Setup - create a normal block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('giBlockCode', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{giBlockCode}}\",\n  \"name\": \"Postman gate block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Setup - add odd bay 1 (20ft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giBayId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{giBlockId}}/bays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{giBlockId}}",
+                "bays"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Setup - add row 1 with 4 tiers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giRowId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{giBlockId}}/bays/{{giBayId}}/rows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{giBlockId}}",
+                "bays",
+                "{{giBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 1,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Setup - create a virtual block",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giVirtualBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{giBlockCode}}V\",\n  \"name\": \"Postman gate virtual block\",\n  \"isVirtual\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Setup - release order for 1 container of 20ft DRY",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('giOrderNo', 'RO-' + Date.now());",
+                  "const day = 24 * 60 * 60 * 1000;",
+                  "pm.collectionVariables.set('giIssued', new Date(Date.now() - day).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('giExpiry', new Date(Date.now() + 30 * day).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('giOrderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{giOperatorId}}\",\n  \"customerId\": \"{{giCustomerId}}\",\n  \"orderNo\": \"{{giOrderNo}}\",\n  \"issuedDate\": \"{{giIssued}}\",\n  \"expiryDate\": \"{{giExpiry}}\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{giTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 1\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. Gate in - container 1 at row 1, tier 1 (success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Stay is open at tier 1 with grade A', function () {",
+                  "    const stay = pm.response.json();",
+                  "    pm.expect(stay.tier).to.eql(1);",
+                  "    pm.expect(stay.grade).to.eql('A');",
+                  "    pm.expect(stay.gateOutAt).to.eql(null);",
+                  "});",
+                  "pm.test('Location header points to the new stay', function () {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/container-stays/' + pm.response.json().id);",
+                  "});",
+                  "pm.collectionVariables.set('giStay1', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer1}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. Gate in - container 1 again returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Container.AlreadyInYard', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Container.AlreadyInYard');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer1}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13. Gate in - container 2 on the taken position returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Position.Occupied', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Position.Occupied');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer2}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14. Gate in - container 2 on tier 3 over an empty tier 2 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Tier.BelowEmpty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Tier.BelowEmpty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer2}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15. Gate in - damaged without a note returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is DamageNote.Required', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('DamageNote.Required');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer2}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Damaged\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16. Gate in - unknown container returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is GateIn.ContainerNotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('GateIn.ContainerNotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"00000000-0000-0000-0000-000000000001\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "17. Gate in - container 2 into the virtual block without row and tier (success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Virtual block stay has no row or tier', function () {",
+                  "    pm.expect(pm.response.json().rowId).to.eql(null);",
+                  "    pm.expect(pm.response.json().tier).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer2}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Damaged\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giVirtualBlockId}}\",\n  \"damageNote\": \"Bent door\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "18. Get stay by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns stay 1', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('giStay1'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-stays/{{giStay1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-stays",
+                "{{giStay1}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "19. Get stay by id - unknown id returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is ContainerStay.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ContainerStay.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-stays/00000000-0000-0000-0000-000000000001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-stays",
+                "00000000-0000-0000-0000-000000000001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20. List in yard - contains both containers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List contains container giContainer1', function () {",
+                  "    const id = pm.collectionVariables.get('giContainer1');",
+                  "    pm.expect(pm.response.json().some(function (x) { return x.containerId === id; })).to.eql(true);",
+                  "});",
+                  "pm.test('List contains container giContainer2', function () {",
+                  "    const id = pm.collectionVariables.get('giContainer2');",
+                  "    pm.expect(pm.response.json().some(function (x) { return x.containerId === id; })).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-stays?inYard=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-stays"
+              ],
+              "query": [
+                {
+                  "key": "inYard",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "21. Gate out - container 1 on the release order (success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Stay is closed and linked to an order line', function () {",
+                  "    const stay = pm.response.json();",
+                  "    pm.expect(stay.gateOutAt).to.be.a('string');",
+                  "    pm.expect(stay.outVehicleNumber).to.eql('51C-99999');",
+                  "    pm.expect(stay.releaseOrderItemId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer1}}\",\n  \"releaseOrderId\": \"{{giOrderId}}\",\n  \"outVehicleType\": \"Truck\",\n  \"outVehicleNumber\": \"51C-99999\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "22. Gate out - container 1 again returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is GateOut.ContainerNotInYard', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('GateOut.ContainerNotInYard');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer1}}\",\n  \"releaseOrderId\": \"{{giOrderId}}\",\n  \"outVehicleType\": \"Truck\",\n  \"outVehicleNumber\": \"51C-99999\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "23. Gate out - the order line is already full returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is ReleaseOrder.LineFull', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ReleaseOrder.LineFull');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer2}}\",\n  \"releaseOrderId\": \"{{giOrderId}}\",\n  \"outVehicleType\": \"Truck\",\n  \"outVehicleNumber\": \"51C-99999\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "24. Gate out - unknown release order returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is GateOut.ReleaseOrderNotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('GateOut.ReleaseOrderNotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer2}}\",\n  \"releaseOrderId\": \"00000000-0000-0000-0000-000000000001\",\n  \"outVehicleType\": \"Truck\",\n  \"outVehicleNumber\": \"51C-99999\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "25. List in yard - container 1 has left",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('List does not contain container giContainer1', function () {",
+                  "    const id = pm.collectionVariables.get('giContainer1');",
+                  "    pm.expect(pm.response.json().some(function (x) { return x.containerId === id; })).to.eql(false);",
+                  "});",
+                  "pm.test('List contains container giContainer2', function () {",
+                  "    const id = pm.collectionVariables.get('giContainer2');",
+                  "    pm.expect(pm.response.json().some(function (x) { return x.containerId === id; })).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-stays?inYard=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-stays"
+              ],
+              "query": [
+                {
+                  "key": "inYard",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "26. Gate in - container 1 comes back to the freed position (success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{giContainer1}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{giBlockId}}\",\n  \"rowId\": \"{{giRowId}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -3593,6 +5293,110 @@
     },
     {
       "key": "cnId",
+      "value": ""
+    },
+    {
+      "key": "roTypeId",
+      "value": ""
+    },
+    {
+      "key": "roOwner",
+      "value": ""
+    },
+    {
+      "key": "roOrderNo",
+      "value": ""
+    },
+    {
+      "key": "roOperatorId",
+      "value": ""
+    },
+    {
+      "key": "roTaxCode",
+      "value": ""
+    },
+    {
+      "key": "roCustomerId",
+      "value": ""
+    },
+    {
+      "key": "roId",
+      "value": ""
+    },
+    {
+      "key": "giTypeId",
+      "value": ""
+    },
+    {
+      "key": "giOwner",
+      "value": ""
+    },
+    {
+      "key": "giOperatorId",
+      "value": ""
+    },
+    {
+      "key": "giNumber1",
+      "value": ""
+    },
+    {
+      "key": "giNumber2",
+      "value": ""
+    },
+    {
+      "key": "giContainer1",
+      "value": ""
+    },
+    {
+      "key": "giContainer2",
+      "value": ""
+    },
+    {
+      "key": "giTaxCode",
+      "value": ""
+    },
+    {
+      "key": "giCustomerId",
+      "value": ""
+    },
+    {
+      "key": "giBlockCode",
+      "value": ""
+    },
+    {
+      "key": "giBlockId",
+      "value": ""
+    },
+    {
+      "key": "giBayId",
+      "value": ""
+    },
+    {
+      "key": "giRowId",
+      "value": ""
+    },
+    {
+      "key": "giVirtualBlockId",
+      "value": ""
+    },
+    {
+      "key": "giOrderNo",
+      "value": ""
+    },
+    {
+      "key": "giIssued",
+      "value": ""
+    },
+    {
+      "key": "giExpiry",
+      "value": ""
+    },
+    {
+      "key": "giOrderId",
+      "value": ""
+    },
+    {
+      "key": "giStay1",
       "value": ""
     }
   ],

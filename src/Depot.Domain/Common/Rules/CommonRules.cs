@@ -35,3 +35,13 @@ public sealed class MaxLengthRule(string? value, int max, string fieldName) : IB
 
     public bool IsBroken() => value is not null && value.Length > max;
 }
+
+public sealed class DefinedEnumRule<TEnum>(TEnum value, string fieldName) : IBusinessRule
+    where TEnum : struct, Enum
+{
+    public string RuleCode => $"{fieldName}.Invalid";
+    public string Message => $"{fieldName} is not a valid value.";
+    public ErrorType Type => ErrorType.Validation;
+
+    public bool IsBroken() => !Enum.IsDefined(value);
+}

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Depot.Api.Endpoints;
 using Depot.Api.Extensions;
 using Depot.Api.Identity;
@@ -19,6 +20,10 @@ builder.Services.AddInfrastructure(connectionString, builder.Configuration);
 builder.Services.AddJwtAuthentication();
 builder.Services.AddOpenApi();
 
+// Enums travel as text ("A", "Damaged", "Truck"), the same way they are stored.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -39,6 +44,8 @@ app.MapBlockEndpoints();
 app.MapBayEndpoints();
 app.MapYardRowEndpoints();
 app.MapContainerEndpoints();
+app.MapReleaseOrderEndpoints();
+app.MapContainerStayEndpoints();
 
 await app.Services.SeedAdminAsync();
 

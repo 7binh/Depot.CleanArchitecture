@@ -1,5 +1,7 @@
 using Depot.Domain.Catalogs;
 using Depot.Domain.Containers;
+using Depot.Domain.Gate;
+using Depot.Domain.ReleaseOrders;
 using Depot.Domain.Yard;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,10 @@ public interface IAppDbContext
     DbSet<YardRow> YardRows { get; }
 
     DbSet<Container> Containers { get; }
+
+    DbSet<ReleaseOrder> ReleaseOrders { get; }
+
+    DbSet<ContainerStay> ContainerStays { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

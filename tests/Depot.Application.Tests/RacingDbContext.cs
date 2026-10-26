@@ -1,6 +1,8 @@
 using Depot.Application.Abstractions.Data;
 using Depot.Domain.Catalogs;
 using Depot.Domain.Containers;
+using Depot.Domain.Gate;
+using Depot.Domain.ReleaseOrders;
 using Depot.Domain.Yard;
 using Depot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +10,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Depot.Application.Tests;
 
 /// <summary>
-/// Mô phỏng race: ngay trước khi lưu, một "người khác" đã lưu xong cùng mã,
+/// Mô phỏng race: ngay trước khi lưu, một "người khác" (<c>rivalSave</c>) đã lưu xong cùng khóa,
 /// nên lần lưu của handler bị database từ chối như khi vi phạm unique index.
 /// </summary>
-internal sealed class RacingDbContext(AppDbContext inner, AppDbContext rival, LineOperator rivalEntity)
-    : IAppDbContext
+internal sealed class RacingDbContext(AppDbContext inner, Func<CancellationToken, Task> rivalSave) : IAppDbContext
 {
     public DbSet<LineOperator> LineOperators => inner.LineOperators;
 
@@ -28,10 +29,13 @@ internal sealed class RacingDbContext(AppDbContext inner, AppDbContext rival, Li
 
     public DbSet<Container> Containers => inner.Containers;
 
+    public DbSet<ReleaseOrder> ReleaseOrders => inner.ReleaseOrders;
+
+    public DbSet<ContainerStay> ContainerStays => inner.ContainerStays;
+
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        rival.LineOperators.Add(rivalEntity);
-        await rival.SaveChangesAsync(cancellationToken);
+        await rivalSave(cancellationToken);
 
         throw new DbUpdateException("Simulated unique index violation.");
     }
