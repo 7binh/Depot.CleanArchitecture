@@ -4,6 +4,7 @@ using Depot.Domain.Common;
 using Depot.Domain.Gate;
 using Depot.Domain.ReleaseOrders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Depot.Application.Features.ContainerStays.GateOut;
 
@@ -33,6 +34,10 @@ public sealed class GateOutHandler(IAppDbContext dbContext, TimeProvider timePro
                 ContainerStayErrors.GateOutReleaseOrderNotFound(command.ReleaseOrderId));
         }
 
+        // Gate outs on one order run one at a time, so the delivered count below cannot go stale (BR-RO-06).
+        await using var transaction = await dbContext.BeginTransactionAsync(cancellationToken);
+        await dbContext.LockReleaseOrderAsync(order.Id, cancellationToken);
+
         var stay = await dbContext.ContainerStays
             .FirstOrDefaultAsync(x => x.ContainerId == container.Id && x.GateOutAt == null, cancellationToken);
         if (stay is null)
@@ -52,7 +57,25 @@ public sealed class GateOutHandler(IAppDbContext dbContext, TimeProvider timePro
             return Result.Failure<ContainerStayResponse>(done.Error);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        return await SaveAsync(stay, transaction, cancellationToken);
+    }
+
+    // The same container may leave on another order at the same moment: whoever saves second loses.
+    private async Task<Result<ContainerStayResponse>> SaveAsync(
+        ContainerStay stay,
+        IDbContextTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result.Failure<ContainerStayResponse>(ContainerStayErrors.NotInYard(stay.ContainerId));
+        }
+
         return Result.Success(ContainerStayResponse.From(stay));
     }
 

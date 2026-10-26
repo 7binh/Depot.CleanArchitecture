@@ -6,6 +6,7 @@ using Depot.Domain.ReleaseOrders;
 using Depot.Domain.Yard;
 using Depot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Depot.Application.Tests;
 
@@ -13,7 +14,10 @@ namespace Depot.Application.Tests;
 /// Mô phỏng race: ngay trước khi lưu, một "người khác" (<c>rivalSave</c>) đã lưu xong cùng khóa,
 /// nên lần lưu của handler bị database từ chối như khi vi phạm unique index.
 /// </summary>
-internal sealed class RacingDbContext(AppDbContext inner, Func<CancellationToken, Task> rivalSave) : IAppDbContext
+internal sealed class RacingDbContext(
+    AppDbContext inner,
+    Func<CancellationToken, Task> rivalSave,
+    Func<DbUpdateException>? failure = null) : IAppDbContext
 {
     public DbSet<LineOperator> LineOperators => inner.LineOperators;
 
@@ -37,6 +41,16 @@ internal sealed class RacingDbContext(AppDbContext inner, Func<CancellationToken
     {
         await rivalSave(cancellationToken);
 
-        throw new DbUpdateException("Simulated unique index violation.");
+        throw failure?.Invoke() ?? new DbUpdateException("Simulated unique index violation.");
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return inner.BeginTransactionAsync(cancellationToken);
+    }
+
+    public Task LockReleaseOrderAsync(Guid releaseOrderId, CancellationToken cancellationToken = default)
+    {
+        return inner.LockReleaseOrderAsync(releaseOrderId, cancellationToken);
     }
 }

@@ -312,6 +312,12 @@ namespace Depot.Infrastructure.Persistence.Migrations
                     b.Property<int?>("Tier")
                         .HasColumnType("integer");
 
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BlockId");

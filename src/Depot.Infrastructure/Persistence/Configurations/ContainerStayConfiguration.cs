@@ -17,6 +17,9 @@ public sealed class ContainerStayConfiguration : IEntityTypeConfiguration<Contai
     {
         builder.HasKey(x => x.Id);
 
+        // PostgreSQL's own row version: saving a stay someone else changed meanwhile fails instead of overwriting it.
+        builder.Property<uint>("xmin").HasColumnType("xid").ValueGeneratedOnAddOrUpdate().IsConcurrencyToken();
+
         // Stored as text so the SQL statistics (database/queries) read "Damaged", not 1.
         builder.Property(x => x.Grade).HasConversion<string>().HasMaxLength(_enumNameLength);
         builder.Property(x => x.Condition).HasConversion<string>().HasMaxLength(_enumNameLength);

@@ -4,6 +4,7 @@ using Depot.Domain.Gate;
 using Depot.Domain.ReleaseOrders;
 using Depot.Domain.Yard;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Depot.Application.Abstractions.Data;
 
@@ -28,4 +29,11 @@ public interface IAppDbContext
     DbSet<ContainerStay> ContainerStays { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Locks one release order until the current transaction ends, so gate outs on the same order run one at a time.
+    /// </summary>
+    Task LockReleaseOrderAsync(Guid releaseOrderId, CancellationToken cancellationToken = default);
 }

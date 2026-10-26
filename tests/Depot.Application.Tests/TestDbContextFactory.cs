@@ -1,6 +1,7 @@
 using Depot.Application.Abstractions;
 using Depot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Depot.Application.Tests;
 
@@ -20,6 +21,7 @@ internal static class TestDbContextFactory
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(databaseName)
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
         return new AppDbContext(options, currentUser, timeProvider);

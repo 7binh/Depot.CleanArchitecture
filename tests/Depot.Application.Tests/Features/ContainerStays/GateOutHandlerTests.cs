@@ -1,3 +1,4 @@
+using Depot.Application.Features.ContainerStays.GateOut;
 using Depot.Application.Features.ContainerStays.GetAll;
 using Depot.Domain.Common;
 using Depot.Domain.Gate;
@@ -163,6 +164,27 @@ public sealed class GateOutHandlerTests
 
         Assert.True(result.IsFailure);
         Assert.Equal("ReleaseOrder.LineFull", result.Error.Code);
+        Assert.Equal(ErrorType.Conflict, result.Error.Type);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ReturnsConflict_WhenAnotherClerkGatesTheSameContainerOutFirst()
+    {
+        var databaseName = Guid.NewGuid().ToString();
+        await using var inner = TestDbContextFactory.Create(databaseName);
+        await using var rival = TestDbContextFactory.Create(databaseName);
+        var yard = await GateOutTestData.CreateYardWithContainerInAsync(inner, _ct);
+        var orderId = await GateOutTestData.CreateOrderAsync(inner, 2, _ct);
+        var command = GateOutTestData.Command(yard.ContainerId, orderId);
+        var racing = new RacingDbContext(
+            inner,
+            ct => GateOutTestData.CreateHandler(rival).HandleAsync(command, ct),
+            () => new DbUpdateConcurrencyException("Simulated stale xmin."));
+
+        var result = await new GateOutHandler(racing, ContainerTestData.Clock).HandleAsync(command, _ct);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("GateOut.ContainerNotInYard", result.Error.Code);
         Assert.Equal(ErrorType.Conflict, result.Error.Type);
     }
 

@@ -54,7 +54,7 @@ Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Dep
 | `Grade`, `Condition`, `InVehicleType` lưu dạng chuỗi (`A`, `Damaged`, `Truck`) trong bảng `ContainerStays` | SQL thống kê đọc được trực tiếp, không phải nhớ số |
 | Unique index của `ContainerStays` (`ContainerId`; `RowId`+`Tier`) chỉ tính lần lưu bãi đang mở (`WHERE "GateOutAt" IS NULL`) | Container ra rồi vào lại được (BR-GI-04), vị trí được giải phóng khi container ra (BR-GO-09) |
 | Gate out: nhận `ContainerId` (không nhận id lần lưu bãi), tìm lần lưu bãi đang mở của container; ngày xét hạn lệnh là ngày của giờ ra theo múi giờ của depot; danh sách lần lưu bãi có bộ lọc `InYard` | Nhân viên cổng biết container; hạn lệnh là ngày lịch của depot, không phải ngày UTC |
-| Gate out chưa chặn hai người thao tác cùng lúc (cùng đóng một lần lưu bãi, hoặc cùng giao thùng cuối của một dòng lệnh) | Cách chặn là concurrency token (`xmin`); để sau, chờ hỏi mentor có cần ở mức này không |
+| Gate out chặn hai người thao tác cùng lúc bằng hai lớp: (1) khoá dòng lệnh giao `SELECT ... FOR UPDATE` trong transaction, nên các lần gate out trên cùng một lệnh chạy lần lượt và số thùng đã giao luôn đúng (BR-RO-06); (2) concurrency token `xmin` trên `ContainerStay`, nên cùng một thùng gate out bằng hai lệnh khác nhau thì người lưu sau nhận 409 `GateOut.ContainerNotInYard` | Cột `xmin` là cột hệ thống của PostgreSQL nên migration `AddContainerStayConcurrencyToken` để trống, chỉ cập nhật model. Test dùng InMemory nên bỏ qua khoá dòng; đã thử thật trên PostgreSQL: hai thùng cùng tranh suất cuối thì một 200 một 409 `ReleaseOrder.LineFull`, bốn request cùng một thùng thì một 200 ba 409 |
 
 ## Việc làm sau (đã thống nhất, chưa làm)
 

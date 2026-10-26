@@ -9,6 +9,7 @@ using Depot.Infrastructure.Identity;
 using Depot.Domain.Yard;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Depot.Infrastructure.Persistence;
 
@@ -41,6 +42,24 @@ public sealed class AppDbContext(
     {
         FillAuditFields();
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public async Task LockReleaseOrderAsync(Guid releaseOrderId, CancellationToken cancellationToken = default)
+    {
+        // Row locks are a PostgreSQL feature; the in-memory provider used by the tests has nothing to lock.
+        if (!Database.IsRelational())
+        {
+            return;
+        }
+
+        await Database.ExecuteSqlInterpolatedAsync(
+            $"""SELECT 1 FROM "ReleaseOrders" WHERE "Id" = {releaseOrderId} FOR UPDATE""",
+            cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
