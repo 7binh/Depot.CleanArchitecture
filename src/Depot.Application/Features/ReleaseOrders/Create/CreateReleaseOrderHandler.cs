@@ -53,7 +53,7 @@ public sealed class CreateReleaseOrderHandler(IAppDbContext dbContext, TimeProvi
         }
 
         var today = DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
-        return Result.Success(ReleaseOrderResponse.From(order, today));
+        return Result.Success(ReleaseOrderResponse.From(order, today, new Dictionary<Guid, int>()));
     }
 
     private async Task<Result> CheckReferencesAsync(

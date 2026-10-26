@@ -4916,7 +4916,45 @@
           "response": []
         },
         {
-          "name": "21. Gate out - container 1 on the release order (success)",
+          "name": "21. Get order - nothing delivered yet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Order is NotDelivered with 0 delivered and 1 remaining', function () {",
+                  "    var order = pm.response.json();",
+                  "    pm.expect(order.status).to.eql('NotDelivered');",
+                  "    pm.expect(order.items[0].delivered).to.eql(0);",
+                  "    pm.expect(order.items[0].remaining).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders/{{giOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders",
+                "{{giOrderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "22. Gate out - container 1 on the release order (success)",
           "event": [
             {
               "listen": "test",
@@ -4962,7 +5000,45 @@
           "response": []
         },
         {
-          "name": "22. Gate out - container 1 again returns 409",
+          "name": "23. Get order - delivered in full after the gate out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Order is Delivered with 1 delivered and 0 remaining', function () {",
+                  "    var order = pm.response.json();",
+                  "    pm.expect(order.status).to.eql('Delivered');",
+                  "    pm.expect(order.items[0].delivered).to.eql(1);",
+                  "    pm.expect(order.items[0].remaining).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders/{{giOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders",
+                "{{giOrderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "24. Gate out - container 1 again returns 409",
           "event": [
             {
               "listen": "test",
@@ -5005,7 +5081,7 @@
           "response": []
         },
         {
-          "name": "23. Gate out - the order line is already full returns 409",
+          "name": "25. Gate out - the order line is already full returns 409",
           "event": [
             {
               "listen": "test",
@@ -5048,7 +5124,7 @@
           "response": []
         },
         {
-          "name": "24. Gate out - unknown release order returns 400",
+          "name": "26. Gate out - unknown release order returns 400",
           "event": [
             {
               "listen": "test",
@@ -5091,7 +5167,7 @@
           "response": []
         },
         {
-          "name": "25. List in yard - container 1 has left",
+          "name": "27. List in yard - container 1 has left",
           "event": [
             {
               "listen": "test",
@@ -5136,7 +5212,7 @@
           "response": []
         },
         {
-          "name": "26. Gate in - container 1 comes back to the freed position (success)",
+          "name": "28. Gate in - container 1 comes back to the freed position (success)",
           "event": [
             {
               "listen": "test",

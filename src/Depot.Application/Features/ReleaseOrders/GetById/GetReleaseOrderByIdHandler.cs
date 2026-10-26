@@ -22,7 +22,10 @@ public sealed class GetReleaseOrderByIdHandler(IAppDbContext dbContext, TimeProv
             return Result.Failure<ReleaseOrderResponse>(ReleaseOrderErrors.ReleaseOrderNotFound(query.Id));
         }
 
+        var itemIds = order.Items.Select(x => x.Id).ToList();
+        var delivered = await DeliveredCounts.LoadAsync(dbContext, itemIds, cancellationToken);
+
         var today = DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
-        return Result.Success(ReleaseOrderResponse.From(order, today));
+        return Result.Success(ReleaseOrderResponse.From(order, today, delivered));
     }
 }

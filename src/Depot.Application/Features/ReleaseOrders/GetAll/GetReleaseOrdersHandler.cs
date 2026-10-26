@@ -21,8 +21,11 @@ public sealed class GetReleaseOrdersHandler(IAppDbContext dbContext, TimeProvide
             .ThenBy(x => x.OrderNo)
             .ToListAsync(cancellationToken);
 
+        var itemIds = orders.SelectMany(x => x.Items).Select(x => x.Id).ToList();
+        var delivered = await DeliveredCounts.LoadAsync(dbContext, itemIds, cancellationToken);
+
         IReadOnlyList<ReleaseOrderResponse> responses = orders
-            .Select(x => ReleaseOrderResponse.From(x, today))
+            .Select(x => ReleaseOrderResponse.From(x, today, delivered))
             .ToList();
 
         return Result.Success(responses);

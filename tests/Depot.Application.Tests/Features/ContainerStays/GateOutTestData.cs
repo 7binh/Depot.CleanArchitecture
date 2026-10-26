@@ -41,17 +41,20 @@ internal static class GateOutTestData
         int quantity,
         CancellationToken cancellationToken,
         int expiresInDays = 10,
-        Guid? operatorId = null)
+        Guid? operatorId = null,
+        string orderNo = "RO-001")
     {
-        var customer = await new CreateCustomerHandler(dbContext)
-            .HandleAsync(new CreateCustomerCommand("0101234567", "Cong ty ABC"), cancellationToken);
+        var customerId = await dbContext.Customers.Select(x => (Guid?)x.Id).FirstOrDefaultAsync(cancellationToken)
+            ?? (await new CreateCustomerHandler(dbContext)
+                .HandleAsync(new CreateCustomerCommand("0101234567", "Cong ty ABC"), cancellationToken)).Value.Id;
         var refs = new ReleaseOrderRefs(
             operatorId ?? await dbContext.LineOperators.Where(x => x.Code == "CSQ").Select(x => x.Id).SingleAsync(cancellationToken),
-            customer.Value.Id,
+            customerId,
             await dbContext.ContainerTypes.Where(x => x.Code == "DRY").Select(x => x.Id).SingleAsync(cancellationToken));
 
         var command = ReleaseOrderTestData.Command(
             refs,
+            orderNo,
             lines: [new ReleaseOrderLineRequest(refs.TypeId, 20, quantity)]) with
         {
             IssuedDate = ContainerTestData.Today.AddDays(-20),
