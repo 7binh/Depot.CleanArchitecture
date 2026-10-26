@@ -147,6 +147,23 @@ public sealed class ContainerStay : AuditableEntity
         return Result.Success();
     }
 
+    /// <summary>
+    /// Drops the row and tier of a stay that is over, so the row can be removed while the history stays: the
+    /// container, the block, the times and the vehicles are kept (BR-YD-09). Nothing changes on failure.
+    /// </summary>
+    public Result ForgetRow()
+    {
+        var check = BusinessRuleValidator.Check(new StayIsOverRule(IsOpen));
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        RowId = null;
+        Tier = null;
+        return Result.Success();
+    }
+
     // Every rule treats a missing bay, row or tier as "not my business"; RowAndTierRequiredRule reports it first.
     private static IBusinessRule[] PlacementRules(Container container, GateInPlacement placement)
     {
@@ -160,6 +177,7 @@ public sealed class ContainerStay : AuditableEntity
             new TierWithinRowRule(placement.Row, placement.Tier),
             new BayMatchesSizeRule(placement.Bay, container.SizeFeet),
             new SlotFreeRule(placement.Tier, placement.OccupiedTiers),
+            new NeighbourBaysExistRule(placement.Bay, neighbours),
             new NeighbourBaysFreeRule(placement.Bay, placement.Tier, neighbours),
             new TierBelowOccupiedRule(placement.Bay, placement.Tier, placement.OccupiedTiers, neighbours)
         ];

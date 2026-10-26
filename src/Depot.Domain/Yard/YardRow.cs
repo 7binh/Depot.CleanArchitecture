@@ -37,4 +37,32 @@ public sealed class YardRow : AuditableEntity
 
         return Result.Success(new YardRow(bayId, rowNo, maxTier));
     }
+
+    /// <summary>
+    /// Says whether the row may be removed to shrink the yard; <paramref name="containerStands"/> is loaded by the
+    /// caller (BR-YD-09).
+    /// </summary>
+    public static Result CanBeRemoved(bool containerStands)
+    {
+        return BusinessRuleValidator.Check(new RowIsEmptyRule(containerStands));
+    }
+
+    /// <summary>
+    /// Raises or lowers the row. <paramref name="highestOccupiedTier"/> is the highest tier that holds a container in
+    /// the yard (0 for none), loaded by the caller so the Domain never queries; nothing changes on failure.
+    /// </summary>
+    public Result ChangeMaxTier(int maxTier, int highestOccupiedTier)
+    {
+        var check = BusinessRuleValidator.Check(
+            new MaxTierRule(maxTier),
+            new MaxTierHoldsContainersRule(maxTier, highestOccupiedTier));
+
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        MaxTier = maxTier;
+        return Result.Success();
+    }
 }

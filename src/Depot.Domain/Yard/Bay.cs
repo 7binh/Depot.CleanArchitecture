@@ -32,4 +32,13 @@ public sealed class Bay : AuditableEntity
 
         return Result.Success(new Bay(block.Id, bayNo));
     }
+
+    /// <summary>
+    /// Says whether the bay may be removed to shrink the yard; <paramref name="containerStands"/> is loaded by the
+    /// caller (BR-YD-09).
+    /// </summary>
+    public static Result CanBeRemoved(bool containerStands)
+    {
+        return BusinessRuleValidator.Check(new BayIsEmptyRule(containerStands));
+    }
 }

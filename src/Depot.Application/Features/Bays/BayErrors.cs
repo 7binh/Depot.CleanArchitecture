@@ -18,4 +18,9 @@ internal static class BayErrors
     {
         return Error.Conflict("Bay.BayNoExists", $"Bay number {bayNo} already exists in this block.");
     }
+
+    public static Error LayoutChanged()
+    {
+        return Error.Conflict("Layout.Changed", "The block was changed by another request; nothing was created, try again.");
+    }
 }

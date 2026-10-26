@@ -2,8 +2,11 @@ using Depot.Api.Extensions;
 using Depot.Application.Abstractions.Messaging;
 using Depot.Application.Features.Blocks;
 using Depot.Application.Features.Blocks.Create;
+using Depot.Application.Features.Blocks.Delete;
+using Depot.Application.Features.Blocks.GenerateLayout;
 using Depot.Application.Features.Blocks.GetAll;
 using Depot.Application.Features.Blocks.GetById;
+using Depot.Application.Features.Blocks.Update;
 using Depot.Domain.Common;
 
 namespace Depot.Api.Endpoints;
@@ -26,6 +29,48 @@ public static class BlockEndpoints
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetBlockById")
             .WithSummary("Get one block by id");
+
+        group.MapPut("/{id:guid}", Update)
+            .WithName("UpdateBlock")
+            .WithSummary("Rename a block (the code and the virtual flag cannot be changed)");
+
+        group.MapDelete("/{id:guid}", Delete)
+            .WithName("DeleteBlock")
+            .WithSummary("Remove a block with its bays and rows (refused when it ever held a container)");
+
+        group.MapPost("/{id:guid}/layout", GenerateLayout)
+            .WithName("GenerateBlockLayout")
+            .WithSummary("Create the bays FromBay..ToBay of a block, each with rows 1..RowCount (existing ones are kept)");
+    }
+
+    private static async Task<IResult> Delete(
+        Guid id,
+        ICommandHandler<DeleteBlockCommand, Result> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new DeleteBlockCommand(id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> Update(
+        Guid id,
+        UpdateBlockRequest request,
+        ICommandHandler<UpdateBlockCommand, Result<BlockResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new UpdateBlockCommand(id, request.Name), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GenerateLayout(
+        Guid id,
+        GenerateLayoutRequest request,
+        ICommandHandler<GenerateLayoutCommand, Result<GenerateLayoutResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new GenerateLayoutCommand(id, request.FromBay, request.ToBay, request.RowCount, request.MaxTier);
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Create(
@@ -56,3 +101,9 @@ public static class BlockEndpoints
         return result.ToHttpResult();
     }
 }
+
+/// <summary>Body of PUT /api/blocks/{id}; the block id comes from the route.</summary>
+public sealed record UpdateBlockRequest(string? Name);
+
+/// <summary>Body of POST /api/blocks/{id}/layout; the block id comes from the route.</summary>
+public sealed record GenerateLayoutRequest(int FromBay, int ToBay, int RowCount, int MaxTier);

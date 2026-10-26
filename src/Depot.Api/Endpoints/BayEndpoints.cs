@@ -2,6 +2,7 @@ using Depot.Api.Extensions;
 using Depot.Application.Abstractions.Messaging;
 using Depot.Application.Features.Bays;
 using Depot.Application.Features.Bays.Create;
+using Depot.Application.Features.Bays.Delete;
 using Depot.Application.Features.Bays.GetAll;
 using Depot.Application.Features.Bays.GetById;
 using Depot.Domain.Common;
@@ -26,6 +27,20 @@ public static class BayEndpoints
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetBayById")
             .WithSummary("Get one bay of a block by id");
+
+        group.MapDelete("/{id:guid}", Delete)
+            .WithName("DeleteBay")
+            .WithSummary("Remove a bay with its rows (refused while a container stands in it or on it)");
+    }
+
+    private static async Task<IResult> Delete(
+        Guid blockId,
+        Guid id,
+        ICommandHandler<DeleteBayCommand, Result> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new DeleteBayCommand(blockId, id), cancellationToken);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Create(

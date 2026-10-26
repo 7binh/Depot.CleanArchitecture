@@ -21,6 +21,18 @@ public sealed class BayTests
         Assert.Equal(3, result.Value.BayNo);
     }
 
+    [Fact]
+    public void CanBeRemoved_IsRefused_OnlyWhileAContainerStands()
+    {
+        Assert.True(Bay.CanBeRemoved(false).IsSuccess);
+
+        var refused = Bay.CanBeRemoved(true);
+
+        Assert.True(refused.IsFailure);
+        Assert.Equal("Bay.HasContainers", refused.Error.Code);
+        Assert.Equal(ErrorType.Conflict, refused.Error.Type);
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(2)]

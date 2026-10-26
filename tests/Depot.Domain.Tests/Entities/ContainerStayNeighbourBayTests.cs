@@ -35,9 +35,17 @@ public sealed class ContainerStayNeighbourBayTests
         int[]? before = null,
         int[]? after = null,
         int[]? farBefore = null,
-        int[]? farAfter = null)
+        int[]? farAfter = null,
+        bool beforeExists = true,
+        bool afterExists = true)
     {
-        return new NeighbourTiers(before ?? _none, after ?? _none, farBefore ?? _none, farAfter ?? _none);
+        return new NeighbourTiers(
+            before ?? _none,
+            after ?? _none,
+            farBefore ?? _none,
+            farAfter ?? _none,
+            beforeExists,
+            afterExists);
     }
 
     private static void AssertError(Result<ContainerStay> result, string code, ErrorType type)
@@ -97,6 +105,23 @@ public sealed class ContainerStayNeighbourBayTests
     public void FortyFoot_CanRestOnAFortyFootContainerInTheSameBay()
     {
         Assert.True(GateIn(2, 40, 2, [1], Around()).IsSuccess);
+    }
+
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    public void FortyFoot_Fails_WhenAnOddBayBesideItIsNotDeclared(bool beforeExists, bool afterExists)
+    {
+        var neighbours = Around(beforeExists: beforeExists, afterExists: afterExists);
+
+        AssertError(GateIn(2, 40, 1, _none, neighbours), "Bay.NeighboursMissing", ErrorType.Validation);
+    }
+
+    [Fact]
+    public void TwentyFoot_DoesNotNeedItsNeighbourBays()
+    {
+        Assert.True(GateIn(1, 20, 1, _none, Around(beforeExists: false, afterExists: false)).IsSuccess);
     }
 
     [Fact]

@@ -238,6 +238,33 @@ public sealed class ContainerStayGateOutTests
     }
 
     [Fact]
+    public void ForgetRow_Fails_WhileTheContainerIsStillInTheYard()
+    {
+        var container = Container();
+        var stay = OpenStay(container);
+
+        var result = stay.ForgetRow();
+
+        AssertError(result, "Stay.StillOpen", ErrorType.Conflict);
+    }
+
+    [Fact]
+    public void ForgetRow_KeepsTheHistory_OfAStayThatIsOver()
+    {
+        var container = Container();
+        var stay = OpenStay(container);
+        GateOut(stay, container, Order());
+
+        var result = stay.ForgetRow();
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(stay.RowId);
+        Assert.Null(stay.Tier);
+        Assert.Equal(container.Id, stay.ContainerId);
+        Assert.Equal(_now, stay.GateOutAt);
+    }
+
+    [Fact]
     public void FindItemFor_ReturnsTheLineOfTheSameTypeAndSize_OrNull()
     {
         var container = Container(20);

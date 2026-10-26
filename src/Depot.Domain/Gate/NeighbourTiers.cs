@@ -9,11 +9,15 @@ namespace Depot.Domain.Gate;
 /// <param name="After">Bay N+1.</param>
 /// <param name="FarBefore">Bay N-2.</param>
 /// <param name="FarAfter">Bay N+2.</param>
+/// <param name="BeforeExists">Whether bay N-1 is declared in the block; a removed bay leaves a gap.</param>
+/// <param name="AfterExists">Whether bay N+1 is declared in the block.</param>
 public sealed record NeighbourTiers(
     IReadOnlyCollection<int> Before,
     IReadOnlyCollection<int> After,
     IReadOnlyCollection<int> FarBefore,
-    IReadOnlyCollection<int> FarAfter)
+    IReadOnlyCollection<int> FarAfter,
+    bool BeforeExists = true,
+    bool AfterExists = true)
 {
     /// <summary>No container around: a virtual block, or a bay with nothing beside it.</summary>
     public static NeighbourTiers None { get; } = new([], [], [], []);

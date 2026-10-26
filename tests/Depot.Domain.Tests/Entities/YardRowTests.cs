@@ -60,4 +60,58 @@ public sealed class YardRowTests
         Assert.Equal("MaxTier.Invalid", result.Error.Code);
         Assert.Equal(ErrorType.Validation, result.Error.Type);
     }
+
+    [Fact]
+    public void CanBeRemoved_IsRefused_OnlyWhileAContainerStands()
+    {
+        Assert.True(YardRow.CanBeRemoved(false).IsSuccess);
+
+        var refused = YardRow.CanBeRemoved(true);
+
+        Assert.True(refused.IsFailure);
+        Assert.Equal("Row.HasContainers", refused.Error.Code);
+        Assert.Equal(ErrorType.Conflict, refused.Error.Type);
+    }
+
+    [Theory]
+    [InlineData(2, 0)]
+    [InlineData(5, 0)]
+    [InlineData(3, 3)]
+    [InlineData(4, 2)]
+    public void ChangeMaxTier_Succeeds_WhenNoContainerStandsAboveTheNewMaximum(int maxTier, int highestOccupiedTier)
+    {
+        var row = YardRow.Create(Guid.NewGuid(), 1, 4).Value;
+
+        var result = row.ChangeMaxTier(maxTier, highestOccupiedTier);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(maxTier, row.MaxTier);
+    }
+
+    [Fact]
+    public void ChangeMaxTier_Fails_AndKeepsTheRow_WhenAContainerStandsAboveTheNewMaximum()
+    {
+        var row = YardRow.Create(Guid.NewGuid(), 1, 4).Value;
+
+        var result = row.ChangeMaxTier(2, 3);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("MaxTier.BelowOccupied", result.Error.Code);
+        Assert.Equal(ErrorType.Conflict, result.Error.Type);
+        Assert.Equal(4, row.MaxTier);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(YardRow.MaxTierCount + 1)]
+    public void ChangeMaxTier_Fails_WhenTheNewMaximumIsOutOfRange(int maxTier)
+    {
+        var row = YardRow.Create(Guid.NewGuid(), 1, 4).Value;
+
+        var result = row.ChangeMaxTier(maxTier, 0);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("MaxTier.Invalid", result.Error.Code);
+        Assert.Equal(4, row.MaxTier);
+    }
 }

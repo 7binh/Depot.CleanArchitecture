@@ -43,7 +43,8 @@ public sealed class ContainerStayConfiguration : IEntityTypeConfiguration<Contai
             .HasForeignKey(x => x.BlockId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Restrict keeps the position history: a row that ever held a container cannot be deleted (BR-YD-08, BR-YD-09).
+        // Restrict also guards open stays: a row cannot be deleted while a container stands in it (BR-YD-09). The
+        // delete handlers first clear RowId on closed stays, so a row that only has history can still go.
         builder.HasOne<YardRow>()
             .WithMany()
             .HasForeignKey(x => x.RowId)

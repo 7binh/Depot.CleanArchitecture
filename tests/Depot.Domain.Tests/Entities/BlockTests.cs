@@ -25,6 +25,57 @@ public sealed class BlockTests
         Assert.True(result.Value.IsVirtual);
     }
 
+    [Fact]
+    public void CanBeRemoved_IsRefused_OnlyWhenTheBlockEverHeldAContainer()
+    {
+        Assert.True(Block.CanBeRemoved(false).IsSuccess);
+
+        var refused = Block.CanBeRemoved(true);
+
+        Assert.True(refused.IsFailure);
+        Assert.Equal("Block.InUse", refused.Error.Code);
+        Assert.Equal(ErrorType.Conflict, refused.Error.Type);
+    }
+
+    [Fact]
+    public void Rename_TrimsTheName_AndKeepsCodeAndVirtualFlag()
+    {
+        var block = Block.Create("A1", "Khu A1", true).Value;
+
+        var result = block.Rename("  Khu moi  ");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Khu moi", block.Name);
+        Assert.Equal("A1", block.Code);
+        Assert.True(block.IsVirtual);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public void Rename_Fails_AndKeepsTheName_WhenTheNameIsEmpty(string? name)
+    {
+        var block = Block.Create("A1", "Khu A1", false).Value;
+
+        var result = block.Rename(name);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Name.Empty", result.Error.Code);
+        Assert.Equal("Khu A1", block.Name);
+    }
+
+    [Fact]
+    public void Rename_Fails_WhenTheNameIsTooLong()
+    {
+        var block = Block.Create("A1", "Khu A1", false).Value;
+
+        var result = block.Rename(new string('x', Block.NameMaxLength + 1));
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Name.TooLong", result.Error.Code);
+        Assert.Equal("Khu A1", block.Name);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

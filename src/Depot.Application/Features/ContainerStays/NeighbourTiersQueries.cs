@@ -28,12 +28,19 @@ internal static class NeighbourTiersQueries
             select new { nearBay.BayNo, Tier = stay.Tier!.Value })
             .ToListAsync(cancellationToken);
 
+        var declared = await dbContext.Bays
+            .Where(x => x.BlockId == bay.BlockId && (x.BayNo == bay.BayNo - 1 || x.BayNo == bay.BayNo + 1))
+            .Select(x => x.BayNo)
+            .ToListAsync(cancellationToken);
+
         var tiers = taken.Select(x => (x.BayNo, x.Tier)).ToList();
         return new NeighbourTiers(
             TiersAt(tiers, bay.BayNo - 1),
             TiersAt(tiers, bay.BayNo + 1),
             TiersAt(tiers, bay.BayNo - 2),
-            TiersAt(tiers, bay.BayNo + 2));
+            TiersAt(tiers, bay.BayNo + 2),
+            declared.Contains(bay.BayNo - 1),
+            declared.Contains(bay.BayNo + 1));
     }
 
     private static List<int> TiersAt(List<(int BayNo, int Tier)> taken, int bayNo)
