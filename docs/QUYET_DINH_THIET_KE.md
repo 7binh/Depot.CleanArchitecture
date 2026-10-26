@@ -22,6 +22,7 @@ Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Dep
 | Kiểm tra dữ liệu | FluentValidation ở endpoint | `IBusinessRule` + `BusinessRuleValidator` ở Domain | Một nơi cho mỗi luật, không viết hai lần. Thêm FluentValidation sau nếu mentor muốn |
 | Thư mục Domain | `Entities/` gom tất cả | `Catalogs/`, `Yard/`, `Containers/` (sau này `ReleaseOrders/`, `Gate/`), mỗi nhóm giữ entity ở gốc và rule trong thư mục con `Rules/` (như `Common/Rules/`); namespace theo thư mục | Entity kéo theo nhiều file rule, một thư mục phẳng sẽ khó đọc; chia theo nhóm nghiệp vụ khớp với `Features/` bên Application |
 | Interface `ICommand<TResponse>` | Có (marker rỗng) | Không | Analyzer S2326 báo lỗi tham số kiểu không dùng; `ICommandHandler` đã đủ |
+| Đăng nhập (Identity + JWT) | `ApplicationUser : IdentityUser` nằm trong Domain; handler gọi thẳng `UserManager`; lỗi đăng nhập ném exception | `ApplicationUser` nằm ở Infrastructure; Application chỉ biết `IIdentityService`, `ITokenService`, `ICurrentUser`; lỗi trả `Result` (`ErrorType.Unauthorized` → 401) | Giữ Domain không phụ thuộc thư viện ngoài và không throw cho lỗi dự kiến (AGENTS.md). **Chưa hỏi mentor** xem cách của mentor có chủ ý hay không |
 | Multi-tenant, Aspire, ELK, Agents | Có | Không | Ngoài phạm vi (A-13, hệ thống một depot) |
 
 ## Giả định tự đặt (ngoài đặc tả)
@@ -36,7 +37,11 @@ Nguyên tắc: theo mentor ở quy ước chung của team; chỉ lệch khi Dep
 | Số tầng tối đa của row (MaxTier) từ 2 đến 10 | Cận dưới 2 theo BR-YD-07; cận trên 10 là giả định của dự án, cần hỏi mentor |
 | Block ảo không có bay (BR-YD-10), nên cũng không có row | Row nằm trong bay, bay không có thì row không có |
 | Bay và Row là hai entity riêng (bảng `Bays`, `YardRows`), khóa ngoại `Restrict` | Chặn xóa bay khi còn row, xóa block khi còn bay; số bay duy nhất trong block, số row duy nhất trong bay (chỉ mục duy nhất ghép) |
-| Tạo mới trả 201 kèm header `Location`; danh sách chưa phân trang; chưa có xác thực | Làm gọn cho bản đầu; phân trang dùng `PagedResult` khi dữ liệu lớn, xác thực làm sau |
+| Tạo mới trả 201 kèm header `Location`; danh sách chưa phân trang | Làm gọn cho bản đầu; phân trang dùng `PagedResult` khi dữ liệu lớn |
+| Đăng nhập bằng email + mật khẩu, JWT HS256 sống 15 phút kèm refresh token sống 7 ngày, chưa có vai trò (role), chưa khóa tài khoản khi sai nhiều lần | Đủ để biết ai làm gì (audit); làm đơn giản trước, thêm sau khi cần. Mọi endpoint mặc định yêu cầu token, chỉ `/api/auth/login` và trang tài liệu API mở |
+| Tài khoản đầu tiên (admin) tạo khi API khởi động từ cấu hình `Seed:AdminEmail` / `Seed:AdminPassword`; không có màn hình đăng ký | Tài khoản nội bộ do quản trị tạo; mật khẩu và `Jwt:Secret` chỉ nằm trong user-secrets / biến môi trường, không vào Git |
+| Audit: mọi entity có `CreatedAt/CreatedBy/LastModifiedAt/LastModifiedBy`, tự điền khi lưu từ `ICurrentUser` + `TimeProvider`; `CreatedBy` là chuỗi id người dùng, `null` khi không có người dùng (seed, công cụ) | Biết nhân viên nào tạo/sửa; Domain không đọc đồng hồ hay người dùng. Dòng có sẵn trước khi thêm audit mang `CreatedAt = 0001-01-01` |
+| Refresh token: lưu băm SHA-256 trong bảng `RefreshTokens`, mỗi lần dùng đổi sang token mới (xoay vòng); token đã dùng bị dùng lại thì thu hồi mọi phiên của người đó; `POST /api/auth/logout` thu hồi refresh token | Đăng xuất thật sự và hạn chế thiệt hại khi lộ token. Access token đang cầm vẫn dùng được tới khi hết hạn (tối đa 15 phút). Chưa dọn token hết hạn, chưa xử lý hai request đổi cùng một token đồng thời |
 
 ## Việc làm sau (đã thống nhất, chưa làm)
 

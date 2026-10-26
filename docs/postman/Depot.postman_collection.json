@@ -2,10 +2,560 @@
   "info": {
     "_postman_id": "0c1d6c52-8a6e-4d2a-b3f1-7a1e2f4c9b10",
     "name": "Depot API",
-    "description": "Bo request mau cho Depot API. Chon environment 'Depot local' truoc khi chay. Trong moi thu muc, chay theo thu tu tu tren xuong (cac request sau dung lai du lieu request 1 vua tao).",
+    "description": "Bo request mau cho Depot API. Chon environment 'Depot local' va dien adminPassword (mat khau admin trong user-secrets) truoc khi chay. Chay thu muc Auth truoc: request 1 luu token, ca bo request dung token do. Trong moi thu muc, chay theo thu tu tu tren xuong (cac request sau dung lai du lieu request 1 vua tao).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Login - success (saves the token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('Response has a token and an expiry', function () {",
+                  "    pm.expect(body.accessToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.refreshToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.expiresAt).to.be.a('string');",
+                  "});",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "2. Login - wrong password returns 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test('Error code is Auth.InvalidCredentials', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Auth.InvalidCredentials');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"Wrong-Password-1!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "3. Login - unknown email returns the same 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test('Same error as a wrong password (no account enumeration)', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.title).to.eql('Auth.InvalidCredentials');",
+                  "    pm.expect(body.detail).to.eql('Wrong email or password.');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nobody@example.com\",\n  \"password\": \"Wrong-Password-1!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "4. Login - empty email returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error code is Email.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Email.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"x\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "5. Protected endpoint without a token returns 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Refresh - success (token is rotated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const oldRefreshToken = pm.collectionVariables.get('refreshToken');",
+                  "pm.collectionVariables.set('oldRefreshToken', oldRefreshToken);",
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('New access token and a different refresh token', function () {",
+                  "    pm.expect(body.accessToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.refreshToken).to.not.eql(oldRefreshToken);",
+                  "});",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Refresh - reusing the old token returns 401 (and ends all sessions)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test('Error code is Auth.InvalidRefreshToken', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Auth.InvalidRefreshToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{oldRefreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8. Login again (the replay above ended every session)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "9. Logout - revokes the refresh token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "10. Refresh after logout returns 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "11. Logout - empty token returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error code is RefreshToken.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('RefreshToken.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12. Login again (so the next folders have a token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);",
+                  "pm.collectionVariables.set('refreshToken', pm.response.json().refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
     {
       "name": "Line operators",
       "item": [
@@ -65,8 +615,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/line-operators",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "line-operators"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
             }
           },
           "response": []
@@ -103,8 +658,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/line-operators",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "line-operators"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
             }
           },
           "response": []
@@ -141,8 +701,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/line-operators",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "line-operators"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
             }
           },
           "response": []
@@ -179,8 +744,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/line-operators",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "line-operators"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
             }
           },
           "response": []
@@ -210,8 +780,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/line-operators/{{id}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "line-operators", "{{id}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators",
+                "{{id}}"
+              ]
             }
           },
           "response": []
@@ -239,7 +815,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/line-operators/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "line-operators",
@@ -277,8 +855,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/line-operators",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "line-operators"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
             }
           },
           "response": []
@@ -335,8 +918,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/container-types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -373,8 +961,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/container-types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -411,8 +1004,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/container-types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -449,8 +1047,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/container-types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -487,8 +1090,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/container-types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -522,8 +1130,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/container-types/{{ctId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types", "{{ctId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types",
+                "{{ctId}}"
+              ]
             }
           },
           "response": []
@@ -551,7 +1165,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/container-types/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "container-types",
@@ -589,8 +1205,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/container-types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "container-types"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
             }
           },
           "response": []
@@ -647,8 +1268,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/customers",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -685,8 +1311,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/customers",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -723,8 +1354,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/customers",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -761,8 +1397,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/customers",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -799,8 +1440,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/customers",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -834,8 +1480,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/customers/{{cuId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers", "{{cuId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{cuId}}"
+              ]
             }
           },
           "response": []
@@ -863,7 +1515,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/customers/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "customers",
@@ -901,8 +1555,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/customers",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "customers"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
             }
           },
           "response": []
@@ -958,8 +1617,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -996,8 +1660,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1034,8 +1703,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1072,8 +1746,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1110,8 +1789,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1145,8 +1829,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{blId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{blId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{blId}}"
+              ]
             }
           },
           "response": []
@@ -1174,8 +1864,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "00000000-0000-0000-0000-000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "00000000-0000-0000-0000-000000000000"
+              ]
             }
           },
           "response": []
@@ -1208,8 +1904,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             }
           },
           "response": []
@@ -1255,8 +1956,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1291,8 +1997,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1333,8 +2044,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1368,8 +2086,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1406,8 +2131,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1444,8 +2176,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1482,8 +2221,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byVirtualBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byVirtualBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byVirtualBlockId}}",
+                "bays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1520,7 +2266,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000/bays",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1558,8 +2306,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays/{{byBayId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byBlockId}}", "bays", "{{byBayId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays",
+                "{{byBayId}}"
+              ]
             }
           },
           "response": []
@@ -1587,7 +2343,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1623,8 +2381,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{byBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{byBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{byBlockId}}",
+                "bays"
+              ]
             }
           },
           "response": []
@@ -1670,8 +2435,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1706,8 +2476,15 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "blocks", "{{rwBlockId}}", "bays"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{rwBlockId}}",
+                "bays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1749,7 +2526,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1791,7 +2570,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1836,7 +2617,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1881,7 +2664,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1926,7 +2711,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -1971,7 +2758,9 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/00000000-0000-0000-0000-000000000000/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -2011,7 +2800,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows/{{rwRowId}}",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -2048,7 +2839,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -2086,7 +2879,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/blocks/{{rwBlockId}}/bays/{{rwBayId}}/rows",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "blocks",
@@ -2182,6 +2977,28 @@
     {
       "key": "rwRowId",
       "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "oldRefreshToken",
+      "value": ""
     }
-  ]
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  }
 }
