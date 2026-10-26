@@ -5,7 +5,7 @@ using Depot.Domain.Containers.Rules;
 
 namespace Depot.Domain.Containers;
 
-public sealed class Container : BaseEntity
+public sealed class Container : AuditableEntity
 {
     public const int NumberLength = 11;
     public const int IsoCodeLength = 4;

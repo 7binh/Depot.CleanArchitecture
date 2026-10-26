@@ -4,7 +4,7 @@ using Depot.Domain.Yard.Rules;
 
 namespace Depot.Domain.Yard;
 
-public sealed class YardRow : BaseEntity
+public sealed class YardRow : AuditableEntity
 {
     public const int MaxRowNo = 99;
     public const int MinTierCount = 2;

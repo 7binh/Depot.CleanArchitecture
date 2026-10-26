@@ -4,7 +4,7 @@ using Depot.Domain.Common.Rules;
 
 namespace Depot.Domain.Catalogs;
 
-public sealed class Customer : BaseEntity
+public sealed class Customer : AuditableEntity
 {
     public const int ShortTaxCodeLength = 10;
     public const int LongTaxCodeLength = 13;

@@ -3,7 +3,7 @@ using Depot.Domain.Common.Rules;
 
 namespace Depot.Domain.Catalogs;
 
-public sealed class ContainerType : BaseEntity
+public sealed class ContainerType : AuditableEntity
 {
     public const int CodeMinLength = 2;
     public const int CodeMaxLength = 15;

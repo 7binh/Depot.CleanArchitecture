@@ -3,7 +3,7 @@ using Depot.Domain.Common.Rules;
 
 namespace Depot.Domain.Catalogs;
 
-public sealed class LineOperator : BaseEntity
+public sealed class LineOperator : AuditableEntity
 {
     public const int CodeLength = 3;
     public const int NameMaxLength = 200;

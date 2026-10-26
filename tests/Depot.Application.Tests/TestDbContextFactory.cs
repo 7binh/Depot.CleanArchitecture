@@ -1,3 +1,4 @@
+using Depot.Application.Abstractions;
 using Depot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +13,15 @@ internal static class TestDbContextFactory
 
     public static AppDbContext Create(string databaseName)
     {
+        return Create(databaseName, new FakeCurrentUser(null), TimeProvider.System);
+    }
+
+    public static AppDbContext Create(string databaseName, ICurrentUser currentUser, TimeProvider timeProvider)
+    {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(databaseName)
             .Options;
 
-        return new AppDbContext(options);
+        return new AppDbContext(options, currentUser, timeProvider);
     }
 }

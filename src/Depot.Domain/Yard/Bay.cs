@@ -4,7 +4,7 @@ using Depot.Domain.Yard.Rules;
 
 namespace Depot.Domain.Yard;
 
-public sealed class Bay : BaseEntity
+public sealed class Bay : AuditableEntity
 {
     public const int MaxBayNo = 999;
 

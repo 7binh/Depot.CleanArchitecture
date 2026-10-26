@@ -3,7 +3,7 @@ using Depot.Domain.Common.Rules;
 
 namespace Depot.Domain.Yard;
 
-public sealed class Block : BaseEntity
+public sealed class Block : AuditableEntity
 {
     public const int CodeMaxLength = 10;
     public const int NameMaxLength = 100;

@@ -22,53 +22,6 @@ namespace Depot.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Depot.Domain.Yard.Bay", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("BayNo")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("BlockId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlockId", "BayNo")
-                        .IsUnique();
-
-                    b.ToTable("Bays");
-                });
-
-            modelBuilder.Entity("Depot.Domain.Yard.Block", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<bool>("IsVirtual")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.ToTable("Blocks");
-                });
-
             modelBuilder.Entity("Depot.Domain.Catalogs.ContainerType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -79,6 +32,18 @@ namespace Depot.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -97,42 +62,49 @@ namespace Depot.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("5b0c6f10-0001-4a5e-9a10-000000000001"),
                             Code = "DRY",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Dry"
                         },
                         new
                         {
                             Id = new Guid("5b0c6f10-0002-4a5e-9a10-000000000002"),
                             Code = "REEFER",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Reefer"
                         },
                         new
                         {
                             Id = new Guid("5b0c6f10-0003-4a5e-9a10-000000000003"),
                             Code = "OPENTOP",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Open Top"
                         },
                         new
                         {
                             Id = new Guid("5b0c6f10-0004-4a5e-9a10-000000000004"),
                             Code = "FLATRACK",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Flat Rack"
                         },
                         new
                         {
                             Id = new Guid("5b0c6f10-0005-4a5e-9a10-000000000005"),
                             Code = "BUNKER",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Bunker"
                         },
                         new
                         {
                             Id = new Guid("5b0c6f10-0006-4a5e-9a10-000000000006"),
                             Code = "VENTILATED",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Ventilated"
                         },
                         new
                         {
                             Id = new Guid("5b0c6f10-0007-4a5e-9a10-000000000007"),
                             Code = "SPECIALIZED",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 26, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Specialized"
                         });
                 });
@@ -142,6 +114,18 @@ namespace Depot.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -172,6 +156,18 @@ namespace Depot.Infrastructure.Persistence.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -185,6 +181,137 @@ namespace Depot.Infrastructure.Persistence.Migrations
                     b.ToTable("LineOperators");
                 });
 
+            modelBuilder.Entity("Depot.Domain.Containers.Container", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContainerTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IsoCode")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LineOperatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("ManufactureDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("MaxWeightKg")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)");
+
+                    b.Property<int>("SizeFeet")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TareWeightKg")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerTypeId");
+
+                    b.HasIndex("LineOperatorId");
+
+                    b.HasIndex("Number")
+                        .IsUnique();
+
+                    b.ToTable("Containers");
+                });
+
+            modelBuilder.Entity("Depot.Domain.Yard.Bay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("BayNo")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("BlockId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockId", "BayNo")
+                        .IsUnique();
+
+                    b.ToTable("Bays");
+                });
+
+            modelBuilder.Entity("Depot.Domain.Yard.Block", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsVirtual")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Blocks");
+                });
+
             modelBuilder.Entity("Depot.Domain.Yard.YardRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -193,6 +320,18 @@ namespace Depot.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("BayId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
 
                     b.Property<int>("MaxTier")
                         .HasColumnType("integer");
@@ -206,6 +345,21 @@ namespace Depot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("YardRows");
+                });
+
+            modelBuilder.Entity("Depot.Domain.Containers.Container", b =>
+                {
+                    b.HasOne("Depot.Domain.Catalogs.ContainerType", null)
+                        .WithMany()
+                        .HasForeignKey("ContainerTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Depot.Domain.Catalogs.LineOperator", null)
+                        .WithMany()
+                        .HasForeignKey("LineOperatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Depot.Domain.Yard.Bay", b =>
