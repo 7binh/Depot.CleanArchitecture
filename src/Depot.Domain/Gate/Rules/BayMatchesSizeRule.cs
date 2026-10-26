@@ -7,7 +7,8 @@ namespace Depot.Domain.Gate.Rules;
 
 /// <summary>
 /// BR-YD-03: odd bays take 20ft containers, even bays take 40ft containers.
-/// A 40ft container also occupying two neighbouring odd bays (A-18) is not checked yet.
+/// The floor space a 40ft container also takes in the odd bays beside it is checked by
+/// <see cref="NeighbourBaysFreeRule"/>.
 /// </summary>
 public sealed class BayMatchesSizeRule(Bay? bay, int sizeFeet) : IBusinessRule
 {

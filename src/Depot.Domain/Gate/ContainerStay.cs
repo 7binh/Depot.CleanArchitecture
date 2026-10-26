@@ -109,7 +109,7 @@ public sealed class ContainerStay : AuditableEntity
     /// <paramref name="gateOutDate"/> is the calendar day of <c>GateOutAt</c> in the depot's time zone, worked out by
     /// the caller so the Domain stays free of time zones; it decides whether the order has expired.
     /// <paramref name="hasContainerAbove"/> says whether another container in the yard sits on a higher tier of the
-    /// same row; it must leave first (BR-YD-06).
+    /// same row, or a 40ft container rests on this 20ft one from the bay beside it; it must leave first (BR-YD-06).
     /// </summary>
     public Result GateOut(
         Container container,
@@ -150,6 +150,8 @@ public sealed class ContainerStay : AuditableEntity
     // Every rule treats a missing bay, row or tier as "not my business"; RowAndTierRequiredRule reports it first.
     private static IBusinessRule[] PlacementRules(Container container, GateInPlacement placement)
     {
+        var neighbours = placement.Neighbours ?? NeighbourTiers.None;
+
         return
         [
             new VirtualBlockHasNoPositionRule(placement.Block, placement.Row, placement.Tier),
@@ -158,7 +160,8 @@ public sealed class ContainerStay : AuditableEntity
             new TierWithinRowRule(placement.Row, placement.Tier),
             new BayMatchesSizeRule(placement.Bay, container.SizeFeet),
             new SlotFreeRule(placement.Tier, placement.OccupiedTiers),
-            new TierBelowOccupiedRule(placement.Tier, placement.OccupiedTiers)
+            new NeighbourBaysFreeRule(placement.Bay, placement.Tier, neighbours),
+            new TierBelowOccupiedRule(placement.Bay, placement.Tier, placement.OccupiedTiers, neighbours)
         ];
     }
 }

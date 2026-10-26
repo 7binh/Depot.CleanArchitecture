@@ -78,8 +78,11 @@ public sealed class GateInHandler(IAppDbContext dbContext, TimeProvider timeProv
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == row.BayId, cancellationToken);
         var occupiedTiers = await OccupiedTiersAsync(row.Id, cancellationToken);
+        var neighbours = bay is null
+            ? NeighbourTiers.None
+            : await dbContext.LoadNeighbourTiersAsync(bay, row, cancellationToken);
 
-        return Result.Success(new GateInPlacement(block, bay, row, command.Tier, occupiedTiers));
+        return Result.Success(new GateInPlacement(block, bay, row, command.Tier, occupiedTiers, neighbours));
     }
 
     // Only open stays count: a container that has left may come back, and its old position is free again.
