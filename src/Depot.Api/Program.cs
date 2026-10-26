@@ -1,8 +1,10 @@
 using Depot.Api.Endpoints;
+using Depot.Api.Extensions;
 using Depot.Api.Identity;
 using Depot.Application;
 using Depot.Application.Abstractions;
 using Depot.Infrastructure;
+using Depot.Infrastructure.Identity;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,24 +15,30 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(connectionString);
+builder.Services.AddInfrastructure(connectionString, builder.Configuration);
+builder.Services.AddJwtAuthentication();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.MapOpenApi().AllowAnonymous();
+    app.MapScalarApiReference().AllowAnonymous();
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
+app.MapAuthEndpoints();
 app.MapLineOperatorEndpoints();
 app.MapContainerTypeEndpoints();
 app.MapCustomerEndpoints();
 app.MapBlockEndpoints();
 app.MapBayEndpoints();
 app.MapYardRowEndpoints();
+
+await app.Services.SeedAdminAsync();
 
 await app.RunAsync();

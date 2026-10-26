@@ -3,7 +3,9 @@ using Depot.Application.Abstractions.Data;
 using Depot.Domain.Catalogs;
 using Depot.Domain.Common;
 using Depot.Domain.Containers;
+using Depot.Infrastructure.Identity;
 using Depot.Domain.Yard;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Depot.Infrastructure.Persistence;
@@ -11,7 +13,7 @@ namespace Depot.Infrastructure.Persistence;
 public sealed class AppDbContext(
     DbContextOptions<AppDbContext> options,
     ICurrentUser currentUser,
-    TimeProvider timeProvider) : DbContext(options), IAppDbContext
+    TimeProvider timeProvider) : IdentityUserContext<ApplicationUser, Guid>(options), IAppDbContext
 {
     public DbSet<LineOperator> LineOperators => Set<LineOperator>();
 
@@ -27,15 +29,18 @@ public sealed class AppDbContext(
 
     public DbSet<Container> Containers => Set<Container>();
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         FillAuditFields();
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 
     private void FillAuditFields()
