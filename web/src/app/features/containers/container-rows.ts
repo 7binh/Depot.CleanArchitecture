@@ -11,6 +11,7 @@ export interface ContainerRow {
   containerTypeId: string;
   containerType: string;
   isoCode: string;
+  sizeFeet: number;
   size: string;
   maxWeight: string;
   tareWeight: string;
@@ -40,6 +41,7 @@ export function toContainerRows(
     containerTypeId: c.containerTypeId,
     containerType: typeCodes.get(c.containerTypeId) ?? '',
     isoCode: c.isoCode,
+    sizeFeet: c.sizeFeet,
     size: `${c.sizeFeet} ft`,
     maxWeight: KG.format(c.maxWeightKg),
     tareWeight: KG.format(c.tareWeightKg),

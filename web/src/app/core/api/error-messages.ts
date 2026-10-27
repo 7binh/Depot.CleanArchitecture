@@ -32,6 +32,24 @@ export const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'Container.TypeNotFound': 'Không tìm thấy loại container đã chọn.',
   'Container.NotFound': 'Không tìm thấy container.',
 
+  'GateIn.ContainerNotFound': 'Không tìm thấy container. Hãy khai báo hồ sơ container trước.',
+  'GateIn.BlockNotFound': 'Không tìm thấy block đã chọn.',
+  'GateIn.RowNotFound': 'Không tìm thấy row đã chọn.',
+  'Container.AlreadyInYard': 'Container này đang ở trong bãi, chưa thể gate in lại.',
+  'GateInAt.InFuture': 'Giờ vào không được ở tương lai.',
+  'DamageNote.Required': 'Container hư hỏng thì phải mô tả tình trạng.',
+  'Position.RowAndTierRequired': 'Block thường phải chọn đủ row và tầng.',
+  'Position.NotAllowedInVirtualBlock': 'Block ảo không có vị trí bay, row, tầng.',
+  'Position.Inconsistent': 'Row không thuộc block đã chọn.',
+  'Position.Occupied': 'Vị trí này đã có container.',
+  'Position.OverlapsNeighbour':
+    'Container 40 feet chiếm cả các bay lẻ bên cạnh, nhưng chỗ đó đã bị chiếm.',
+  'Bay.SizeMismatch':
+    'Bay lẻ chỉ dành cho container 20 feet, bay chẵn chỉ dành cho container 40 feet.',
+  'Bay.NeighboursMissing': 'Bay chẵn cần có đủ hai bay lẻ bên cạnh để đặt container 40 feet.',
+  'Tier.OutOfRange': 'Tầng vượt quá số tầng tối đa của row.',
+  'Tier.BelowEmpty': 'Tầng bên dưới còn trống, hãy đặt từ tầng thấp nhất.',
+
   'LineOperator.CodeExists': 'Mã hãng khai thác này đã tồn tại.',
   'LineOperator.NotFound': 'Không tìm thấy hãng khai thác.',
   'ContainerType.CodeExists': 'Mã loại container này đã tồn tại.',

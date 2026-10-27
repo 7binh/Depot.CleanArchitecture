@@ -32,7 +32,7 @@ import {
   ContainerTypeService,
 } from '../catalogs/container-types/container-type.service';
 import { containerNumber } from './container-number';
-import { ContainerService } from './container.service';
+import { Container, ContainerService } from './container.service';
 
 type Field =
   | 'number'
@@ -96,7 +96,7 @@ export class CreateContainerDialog implements OnInit {
   protected readonly dialog = viewChild.required(Dialog);
 
   readonly closed = output();
-  readonly created = output();
+  readonly created = output<Container>();
 
   protected readonly form = buildForm();
   protected readonly types = new ListLoader<ContainerType>(() => this.typeService.list());
@@ -170,8 +170,8 @@ export class CreateContainerDialog implements OnInit {
         manufactureDate: value.manufactureDate,
       })
       .subscribe({
-        next: () => {
-          this.created.emit();
+        next: (container) => {
+          this.created.emit(container);
           this.dialog().close();
         },
         error: (error: unknown) => this.fail(error),
