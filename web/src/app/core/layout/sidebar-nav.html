@@ -1,7 +1,7 @@
-<nav aria-label="Menu chính" class="flex flex-col gap-6">
+<nav aria-label="Menu chính" class="flex flex-col gap-5">
   @for (group of groups; track group.label) {
-    <div class="flex flex-col gap-1">
-      <p class="px-3 pb-1 text-label text-ink-3 uppercase">{{ group.label }}</p>
+    <div class="flex flex-col gap-0.5">
+      <p class="px-2.5 pb-1 text-note text-ink-overline">{{ group.label }}</p>
       @for (item of group.items; track item.path) {
         <a
           [routerLink]="item.path"
@@ -12,9 +12,7 @@
           [class]="link.isActive ? active : idle"
           (click)="navigated.emit()"
         >
-          <span [class.text-brand]="link.isActive">
-            <app-icon [name]="item.icon" />
-          </span>
+          <app-icon [name]="item.icon" />
           {{ item.label }}
         </a>
       }

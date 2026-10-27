@@ -4,10 +4,10 @@ import { Icon } from '../../shared/ui/icon';
 import { NAV_GROUPS } from './nav';
 
 const BASE =
-  'flex h-11 items-center gap-3 rounded-control px-3 text-body transition-colors duration-150 ease-out ' +
+  'flex h-10 items-center gap-2 rounded-control px-2.5 text-body transition-colors duration-150 ease-out sm:h-7.5 ' +
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none';
-const IDLE = `${BASE} text-ink-2 hover:bg-surface/60 hover:text-ink`;
-const ACTIVE = `${BASE} bg-surface text-ink shadow-raised`;
+const IDLE = `${BASE} text-ink-2 hover:bg-control/50 hover:text-ink`;
+const ACTIVE = `${BASE} bg-nav-active font-medium text-ink`;
 
 @Component({
   selector: 'app-sidebar-nav',

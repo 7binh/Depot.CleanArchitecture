@@ -1,11 +1,13 @@
-<div class="flex min-h-screen gap-3 bg-shell p-3">
-  <aside class="hidden w-64 shrink-0 flex-col gap-8 p-3 lg:flex">
-    <app-brand />
+<div class="flex min-h-screen bg-shell">
+  <aside
+    class="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-line bg-sidebar p-3 lg:flex"
+  >
+    <app-brand class="px-1.5 pt-1" />
     <app-sidebar-nav />
   </aside>
 
-  <div class="flex min-w-0 flex-1 flex-col gap-3">
-    <header class="flex h-14 items-center gap-3 px-1">
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex h-12 items-center gap-3 border-b border-line bg-topbar px-4 sm:px-6">
       <button
         appButton
         variant="icon"
@@ -21,7 +23,7 @@
       <div class="ml-auto flex items-center gap-3">
         @if (email(); as address) {
           <span class="hidden text-small text-ink-2 sm:block">{{ address }}</span>
-          <app-avatar [name]="address" />
+          <app-avatar [name]="address" [size]="24" />
         }
         <button appButton variant="icon" type="button" aria-label="Đăng xuất" (click)="logout()">
           <app-icon name="log-out" />
@@ -29,7 +31,7 @@
       </div>
     </header>
 
-    <main class="flex min-w-0 flex-1 flex-col px-1 pb-3">
+    <main class="flex min-w-0 flex-1 flex-col px-4 py-6 sm:px-6">
       <router-outlet />
     </main>
   </div>
@@ -47,10 +49,10 @@
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      class="relative flex h-full w-72 flex-col gap-8 bg-shell p-4 shadow-popover"
+      class="relative flex h-full w-72 flex-col gap-6 border-r border-line bg-sidebar p-3 shadow-popover"
     >
       <div class="flex items-center justify-between">
-        <app-brand />
+        <app-brand class="px-1.5" />
         <button appButton variant="icon" type="button" aria-label="Đóng menu" (click)="closeMenu()">
           <app-icon name="x" />
         </button>
