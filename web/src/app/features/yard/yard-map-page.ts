@@ -23,7 +23,7 @@ import { Block, BlockMap, YardService } from './yard.service';
 
 /** Width of the row label column and the least width of a bay column. */
 const LABEL_WIDTH = '5rem';
-const BAY_WIDTH = 'minmax(7rem, 1fr)';
+const BAY_WIDTH = 'minmax(8.5rem, 1fr)';
 
 @Component({
   selector: 'app-yard-map-page',

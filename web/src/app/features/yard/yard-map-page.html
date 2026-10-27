@@ -38,9 +38,19 @@
               }
 
               @if (view.rows.length > 0) {
+                <p class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-caption text-ink-3">
+                  <span class="flex items-center gap-1">
+                    <app-icon name="chevron-up" [size]="16" />
+                    Số container ở các tầng trên
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <app-icon name="chevron-down" [size]="16" />
+                    Số container ở các tầng dưới
+                  </span>
+                </p>
                 <div class="overflow-x-auto">
                   <div
-                    class="grid gap-2"
+                    class="grid w-max min-w-full gap-2"
                     role="group"
                     aria-label="Sơ đồ tầng đang chọn"
                     [style.grid-template-columns]="template()"
@@ -57,7 +67,7 @@
 
                     @for (row of view.rows; track row.rowNo; let i = $index) {
                       <p
-                        class="sticky left-0 z-10 flex items-center bg-surface text-small font-medium text-ink"
+                        class="sticky left-0 z-10 flex items-center bg-surface pr-3 text-small font-medium text-ink"
                         [style.grid-row]="i + 2"
                         [style.grid-column]="1"
                       >
@@ -65,44 +75,51 @@
                       </p>
                       @for (cell of row.cells; track cell.key) {
                         <div
-                          class="flex min-h-16 flex-col justify-center gap-1 rounded-inset px-3 py-2"
+                          class="flex h-24 flex-col justify-between rounded-inset px-3 py-2"
                           [class.bg-brand-soft]="cell.container"
                           [class.bg-surface-sunken]="!cell.container"
                           [style.grid-row]="i + 2"
                           [style.grid-column]="cell.column + 1 + ' / span ' + cell.span"
                         >
-                          @if (cell.container; as container) {
-                            <span class="text-small font-medium text-ink tabular-nums">{{
-                              container.number
-                            }}</span>
-                            <span class="flex flex-wrap items-center gap-2 text-caption text-ink-2">
-                              {{ container.operatorCode }}, {{ container.daysInYard }} ngày
-                              @if (container.sizeFeet === 40) {
-                                <span>40 ft</span>
-                              }
-                              @if (cell.flag; as flag) {
-                                <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
-                              }
-                            </span>
-                          } @else {
-                            <span class="text-caption text-ink-3">Trống</span>
-                          }
-                          @if (cell.hasAbove || cell.hasBelow) {
-                            <span class="flex items-center gap-2 text-caption text-ink-3">
-                              @if (cell.hasAbove) {
-                                <span class="flex items-center gap-1">
-                                  <app-icon name="chevron-up" [size]="16" />
-                                  Tầng trên có container
+                          <div class="flex flex-col">
+                            @if (cell.container; as container) {
+                              <span class="text-small font-medium text-ink tabular-nums">{{
+                                container.number
+                              }}</span>
+                              <span class="text-caption text-ink-2">
+                                {{ container.operatorCode }}, {{ container.daysInYard }} ngày{{
+                                  container.sizeFeet === 40 ? ', 40 ft' : ''
+                                }}
+                              </span>
+                            } @else {
+                              <span class="sr-only">Trống</span>
+                            }
+                          </div>
+                          <div class="flex items-center gap-2">
+                            @if (cell.flag; as flag) {
+                              <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
+                            }
+                            <span class="ml-auto flex items-center gap-2 text-caption text-ink-3">
+                              @if (cell.above > 0) {
+                                <span
+                                  class="flex items-center"
+                                  [attr.title]="cell.above + ' container ở tầng trên'"
+                                >
+                                  <app-icon name="chevron-up" [size]="16" />{{ cell.above }}
+                                  <span class="sr-only">container ở tầng trên</span>
                                 </span>
                               }
-                              @if (cell.hasBelow) {
-                                <span class="flex items-center gap-1">
-                                  <app-icon name="chevron-down" [size]="16" />
-                                  Tầng dưới có container
+                              @if (cell.below > 0) {
+                                <span
+                                  class="flex items-center"
+                                  [attr.title]="cell.below + ' container ở tầng dưới'"
+                                >
+                                  <app-icon name="chevron-down" [size]="16" />{{ cell.below }}
+                                  <span class="sr-only">container ở tầng dưới</span>
                                 </span>
                               }
                             </span>
-                          }
+                          </div>
                         </div>
                       }
                     }

@@ -21,9 +21,9 @@ export interface GridCell {
   span: number;
   container: MapContainer | null;
   flag: CellFlag | null;
-  /** Some other tier above / below this place holds a container. */
-  hasAbove: boolean;
-  hasBelow: boolean;
+  /** How many containers stand on the tiers above / below this place. */
+  above: number;
+  below: number;
 }
 
 export interface GridRow {
@@ -137,10 +137,9 @@ function neighbours(column: number, span: number, tier: number, placed: Placed[]
   const here = placed.filter(
     (item) => item.column < column + span && item.column + item.span > column,
   );
-  return {
-    hasAbove: here.some((item) => item.tier > tier),
-    hasBelow: here.some((item) => item.tier < tier),
-  };
+  const count = (wanted: (other: number) => boolean) =>
+    new Set(here.filter((item) => wanted(item.tier)).map((item) => item.container.stayId)).size;
+  return { above: count((other) => other > tier), below: count((other) => other < tier) };
 }
 
 function columnsOf(cell: GridCell): number[] {

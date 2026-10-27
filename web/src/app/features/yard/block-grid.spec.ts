@@ -71,9 +71,16 @@ describe('toTierGrid', () => {
   it('tells when a container stands above or below a place', () => {
     const [forty] = cells(1);
     const [twenty, free] = cells(2);
-    expect([forty.hasAbove, forty.hasBelow]).toEqual([true, false]);
-    expect([twenty.hasAbove, twenty.hasBelow]).toEqual([false, true]);
-    expect([free.hasAbove, free.hasBelow]).toEqual([false, true]);
+    expect([forty.above, forty.below]).toEqual([1, 0]);
+    expect([twenty.above, twenty.below]).toEqual([0, 1]);
+    expect([free.above, free.below]).toEqual([0, 1]);
+  });
+
+  it('counts a container once even when it covers two bays', () => {
+    const [free] = cells(2).filter((cell) => !cell.container);
+    const [forty] = cells(1);
+    expect(free.below).toBe(1);
+    expect(forty.span).toBe(2);
   });
 
   it('draws no place above the height a row allows', () => {

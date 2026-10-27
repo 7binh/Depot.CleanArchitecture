@@ -71,14 +71,14 @@ describe('YardMapPage', () => {
     const { http, fixture, element } = setup();
     http.expectOne(`${API}/blocks/b1/map`).flush(REAL_MAP);
     fixture.detectChanges();
-    expect(element.textContent).not.toContain('Tầng dưới có container');
+    expect(element.querySelector('[title$="ở tầng dưới"]')).toBeNull();
     const tabs = [...element.querySelectorAll('app-segmented button')] as HTMLButtonElement[];
     expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Tầng 1', 'Tầng 2']);
     tabs[1].click();
     fixture.detectChanges();
     expect(element.textContent).not.toContain('CSQU3054383');
     expect(element.textContent).toContain('Trống');
-    expect(element.textContent).toContain('Tầng dưới có container');
+    expect(element.querySelector('[title="1 container ở tầng dưới"]')).not.toBeNull();
   });
 
   it('says a container stands above a place of tier 1', () => {
@@ -96,7 +96,7 @@ describe('YardMapPage', () => {
       ],
     });
     fixture.detectChanges();
-    expect(element.textContent).toContain('Tầng trên có container');
+    expect(element.querySelector('[title="1 container ở tầng trên"]')).not.toBeNull();
   });
 });
 
