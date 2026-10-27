@@ -4,7 +4,7 @@
 />
 
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
-  <app-card>
+  <div>
     @if (list.items().length === 0) {
       <app-empty-state icon="layers" message="Chưa có loại container nào." />
     } @else {
@@ -14,5 +14,5 @@
         [rows]="list.items()"
       />
     }
-  </app-card>
+  </div>
 </app-load-state>

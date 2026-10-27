@@ -40,7 +40,7 @@
 
                 @if (view.rows.length > 0) {
                   <p
-                    class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-caption text-ink-3"
+                    class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-caption text-ink-2"
                   >
                     <span class="flex items-center gap-1">
                       <app-icon name="chevron-up" [size]="16" />
@@ -70,7 +70,7 @@
 
                       @for (row of view.rows; track row.rowNo; let i = $index) {
                         <p
-                          class="sticky left-0 z-10 flex items-center bg-surface pr-2 text-caption font-medium text-ink"
+                          class="sticky left-0 z-10 flex items-center bg-shell pr-2 text-caption font-medium text-ink"
                           [style.grid-row]="i + 2"
                           [style.grid-column]="1"
                         >
@@ -79,12 +79,15 @@
                         @for (cell of row.cells; track cell.key) {
                           <button
                             type="button"
-                            class="flex h-18 w-full flex-col justify-between overflow-hidden rounded-inset px-2 py-1.5 text-left transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand enabled:hover:bg-brand-soft-2 motion-reduce:transition-none"
+                            class="flex h-18 w-full flex-col justify-between overflow-hidden rounded-card border px-2 py-1.5 text-left transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand enabled:hover:border-line-strong motion-reduce:transition-none"
                             [disabled]="!cell.container"
                             [attr.aria-pressed]="cell.container ? isSelected(cell) : null"
-                            [class.bg-brand-soft]="cell.container && !isSelected(cell)"
-                            [class.bg-brand-soft-2]="isSelected(cell)"
+                            [class.border-transparent]="!cell.container"
                             [class.bg-surface-sunken]="!cell.container"
+                            [class.border-line-card]="cell.container"
+                            [class.shadow-raised]="cell.container"
+                            [class.bg-surface]="cell.container && !isSelected(cell)"
+                            [class.bg-nav-active]="isSelected(cell)"
                             [style.grid-row]="i + 2"
                             [style.grid-column]="cell.column + 1 + ' / span ' + cell.span"
                             (click)="select(cell)"
@@ -109,7 +112,7 @@
                                 <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
                               }
                               <span
-                                class="ml-auto flex shrink-0 items-center gap-1 text-caption text-ink-3"
+                                class="ml-auto flex shrink-0 items-center gap-1 text-caption text-ink-2"
                               >
                                 @if (cell.above > 0) {
                                   <span
@@ -144,12 +147,12 @@
                     <ul>
                       @for (container of map.unplaced; track container.stayId) {
                         <li
-                          class="flex items-center gap-4 border-b border-line py-4 last:border-b-0"
+                          class="flex h-9 items-center gap-4 rounded-card border border-transparent px-3 hover:border-line-card hover:bg-surface"
                         >
                           <span class="text-body font-medium text-ink tabular-nums">{{
                             container.number
                           }}</span>
-                          <span class="text-caption text-ink-3"
+                          <span class="text-caption text-ink-2"
                             >{{ container.operatorCode }}, {{ container.daysInYard }} ngày</span
                           >
                           @if (container.isDamaged) {

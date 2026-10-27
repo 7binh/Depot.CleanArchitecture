@@ -24,14 +24,14 @@ import { GridCell } from './block-grid';
         role="dialog"
         aria-modal="true"
         aria-label="Chi tiết container"
-        class="absolute inset-x-4 bottom-4 max-h-3/4 overflow-y-auto rounded-card border border-line bg-surface p-5 shadow-popover sm:inset-y-4 sm:right-4 sm:left-auto sm:max-h-none sm:w-96"
+        class="absolute inset-x-4 bottom-4 max-h-3/4 overflow-y-auto rounded-island border border-line bg-surface p-5 shadow-popover sm:inset-y-4 sm:right-4 sm:left-auto sm:max-h-none sm:w-96"
       >
         <div class="flex items-start justify-between gap-2">
           <h2 class="text-card text-ink tabular-nums">{{ container.number }}</h2>
           <button
             type="button"
             aria-label="Đóng"
-            class="grid size-9 shrink-0 place-items-center rounded-control text-ink-2 transition-colors duration-150 ease-out hover:bg-shell hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+            class="grid size-9 shrink-0 place-items-center rounded-control text-ink-2 transition-colors duration-150 ease-out hover:bg-control hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
             (click)="closed.emit()"
           >
             <app-icon name="x" [size]="20" />
@@ -47,9 +47,9 @@ import { GridCell } from './block-grid';
             }
           </div>
         }
-        <dl class="mt-4 divide-y divide-line">
+        <dl class="mt-4 flex flex-col gap-0.5">
           @for (row of rows(); track row.label) {
-            <div class="flex items-center justify-between gap-4 py-3 text-body">
+            <div class="flex items-center justify-between gap-4 py-2 text-body">
               <dt class="text-ink-2">{{ row.label }}</dt>
               <dd class="text-right text-ink">{{ row.value }}</dd>
             </div>

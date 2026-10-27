@@ -14,19 +14,19 @@
         }
         <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <dt class="text-caption text-ink-3">Hãng khai thác</dt>
+            <dt class="text-caption text-ink-2">Hãng khai thác</dt>
             <dd class="text-body text-ink">{{ detail.lineOperator }}</dd>
           </div>
           <div>
-            <dt class="text-caption text-ink-3">Khách hàng</dt>
+            <dt class="text-caption text-ink-2">Khách hàng</dt>
             <dd class="text-body text-ink">{{ detail.customer }}</dd>
           </div>
           <div>
-            <dt class="text-caption text-ink-3">Tàu xuất</dt>
+            <dt class="text-caption text-ink-2">Tàu xuất</dt>
             <dd class="text-body text-ink">{{ detail.exportVessel }}</dd>
           </div>
           <div>
-            <dt class="text-caption text-ink-3">Trạng thái</dt>
+            <dt class="text-caption text-ink-2">Trạng thái</dt>
             <dd class="mt-1">
               <app-chip [color]="statuses[detail.status].tone">{{
                 statuses[detail.status].label
@@ -34,17 +34,17 @@
             </dd>
           </div>
           <div>
-            <dt class="text-caption text-ink-3">Ngày cấp</dt>
+            <dt class="text-caption text-ink-2">Ngày cấp</dt>
             <dd class="text-body text-ink">{{ detail.issuedDate }}</dd>
           </div>
           <div>
-            <dt class="text-caption text-ink-3">Hạn lệnh</dt>
+            <dt class="text-caption text-ink-2">Hạn lệnh</dt>
             <dd class="text-body text-ink">{{ detail.expiryDate }}</dd>
           </div>
         </dl>
 
         <div class="overflow-x-auto">
-          <table class="w-full border-separate border-spacing-0 text-left">
+          <table class="w-full border-separate border-spacing-y-1 text-left">
             <caption class="sr-only">
               Các dòng của lệnh giao
             </caption>
@@ -54,7 +54,7 @@
                   <th
                     scope="col"
                     [class.text-right]="i >= 2 && i <= 4"
-                    class="h-11 whitespace-nowrap bg-surface-sunken px-4 text-small font-normal text-ink-2 first:rounded-l-inset last:rounded-r-inset"
+                    class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
                   >
                     {{ label }}
                   </th>
@@ -63,31 +63,35 @@
             </thead>
             <tbody>
               @for (line of detail.lines; track $index) {
-                <tr>
+                <tr class="group">
                   <td
-                    class="h-16 whitespace-nowrap border-b border-line px-4 text-body font-medium text-ink"
+                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body font-medium text-ink"
                   >
                     {{ line.type }}
                   </td>
-                  <td class="h-16 whitespace-nowrap border-b border-line px-4 text-body text-ink-2">
+                  <td
+                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body text-ink-2"
+                  >
                     {{ line.size }}
                   </td>
                   <td
-                    class="h-16 whitespace-nowrap border-b border-line px-4 text-body text-ink-2 text-right tabular-nums"
+                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body text-ink-2 text-right tabular-nums"
                   >
                     {{ line.quantity }}
                   </td>
                   <td
-                    class="h-16 whitespace-nowrap border-b border-line px-4 text-body text-ink-2 text-right tabular-nums"
+                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body text-ink-2 text-right tabular-nums"
                   >
                     {{ line.delivered }}
                   </td>
                   <td
-                    class="h-16 whitespace-nowrap border-b border-line px-4 text-body text-ink-2 text-right tabular-nums"
+                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body text-ink-2 text-right tabular-nums"
                   >
                     {{ line.remaining }}
                   </td>
-                  <td class="h-16 w-40 border-b border-line px-4">
+                  <td
+                    class="h-12 w-40 border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                  >
                     <div
                       class="h-2 overflow-hidden rounded-chip bg-surface-sunken"
                       role="progressbar"

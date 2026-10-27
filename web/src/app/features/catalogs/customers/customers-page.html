@@ -6,7 +6,7 @@
 </app-page-header>
 
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
-  <app-card>
+  <div>
     @if (list.items().length === 0) {
       <app-empty-state icon="users" message="Chưa có khách hàng nào.">
         <button appButton type="button" (click)="creating.set(true)">
@@ -17,7 +17,7 @@
     } @else {
       <app-data-table caption="Danh sách khách hàng" [columns]="columns" [rows]="list.items()" />
     }
-  </app-card>
+  </div>
 </app-load-state>
 
 @if (creating()) {

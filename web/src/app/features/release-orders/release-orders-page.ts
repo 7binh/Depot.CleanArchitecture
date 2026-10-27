@@ -5,7 +5,6 @@ import { RouterLink } from '@angular/router';
 import { forkJoin, map } from 'rxjs';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
-import { Card } from '../../shared/ui/card';
 import { Chip } from '../../shared/ui/chip';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { Icon } from '../../shared/ui/icon';
@@ -23,7 +22,6 @@ import { ReleaseOrderService } from './release-order.service';
   selector: 'app-release-orders-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    Card,
     Button,
     Chip,
     EmptyState,

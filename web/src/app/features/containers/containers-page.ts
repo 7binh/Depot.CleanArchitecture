@@ -11,7 +11,6 @@ import { FormControl } from '@angular/forms';
 import { forkJoin, map } from 'rxjs';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
-import { Card } from '../../shared/ui/card';
 import { DataTable, TableColumn } from '../../shared/ui/data-table';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { Icon } from '../../shared/ui/icon';
@@ -37,7 +36,6 @@ function optionsFrom(
   selector: 'app-containers-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    Card,
     Button,
     CreateContainerDialog,
     DataTable,

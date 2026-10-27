@@ -9,7 +9,7 @@
 </app-page-header>
 
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
-  <app-card>
+  <div>
     @if (list.items().length === 0) {
       <app-empty-state icon="box" message="Chưa có container nào.">
         <button appButton type="button" (click)="creating.set(true)">
@@ -40,7 +40,7 @@
         </div>
       }
     }
-  </app-card>
+  </div>
 </app-load-state>
 
 @if (creating()) {

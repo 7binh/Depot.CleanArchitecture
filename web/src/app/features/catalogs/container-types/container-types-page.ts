@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { ListLoader } from '../../../core/api/list-loader';
-import { Card } from '../../../shared/ui/card';
 import { DataTable, TableColumn } from '../../../shared/ui/data-table';
 import { EmptyState } from '../../../shared/ui/empty-state';
 import { LoadState } from '../../../shared/ui/load-state';
@@ -10,7 +9,7 @@ import { ContainerType, ContainerTypeService } from './container-type.service';
 @Component({
   selector: 'app-container-types-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Card, DataTable, EmptyState, LoadState, PageHeader],
+  imports: [DataTable, EmptyState, LoadState, PageHeader],
   templateUrl: './container-types-page.html',
   host: { class: 'flex flex-col gap-6' },
 })
