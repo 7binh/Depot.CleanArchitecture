@@ -3,28 +3,10 @@
   description="Các loại container bãi đang nhận, như 20GP, 40GP hoặc 40HC."
 />
 
-@switch (state()) {
-  @case ('loading') {
-    <div class="flex flex-col gap-3" aria-busy="true">
-      @for (n of placeholders; track n) {
-        <div appSkeleton class="h-16 w-full"></div>
-      }
-    </div>
+<app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
+  @if (list.items().length === 0) {
+    <app-empty-state icon="layers" message="Chưa có loại container nào." />
+  } @else {
+    <app-data-table caption="Danh sách loại container" [columns]="columns" [rows]="list.items()" />
   }
-  @case ('failed') {
-    <div class="flex flex-col items-start gap-4">
-      <app-error-banner class="w-full">{{ failure() }}</app-error-banner>
-      <button appButton type="button" (click)="load()">
-        <app-icon name="refresh" [size]="16" />
-        Thử lại
-      </button>
-    </div>
-  }
-  @case ('ready') {
-    @if (items().length === 0) {
-      <app-empty-state icon="layers" message="Chưa có loại container nào." />
-    } @else {
-      <app-data-table caption="Danh sách loại container" [columns]="columns" [rows]="items()" />
-    }
-  }
-}
+</app-load-state>

@@ -5,37 +5,19 @@
   </button>
 </app-page-header>
 
-@switch (state()) {
-  @case ('loading') {
-    <div class="flex flex-col gap-3" aria-busy="true">
-      @for (n of placeholders; track n) {
-        <div appSkeleton class="h-16 w-full"></div>
-      }
-    </div>
-  }
-  @case ('failed') {
-    <div class="flex flex-col items-start gap-4">
-      <app-error-banner class="w-full">{{ failure() }}</app-error-banner>
-      <button appButton type="button" (click)="load()">
-        <app-icon name="refresh" [size]="16" />
-        Thử lại
+<app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
+  @if (list.items().length === 0) {
+    <app-empty-state icon="users" message="Chưa có khách hàng nào.">
+      <button appButton type="button" (click)="creating.set(true)">
+        <app-icon name="plus" [size]="16" />
+        Thêm khách hàng
       </button>
-    </div>
+    </app-empty-state>
+  } @else {
+    <app-data-table caption="Danh sách khách hàng" [columns]="columns" [rows]="list.items()" />
   }
-  @case ('ready') {
-    @if (items().length === 0) {
-      <app-empty-state icon="users" message="Chưa có khách hàng nào.">
-        <button appButton type="button" (click)="creating.set(true)">
-          <app-icon name="plus" [size]="16" />
-          Thêm khách hàng
-        </button>
-      </app-empty-state>
-    } @else {
-      <app-data-table caption="Danh sách khách hàng" [columns]="columns" [rows]="items()" />
-    }
-  }
-}
+</app-load-state>
 
 @if (creating()) {
-  <app-create-customer-dialog (closed)="creating.set(false)" (created)="load()" />
+  <app-create-customer-dialog (closed)="creating.set(false)" (created)="list.load()" />
 }
