@@ -24,11 +24,13 @@ const REAL_MAP = {
   isVirtual: false,
   unplaced: [],
   bays: [
+    { bayNo: 1, sizeFeet: 20, rows: [{ rowNo: 1, maxTier: 2, tiers: [] }] },
     {
       bayNo: 2,
       sizeFeet: 40,
       rows: [{ rowNo: 1, maxTier: 2, tiers: [{ tier: 1, fromBay: 1, toBay: 3, container: BOX }] }],
     },
+    { bayNo: 3, sizeFeet: 20, rows: [{ rowNo: 1, maxTier: 2, tiers: [] }] },
   ],
 };
 const VIRTUAL_MAP = {
@@ -52,17 +54,53 @@ function setup() {
 }
 
 describe('YardMapPage', () => {
-  it('draws the first block as soon as the blocks arrive', () => {
+  it('draws tier 1 of the first block as soon as the blocks arrive', () => {
     const { http, fixture, element } = setup();
     http.expectOne(`${API}/blocks/b1/map`).flush(REAL_MAP);
     fixture.detectChanges();
-    expect(element.textContent).toContain('Bay 2');
+    expect(element.textContent).toContain('Bay 1');
+    expect(element.textContent).toContain('Bay 3');
+    expect(element.textContent).not.toContain('Bay 2');
     expect(element.textContent).toContain('Row 1');
     expect(element.textContent).toContain('CSQU3054383');
     expect(element.textContent).toContain('CSQ, 12 ngày');
     expect(element.textContent).toContain('Tồn lâu');
   });
 
+  it('shows the free places of another tier and says a container is below', () => {
+    const { http, fixture, element } = setup();
+    http.expectOne(`${API}/blocks/b1/map`).flush(REAL_MAP);
+    fixture.detectChanges();
+    expect(element.textContent).not.toContain('Tầng dưới có container');
+    const tabs = [...element.querySelectorAll('app-segmented button')] as HTMLButtonElement[];
+    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Tầng 1', 'Tầng 2']);
+    tabs[1].click();
+    fixture.detectChanges();
+    expect(element.textContent).not.toContain('CSQU3054383');
+    expect(element.textContent).toContain('Trống');
+    expect(element.textContent).toContain('Tầng dưới có container');
+  });
+
+  it('says a container stands above a place of tier 1', () => {
+    const { http, fixture, element } = setup();
+    http.expectOne(`${API}/blocks/b1/map`).flush({
+      ...REAL_MAP,
+      bays: [
+        {
+          bayNo: 1,
+          sizeFeet: 20,
+          rows: [
+            { rowNo: 1, maxTier: 2, tiers: [{ tier: 2, fromBay: 1, toBay: 1, container: BOX }] },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Tầng trên có container');
+  });
+});
+
+describe('YardMapPage other blocks', () => {
   it('lists the containers of a virtual block that have no position', () => {
     const { http, fixture, element } = setup();
     http.expectOne(`${API}/blocks/b1/map`).flush(REAL_MAP);

@@ -1,6 +1,6 @@
 <app-page-header
   title="Sơ đồ bãi"
-  description="Vị trí container trong từng block, theo bay, row và tầng."
+  description="Vị trí container trong từng block, xem theo từng tầng."
 />
 
 <app-load-state [status]="blocks.status()" [failure]="blocks.failure()" (retry)="blocks.load()">
@@ -11,86 +11,127 @@
   } @else {
     <app-card>
       <div class="flex flex-col gap-6">
-        <app-select-field
-          class="max-w-xs"
-          label="Block"
-          [control]="blockControl"
-          [options]="blockOptions()"
-        />
+        <div class="flex flex-wrap items-end gap-4">
+          <app-select-field
+            class="w-full max-w-xs"
+            label="Block"
+            [control]="blockControl"
+            [options]="blockOptions()"
+          />
+          @if (tierOptions().length > 0) {
+            <div class="flex flex-col gap-2">
+              <span class="text-caption font-medium text-ink-2">Tầng</span>
+              <app-segmented label="Chọn tầng" [options]="tierOptions()" [(value)]="tier" />
+            </div>
+          }
+        </div>
 
-        <app-load-state [status]="grid.status()" [failure]="grid.failure()" (retry)="grid.load()">
-          @if (current(); as view) {
-            @if (view.rows.length === 0 && view.unplaced.length === 0) {
-              <app-empty-state icon="box" message="Block này chưa có bay hay container nào." />
-            }
+        <app-load-state
+          [status]="mapLoader.status()"
+          [failure]="mapLoader.failure()"
+          (retry)="mapLoader.load()"
+        >
+          @if (current(); as map) {
+            @if (grid(); as view) {
+              @if (view.rows.length === 0 && map.unplaced.length === 0) {
+                <app-empty-state icon="box" message="Block này chưa có bay hay container nào." />
+              }
 
-            @if (view.rows.length > 0) {
-              <div class="overflow-x-auto">
-                <div class="flex flex-col gap-6">
-                  <div class="grid gap-2" [style.grid-template-columns]="columns()">
+              @if (view.rows.length > 0) {
+                <div class="overflow-x-auto">
+                  <div
+                    class="grid gap-2"
+                    role="group"
+                    aria-label="Sơ đồ tầng đang chọn"
+                    [style.grid-template-columns]="template()"
+                  >
                     @for (bay of view.bays; track bay.bayNo) {
-                      <p class="text-center text-caption text-ink-3">
-                        <span class="font-medium text-ink-2">Bay {{ bay.bayNo }}</span>
-                        {{ bay.sizeFeet }} ft
+                      <p
+                        class="pb-1 text-center text-caption font-medium text-ink-2"
+                        [style.grid-row]="1"
+                        [style.grid-column]="bay.column + 1"
+                      >
+                        Bay {{ bay.bayNo }}
                       </p>
                     }
-                  </div>
 
-                  @for (row of view.rows; track row.rowNo) {
-                    <section [attr.aria-label]="'Row ' + row.rowNo">
-                      <h2 class="mb-2 text-small font-medium text-ink">Row {{ row.rowNo }}</h2>
-                      <div class="grid gap-2" [style.grid-template-columns]="columns()">
-                        @for (slot of row.slots; track slot.key) {
-                          <div
-                            class="flex min-h-16 flex-col justify-center gap-1 rounded-inset px-3 py-2"
-                            [class.bg-brand-soft]="slot.container"
-                            [class.bg-surface-sunken]="!slot.container"
-                            [style.grid-row]="slot.line"
-                            [style.grid-column]="slot.column + ' / span ' + slot.span"
-                          >
-                            @if (slot.container; as container) {
-                              <span class="text-small font-medium text-ink tabular-nums">{{
-                                container.number
-                              }}</span>
-                              <span
-                                class="flex flex-wrap items-center gap-2 text-caption text-ink-2"
-                              >
-                                {{ container.operatorCode }}, {{ container.daysInYard }} ngày
-                                @if (slot.flag; as flag) {
-                                  <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
-                                }
-                              </span>
-                            }
-                          </div>
-                        }
-                      </div>
-                    </section>
-                  }
-                </div>
-              </div>
-            }
-
-            @if (view.unplaced.length > 0) {
-              <section [class]="view.rows.length > 0 ? 'border-t border-line pt-6' : ''">
-                <h2 class="mb-2 text-small font-medium text-ink">Chưa có vị trí</h2>
-                <ul>
-                  @for (container of view.unplaced; track container.stayId) {
-                    <li class="flex items-center gap-4 border-b border-line py-4 last:border-b-0">
-                      <span class="text-body font-medium text-ink tabular-nums">{{
-                        container.number
-                      }}</span>
-                      <span class="text-caption text-ink-3"
-                        >{{ container.operatorCode }}, {{ container.daysInYard }} ngày</span
+                    @for (row of view.rows; track row.rowNo; let i = $index) {
+                      <p
+                        class="sticky left-0 z-10 flex items-center bg-surface text-small font-medium text-ink"
+                        [style.grid-row]="i + 2"
+                        [style.grid-column]="1"
                       >
-                      @if (container.isDamaged) {
-                        <app-chip color="danger">Hư hỏng</app-chip>
-                      } @else if (container.isLongStay) {
-                        <app-chip color="warning">Tồn lâu</app-chip>
+                        Row {{ row.rowNo }}
+                      </p>
+                      @for (cell of row.cells; track cell.key) {
+                        <div
+                          class="flex min-h-16 flex-col justify-center gap-1 rounded-inset px-3 py-2"
+                          [class.bg-brand-soft]="cell.container"
+                          [class.bg-surface-sunken]="!cell.container"
+                          [style.grid-row]="i + 2"
+                          [style.grid-column]="cell.column + 1 + ' / span ' + cell.span"
+                        >
+                          @if (cell.container; as container) {
+                            <span class="text-small font-medium text-ink tabular-nums">{{
+                              container.number
+                            }}</span>
+                            <span class="flex flex-wrap items-center gap-2 text-caption text-ink-2">
+                              {{ container.operatorCode }}, {{ container.daysInYard }} ngày
+                              @if (container.sizeFeet === 40) {
+                                <span>40 ft</span>
+                              }
+                              @if (cell.flag; as flag) {
+                                <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
+                              }
+                            </span>
+                          } @else {
+                            <span class="text-caption text-ink-3">Trống</span>
+                          }
+                          @if (cell.hasAbove || cell.hasBelow) {
+                            <span class="flex items-center gap-2 text-caption text-ink-3">
+                              @if (cell.hasAbove) {
+                                <span class="flex items-center gap-1">
+                                  <app-icon name="chevron-up" [size]="16" />
+                                  Tầng trên có container
+                                </span>
+                              }
+                              @if (cell.hasBelow) {
+                                <span class="flex items-center gap-1">
+                                  <app-icon name="chevron-down" [size]="16" />
+                                  Tầng dưới có container
+                                </span>
+                              }
+                            </span>
+                          }
+                        </div>
                       }
-                    </li>
-                  }
-                </ul>
-              </section>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (map.unplaced.length > 0) {
+                <section [class]="view.rows.length > 0 ? 'border-t border-line pt-6' : ''">
+                  <h2 class="mb-2 text-small font-medium text-ink">Chưa có vị trí</h2>
+                  <ul>
+                    @for (container of map.unplaced; track container.stayId) {
+                      <li class="flex items-center gap-4 border-b border-line py-4 last:border-b-0">
+                        <span class="text-body font-medium text-ink tabular-nums">{{
+                          container.number
+                        }}</span>
+                        <span class="text-caption text-ink-3"
+                          >{{ container.operatorCode }}, {{ container.daysInYard }} ngày</span
+                        >
+                        @if (container.isDamaged) {
+                          <app-chip color="danger">Hư hỏng</app-chip>
+                        } @else if (container.isLongStay) {
+                          <app-chip color="warning">Tồn lâu</app-chip>
+                        }
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
             }
           }
         </app-load-state>

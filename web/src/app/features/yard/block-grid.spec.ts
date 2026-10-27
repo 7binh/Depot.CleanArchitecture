@@ -1,4 +1,4 @@
-import { toBlockGrid } from './block-grid';
+import { tierCount, toTierGrid } from './block-grid';
 import { BlockMap, MapContainer } from './yard.service';
 
 function container(number: string, extra: Partial<MapContainer> = {}): MapContainer {
@@ -17,6 +17,7 @@ function container(number: string, extra: Partial<MapContainer> = {}): MapContai
 const FORTY = container('CSQU3054383', { sizeFeet: 40, isDamaged: true, isLongStay: true });
 const TWENTY = container('MSCU1234565', { isLongStay: true });
 
+/** Bays 1, 2, 3 with one row of two tiers: a 20ft on tier 2 of bay 1, a 40ft on tier 1 across bays 1 to 3. */
 const MAP: BlockMap = {
   blockId: 'b1',
   code: 'B1',
@@ -42,44 +43,50 @@ const MAP: BlockMap = {
   ],
 };
 
-describe('toBlockGrid', () => {
-  it('gives each existing bay one column', () => {
-    const grid = toBlockGrid(MAP);
-    expect(grid.bays.map((b) => [b.bayNo, b.column])).toEqual([
+function cells(tier: number) {
+  return toTierGrid(MAP, tier).rows[0].cells;
+}
+
+describe('toTierGrid', () => {
+  it('has one column per odd bay and none for even bays', () => {
+    const { bays } = toTierGrid(MAP, 1);
+    expect(bays.map((b) => [b.bayNo, b.column])).toEqual([
       [1, 1],
-      [2, 2],
-      [3, 3],
+      [3, 2],
     ]);
   });
 
-  it('spreads a 40ft container over the bays it covers, with the top tier on the top line', () => {
-    const [row] = toBlockGrid(MAP).rows;
-    const forty = row.slots.find((s) => s.container === FORTY);
-    const twenty = row.slots.find((s) => s.container === TWENTY);
-    expect([forty?.line, forty?.column, forty?.span]).toEqual([2, 1, 3]);
-    expect([twenty?.line, twenty?.column, twenty?.span]).toEqual([1, 1, 1]);
+  it('draws a 40ft container as one box across two odd bays', () => {
+    const [forty, ...rest] = cells(1);
+    expect([forty.container, forty.column, forty.span]).toEqual([FORTY, 1, 2]);
+    expect(rest).toEqual([]);
   });
 
-  it('draws free places only where no container stands or covers', () => {
-    const [row] = toBlockGrid(MAP).rows;
-    const free = row.slots.filter((s) => !s.container).map((s) => [s.line, s.column]);
-    expect(free).toEqual([
-      [1, 2],
-      [1, 3],
-    ]);
+  it('draws a free place for every odd bay that has no container on the chosen tier', () => {
+    const [twenty, free] = cells(2);
+    expect([twenty.container, twenty.column, twenty.span]).toEqual([TWENTY, 1, 1]);
+    expect([free.container, free.column, free.span]).toEqual([null, 2, 1]);
+  });
+
+  it('tells when a container stands above or below a place', () => {
+    const [forty] = cells(1);
+    const [twenty, free] = cells(2);
+    expect([forty.hasAbove, forty.hasBelow]).toEqual([true, false]);
+    expect([twenty.hasAbove, twenty.hasBelow]).toEqual([false, true]);
+    expect([free.hasAbove, free.hasBelow]).toEqual([false, true]);
+  });
+
+  it('draws no place above the height a row allows', () => {
+    expect(cells(3)).toEqual([]);
   });
 
   it('flags damage before long stay so a cell has one chip colour', () => {
-    const [row] = toBlockGrid(MAP).rows;
-    const flagOfBox = (box: MapContainer) =>
-      row.slots.find((s) => s.container === box)?.flag?.label;
-    expect(flagOfBox(FORTY)).toBe('Hư hỏng');
-    expect(flagOfBox(TWENTY)).toBe('Tồn lâu');
+    expect(cells(1)[0].flag?.label).toBe('Hư hỏng');
+    expect(cells(2)[0].flag?.label).toBe('Tồn lâu');
   });
 
-  it('keeps the unplaced containers of a virtual block', () => {
-    const grid = toBlockGrid({ ...MAP, isVirtual: true, bays: [], unplaced: [TWENTY] });
-    expect(grid.rows).toEqual([]);
-    expect(grid.unplaced).toEqual([TWENTY]);
+  it('offers as many tiers as the tallest row allows', () => {
+    expect(tierCount(MAP)).toBe(2);
+    expect(tierCount({ ...MAP, bays: [] })).toBe(0);
   });
 });
