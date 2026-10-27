@@ -46,6 +46,7 @@ app.MapYardRowEndpoints();
 app.MapContainerEndpoints();
 app.MapReleaseOrderEndpoints();
 app.MapContainerStayEndpoints();
+app.MapReportEndpoints();
 
 await app.Services.SeedAdminAsync();
 
