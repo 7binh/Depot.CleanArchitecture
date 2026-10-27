@@ -141,7 +141,8 @@ export class GateOutPage implements OnInit {
   protected readonly containerOptions = computed<SelectOption[]>(() =>
     this.inYard().map((row) => ({
       value: row.id,
-      label: `${row.number} (${row.lineOperator}, ${row.containerType}, ${row.size})`,
+      label: row.number,
+      hint: `${row.lineOperator} · ${row.containerType} · ${row.size}`,
     })),
   );
   protected readonly chosen = computed(() =>
@@ -155,7 +156,7 @@ export class GateOutPage implements OnInit {
     return this.orders
       .items()
       .filter((order) => canRelease(order, container))
-      .map((order) => ({ value: order.id, label: `${order.orderNo} - ${order.exportVessel}` }));
+      .map((order) => ({ value: order.id, label: order.orderNo, hint: order.exportVessel }));
   });
 
   protected readonly notice = signal<string | null>(null);

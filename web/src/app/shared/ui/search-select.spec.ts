@@ -70,6 +70,13 @@ describe('SearchSelect', () => {
     expect(page.control.value).toBe('b');
   });
 
+  it('takes a label typed in full without picking it', () => {
+    const page = setup();
+    typeText(page, 'beta two');
+    expect(page.control.value).toBe('b');
+    expect(page.input.value).toBe('Beta two');
+  });
+
   it('closes the list on Escape', () => {
     const page = setup();
     typeText(page, 'a');

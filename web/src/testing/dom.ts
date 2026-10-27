@@ -38,7 +38,7 @@ export function search(fixture: ComponentFixture<unknown>, label: string, text: 
   }
   fixture.detectChanges();
   const options = root(fixture).querySelectorAll('[role="option"]');
-  return [...options].map((o) => (o.textContent ?? '').trim());
+  return [...options].map((o) => (o.textContent ?? '').replace(/\s+/g, ' ').trim());
 }
 
 /** Types `text` into the search select and picks the suggestion that contains `option`. */

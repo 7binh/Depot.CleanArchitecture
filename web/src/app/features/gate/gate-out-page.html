@@ -27,13 +27,19 @@
       [options]="containerOptions()"
       [messages]="messages.container"
     />
+    @if (chosen(); as container) {
+      <p class="rounded-control bg-brand-soft p-4 text-small text-ink">
+        Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
+        {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực tế.
+      </p>
+    }
     <app-search-select
       label="Lệnh giao"
       placeholder="Gõ số lệnh hoặc tên tàu"
       emptyText="Không có lệnh giao nào khớp."
       [control]="form.controls.releaseOrderId"
-      [control]="form.controls.releaseOrderId"
       [options]="orderOptions()"
+      [matchHint]="true"
       [messages]="messages.order"
     />
     @if (chosen() && orderOptions().length === 0) {

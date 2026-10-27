@@ -7,6 +7,8 @@ import { Icon } from './icon';
 export interface SelectOption {
   value: string;
   label: string;
+  /** Secondary text a searchable list shows beside the label; the input shows the label only. */
+  hint?: string;
 }
 
 let nextId = 0;

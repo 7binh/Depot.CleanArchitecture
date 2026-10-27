@@ -15,6 +15,11 @@ import { SelectOption } from './select-field';
 
 let nextId = 0;
 
+/** Case and spaces do not matter when a typed text is compared with a label. */
+function squash(text: string): string {
+  return text.replace(/\s/g, '').toLowerCase();
+}
+
 /**
  * A select you search by typing: the list narrows to the options whose label contains the text.
  * The control holds the chosen option's value, or "" while nothing is chosen.
@@ -70,7 +75,11 @@ let nextId = 0;
                 [class.bg-brand-soft]="i === active()"
                 (mousedown)="choose($event, option)"
               >
-                {{ option.label }}
+                <span>{{ option.label }}</span>
+                @if (option.hint; as hint) {
+                  &ngsp;
+                  <span class="ml-2 text-small text-ink-2">{{ hint }}</span>
+                }
               </li>
             } @empty {
               <li role="presentation" class="px-4 py-2 text-small text-ink-2">{{ emptyText() }}</li>
@@ -95,6 +104,8 @@ export class SearchSelect {
   readonly emptyText = input('Không có kết quả khớp.');
   /** Most options shown at once; the rest appear as the text narrows the list. */
   readonly limit = input(8);
+  /** Also match the text against each option's hint, not only its label. */
+  readonly matchHint = input(false);
   readonly messages = input<Record<string, string>>({});
 
   protected readonly id = `search-select-${nextId++}`;
@@ -107,7 +118,7 @@ export class SearchSelect {
   protected readonly matches = computed(() => {
     const wanted = this.filter().trim().toLowerCase();
     return this.options()
-      .filter((option) => option.label.toLowerCase().includes(wanted))
+      .filter((option) => this.searchable(option).includes(wanted))
       .slice(0, this.limit());
   });
 
@@ -147,6 +158,11 @@ export class SearchSelect {
     this.filter.set(value);
     this.active.set(0);
     this.open.set(true);
+    const exact = this.options().find((o) => squash(o.label) === squash(value));
+    if (exact) {
+      this.pick(exact);
+      return;
+    }
     this.typing = true;
     this.control().setValue('');
     this.typing = false;
@@ -184,6 +200,11 @@ export class SearchSelect {
     this.open.set(false);
     this.control().setValue(option.value);
     this.control().markAsTouched();
+  }
+
+  private searchable(option: SelectOption): string {
+    const text = this.matchHint() ? `${option.label} ${option.hint ?? ''}` : option.label;
+    return text.toLowerCase();
   }
 
   private labelOf(value: string): string {
