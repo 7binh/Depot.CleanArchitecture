@@ -50,7 +50,7 @@
                 </p>
                 <div class="overflow-x-auto">
                   <div
-                    class="grid w-max min-w-full gap-2"
+                    class="grid w-max gap-2"
                     role="group"
                     aria-label="Sơ đồ tầng đang chọn"
                     [style.grid-template-columns]="template()"
@@ -75,18 +75,19 @@
                       </p>
                       @for (cell of row.cells; track cell.key) {
                         <div
-                          class="flex h-18 flex-col justify-between rounded-inset px-2 py-1.5"
+                          class="flex h-18 flex-col justify-between overflow-hidden rounded-inset px-2 py-1.5"
                           [class.bg-brand-soft]="cell.container"
                           [class.bg-surface-sunken]="!cell.container"
                           [style.grid-row]="i + 2"
                           [style.grid-column]="cell.column + 1 + ' / span ' + cell.span"
                         >
-                          <div class="flex flex-col">
+                          <div class="flex min-w-0 flex-col">
                             @if (cell.container; as container) {
-                              <span class="text-caption font-medium text-ink tabular-nums">{{
-                                container.number
-                              }}</span>
-                              <span class="text-caption text-ink-2">
+                              <span
+                                class="truncate text-caption font-medium text-ink tabular-nums"
+                                >{{ container.number }}</span
+                              >
+                              <span class="truncate text-caption text-ink-2">
                                 {{ container.operatorCode }}, {{ container.daysInYard }} ngày{{
                                   container.sizeFeet === 40 ? ', 40 ft' : ''
                                 }}
@@ -95,17 +96,19 @@
                               <span class="sr-only">Trống</span>
                             }
                           </div>
-                          <div class="flex items-center gap-2">
+                          <div class="flex min-w-0 items-center gap-1">
                             @if (cell.flag; as flag) {
                               <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
                             }
-                            <span class="ml-auto flex items-center gap-2 text-caption text-ink-3">
+                            <span
+                              class="ml-auto flex shrink-0 items-center gap-1 text-caption text-ink-3"
+                            >
                               @if (cell.above > 0) {
                                 <span
                                   class="flex items-center"
                                   [attr.title]="cell.above + ' container ở tầng trên'"
                                 >
-                                  <app-icon name="chevron-up" [size]="16" />{{ cell.above }}
+                                  <app-icon name="chevron-up" [size]="12" />{{ cell.above }}
                                   <span class="sr-only">container ở tầng trên</span>
                                 </span>
                               }
@@ -114,7 +117,7 @@
                                   class="flex items-center"
                                   [attr.title]="cell.below + ' container ở tầng dưới'"
                                 >
-                                  <app-icon name="chevron-down" [size]="16" />{{ cell.below }}
+                                  <app-icon name="chevron-down" [size]="12" />{{ cell.below }}
                                   <span class="sr-only">container ở tầng dưới</span>
                                 </span>
                               }

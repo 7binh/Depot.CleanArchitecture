@@ -21,9 +21,9 @@ import { SelectField } from '../../shared/ui/select-field';
 import { tierCount, toTierGrid } from './block-grid';
 import { Block, BlockMap, YardService } from './yard.service';
 
-/** Width of the row label column and the least width of a bay column. */
+/** Fixed widths of the row label column and of a bay column, so a long number never stretches the map. */
 const LABEL_WIDTH = '3.5rem';
-const BAY_WIDTH = 'minmax(7.5rem, 1fr)';
+const BAY_WIDTH = '8rem';
 
 @Component({
   selector: 'app-yard-map-page',
