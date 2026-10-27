@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { choose, click, type } from '../../../testing/dom';
 import { stubDialog } from '../../../testing/dialog';
 import { GateInPage } from './gate-in-page';
@@ -30,9 +31,18 @@ const BAYS = [
 ];
 const ROWS = [{ id: 'r1', bayId: 'y1', rowNo: 1, maxTier: 3 }];
 
-function setup() {
+function setup(query: Record<string, string> = {}) {
   stubDialog();
-  TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+  TestBed.configureTestingModule({
+    providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      {
+        provide: ActivatedRoute,
+        useValue: { snapshot: { queryParamMap: convertToParamMap(query) } },
+      },
+    ],
+  });
   const http = TestBed.inject(HttpTestingController);
   const fixture = TestBed.createComponent(GateInPage);
   const element = fixture.nativeElement as HTMLElement;
@@ -114,6 +124,39 @@ describe('GateInPage form', () => {
     expect(element.textContent).toContain('Nhập số container.');
   });
 });
+
+describe('GateInPage place from the yard map', () => {
+  const place = { block: 'b1', bay: '3', row: '1', tier: '2' };
+
+  const rows = [{ ...ROWS[0], bayId: 'y3' }];
+
+  it('fills block, bay, row and tier from the place', () => {
+    const { http, fixture, element } = setup(place);
+    http.expectOne(`${API}/blocks/b1/bays`).flush(BAYS);
+    http.expectOne(`${API}/blocks/b1/bays/y3/rows`).flush(rows);
+    http.expectOne(`${API}/blocks/b1/bays`).flush(BAYS);
+    http.expectOne(`${API}/blocks/b1/bays/y3/rows`).flush(rows);
+    fixture.detectChanges();
+    expectSelected(element, 'Block', 'b1');
+    expectSelected(element, 'Bay', 'y3');
+    expectSelected(element, 'Row', 'r1');
+    expectSelected(element, 'Tầng', '2');
+  });
+
+  it('leaves the position empty when the place has no matching bay', () => {
+    const { http, fixture, element } = setup({ ...place, bay: '9' });
+    http.expectOne(`${API}/blocks/b1/bays`).flush(BAYS);
+    fixture.detectChanges();
+    expectSelected(element, 'Block', '');
+  });
+});
+
+function expectSelected(element: HTMLElement, label: string, value: string): void {
+  const field = [...element.querySelectorAll('app-select-field')].find((f) =>
+    f.textContent?.includes(label),
+  );
+  expect(field?.querySelector('select')?.value).toBe(value);
+}
 
 describe('GateInPage submit', () => {
   it('sends the position of a real block and says the container is in', () => {

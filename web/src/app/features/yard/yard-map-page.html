@@ -79,8 +79,7 @@
                         @for (cell of row.cells; track cell.key) {
                           <button
                             type="button"
-                            class="flex h-18 w-full flex-col justify-between overflow-hidden rounded-card border px-2 py-1.5 text-left transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand enabled:hover:border-line-strong motion-reduce:transition-none"
-                            [disabled]="!cell.container"
+                            class="group flex h-18 w-full flex-col justify-between overflow-hidden rounded-card border px-2 py-1.5 text-left transition-colors duration-150 ease-out hover:border-line-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
                             [attr.aria-pressed]="cell.container ? isSelected(cell) : null"
                             [class.border-transparent]="!cell.container"
                             [class.bg-surface-sunken]="!cell.container"
@@ -104,7 +103,15 @@
                                   }}
                                 </span>
                               } @else {
-                                <span class="sr-only">Trống</span>
+                                <app-icon
+                                  name="plus"
+                                  [size]="16"
+                                  class="text-ink-disabled transition-colors duration-150 ease-out group-hover:text-ink motion-reduce:transition-none"
+                                />
+                                <span class="sr-only"
+                                  >Trống, gate in vào bay {{ cell.bayNo }}, row {{ cell.rowNo }},
+                                  tầng {{ cell.tier }}</span
+                                >
                               }
                             </div>
                             <div class="flex min-w-0 items-center gap-1">

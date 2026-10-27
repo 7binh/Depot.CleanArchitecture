@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import { map, tap } from 'rxjs';
 import { ListLoader } from '../../core/api/list-loader';
 import { Card } from '../../shared/ui/card';
@@ -45,6 +46,7 @@ const BAY_WIDTH = '8.75rem';
 })
 export class YardMapPage implements OnInit {
   private readonly yard = inject(YardService);
+  private readonly router = inject(Router);
 
   protected readonly blockControl = new FormControl('', { nonNullable: true });
   private readonly blockId = toSignal(this.blockControl.valueChanges, { initialValue: '' });
@@ -108,8 +110,20 @@ export class YardMapPage implements OnInit {
     return cell.container !== null && cell.container.stayId === this.selectedId();
   }
 
+  /** A container opens its card; a free place opens Gate In with that place filled in. */
   protected select(cell: GridCell): void {
-    this.selectedId.set(cell.container?.stayId ?? null);
+    if (cell.container) {
+      this.selectedId.set(cell.container.stayId);
+      return;
+    }
+    void this.router.navigate(['/gate-in'], {
+      queryParams: {
+        block: this.current()?.blockId,
+        bay: cell.bayNo,
+        row: cell.rowNo,
+        tier: cell.tier,
+      },
+    });
   }
 
   protected close(): void {

@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { errorCode, toMessage } from '../../core/api/api-error';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
@@ -34,9 +35,15 @@ import {
   buildGateInForm,
   nowLocal,
 } from './gate-in-form';
+import { PlaceToFill, readPlace } from './gate-in-place';
 import { GateService, NewGateIn, StayCondition, StayGrade, VehicleType } from './gate.service';
 
 type Field = keyof GateInForm['controls'];
+
+interface FoundPlace {
+  bayId: string;
+  rowId: string;
+}
 
 /** Which field an API error belongs under; errors not listed here go to the banner. */
 const FIELD_OF_ERROR: Record<string, Field> = {
@@ -86,6 +93,7 @@ export class GateInPage implements OnInit {
   private readonly types = inject(ContainerTypeService);
   private readonly yard = inject(YardService);
   private readonly gate = inject(GateService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly containers = new ListLoader<ContainerRow>(() =>
     forkJoin([this.containerService.list(), this.operators.list(), this.types.list()]).pipe(
@@ -188,6 +196,7 @@ export class GateInPage implements OnInit {
       controls.tier.setValue('');
       controls.tier.updateValueAndValidity();
     });
+    this.fillPlace();
   }
 
   ngOnInit(): void {
@@ -214,6 +223,47 @@ export class GateInPage implements OnInit {
       next: () => this.succeed(container.number),
       error: (error: unknown) => this.fail(error),
     });
+  }
+
+  /** A place picked on the yard map arrives in the address; look up its bay and row, then fill the position. */
+  private fillPlace(): void {
+    const place = readPlace(this.route.snapshot.queryParamMap);
+    if (!place) {
+      return;
+    }
+    this.yard
+      .bays(place.blockId)
+      .pipe(
+        switchMap((bays) => this.findPlace(place, bays)),
+        catchError(() => of(null)),
+      )
+      .subscribe((found) => {
+        if (found) {
+          this.applyPlace(place, found);
+        }
+      });
+  }
+
+  private findPlace(place: PlaceToFill, bays: Bay[]): Observable<FoundPlace | null> {
+    const bay = bays.find((candidate) => candidate.bayNo === place.bayNo);
+    if (!bay) {
+      return of(null);
+    }
+    return this.yard.rows(place.blockId, bay.id).pipe(
+      map((rows) => {
+        const row = rows.find((candidate) => candidate.rowNo === place.rowNo);
+        return row ? { bayId: bay.id, rowId: row.id } : null;
+      }),
+    );
+  }
+
+  /** Set in this order: each choice clears the ones after it. */
+  private applyPlace(place: PlaceToFill, found: FoundPlace): void {
+    const { controls } = this.form;
+    controls.blockId.setValue(place.blockId);
+    controls.bayId.setValue(found.bayId);
+    controls.rowId.setValue(found.rowId);
+    controls.tier.setValue(`${place.tier}`);
   }
 
   private isRealBlock(id: string): boolean {

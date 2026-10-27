@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { YardMapPage } from './yard-map-page';
 
 const API = 'http://localhost:5049/api';
@@ -43,7 +44,9 @@ const VIRTUAL_MAP = {
 };
 
 function setup() {
-  TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+  TestBed.configureTestingModule({
+    providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+  });
   const http = TestBed.inject(HttpTestingController);
   const fixture = TestBed.createComponent(YardMapPage);
   const element = fixture.nativeElement as HTMLElement;
@@ -122,16 +125,20 @@ describe('YardMapPage container detail', () => {
     expect(cell.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('does not let a free place be clicked', () => {
+  it('opens Gate In with the place filled in when a free place is clicked', () => {
     const { fixture, element } = drawn();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const tabs = [...element.querySelectorAll('app-segmented button')] as HTMLButtonElement[];
     tabs[1].click();
     fixture.detectChanges();
-    const free = [...element.querySelectorAll('button')].filter((b) =>
-      b.textContent?.includes('Trống'),
+    const free = [...element.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Trống, gate in vào bay 1, row 1, tầng 2'),
     );
-    expect(free.length).toBeGreaterThan(0);
-    expect(free.every((button) => button.disabled)).toBe(true);
+    free?.click();
+    expect(navigate).toHaveBeenCalledWith(['/gate-in'], {
+      queryParams: { block: 'b1', bay: 1, row: 1, tier: 2 },
+    });
+    expect(element.querySelector('app-container-detail')).toBeNull();
   });
 });
 
@@ -186,7 +193,7 @@ describe('YardMapPage other blocks', () => {
 
   it('says so when the yard has no block', () => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     const http = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(YardMapPage);
