@@ -64,4 +64,17 @@ public sealed class BayTests
         Assert.Equal("Bay.BlockIsVirtual", result.Error.Code);
         Assert.Equal(ErrorType.Validation, result.Error.Type);
     }
+
+    [Theory]
+    [InlineData(1, 20, 1, 1)]
+    [InlineData(3, 20, 3, 3)]
+    [InlineData(2, 40, 1, 3)]
+    [InlineData(40, 40, 39, 41)]
+    public void SizeFeet_AndFloorSpan_FollowTheBayNumber(int bayNo, int sizeFeet, int first, int last)
+    {
+        var bay = Bay.Create(NormalBlock(), bayNo).Value;
+
+        Assert.Equal(sizeFeet, bay.SizeFeet);
+        Assert.Equal((first, last), bay.FloorSpan);
+    }
 }

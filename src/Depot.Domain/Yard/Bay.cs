@@ -1,5 +1,6 @@
 using Depot.Domain.Common;
 using Depot.Domain.Common.Rules;
+using Depot.Domain.Containers;
 using Depot.Domain.Yard.Rules;
 
 namespace Depot.Domain.Yard;
@@ -18,6 +19,15 @@ public sealed class Bay : AuditableEntity
 
     /// <summary>Odd = 20ft bay, even = 40ft bay (BR-YD-03).</summary>
     public int BayNo { get; private set; }
+
+    /// <summary>The container size this bay takes (BR-YD-03).</summary>
+    public int SizeFeet => BayNo % 2 == 1 ? Container.SizeSmallFeet : Container.SizeLargeFeet;
+
+    /// <summary>
+    /// First and last bay number a container of this bay's size takes on the floor: a 40ft container in an even bay
+    /// also takes the odd bays beside it (BR-YD-04).
+    /// </summary>
+    public (int First, int Last) FloorSpan => SizeFeet == Container.SizeLargeFeet ? (BayNo - 1, BayNo + 1) : (BayNo, BayNo);
 
     public static Result<Bay> Create(Block block, int bayNo)
     {

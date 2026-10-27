@@ -1,4 +1,4 @@
-namespace Depot.Application.Features.Reports;
+namespace Depot.Application.Features;
 
 /// <summary>Calendar days at the depot: a day starts and ends at local midnight, not at UTC midnight.</summary>
 internal static class DepotCalendar

@@ -6,6 +6,7 @@ using Depot.Application.Features.Blocks.Delete;
 using Depot.Application.Features.Blocks.GenerateLayout;
 using Depot.Application.Features.Blocks.GetAll;
 using Depot.Application.Features.Blocks.GetById;
+using Depot.Application.Features.Blocks.GetMap;
 using Depot.Application.Features.Blocks.Update;
 using Depot.Domain.Common;
 
@@ -30,6 +31,10 @@ public static class BlockEndpoints
             .WithName("GetBlockById")
             .WithSummary("Get one block by id");
 
+        group.MapGet("/{id:guid}/map", GetMap)
+            .WithName("GetBlockMap")
+            .WithSummary("Get the map of a block to draw: its bays, rows and the container on each tier");
+
         group.MapPut("/{id:guid}", Update)
             .WithName("UpdateBlock")
             .WithSummary("Rename a block (the code and the virtual flag cannot be changed)");
@@ -41,6 +46,15 @@ public static class BlockEndpoints
         group.MapPost("/{id:guid}/layout", GenerateLayout)
             .WithName("GenerateBlockLayout")
             .WithSummary("Create the bays FromBay..ToBay of a block, each with rows 1..RowCount (existing ones are kept)");
+    }
+
+    private static async Task<IResult> GetMap(
+        Guid id,
+        IQueryHandler<GetBlockMapQuery, Result<BlockMapResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new GetBlockMapQuery(id), cancellationToken);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Delete(
