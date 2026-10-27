@@ -9,153 +9,173 @@
       <app-empty-state icon="layers" message="Chưa có block nào trong bãi." />
     </app-card>
   } @else {
-    <app-card>
-      <div class="flex flex-col gap-6">
-        <div class="flex flex-wrap items-end gap-4">
-          <app-select-field
-            class="w-full max-w-xs"
-            label="Block"
-            [control]="blockControl"
-            [options]="blockOptions()"
-          />
-          @if (tierOptions().length > 0) {
-            <div class="flex flex-col gap-2">
-              <span class="text-caption font-medium text-ink-2">Tầng</span>
-              <app-segmented label="Chọn tầng" [options]="tierOptions()" [(value)]="tier" />
-            </div>
-          }
-        </div>
+    <div class="flex flex-col items-start gap-6 lg:flex-row">
+      <app-card class="w-full min-w-0 lg:flex-1">
+        <div class="flex flex-col gap-6">
+          <div class="flex flex-wrap items-end gap-4">
+            <app-select-field
+              class="w-full max-w-xs"
+              label="Block"
+              [control]="blockControl"
+              [options]="blockOptions()"
+            />
+            @if (tierOptions().length > 0) {
+              <div class="flex flex-col gap-2">
+                <span class="text-caption font-medium text-ink-2">Tầng</span>
+                <app-segmented label="Chọn tầng" [options]="tierOptions()" [(value)]="tier" />
+              </div>
+            }
+          </div>
 
-        <app-load-state
-          [status]="mapLoader.status()"
-          [failure]="mapLoader.failure()"
-          (retry)="mapLoader.load()"
-        >
-          @if (current(); as map) {
-            @if (grid(); as view) {
-              @if (view.rows.length === 0 && map.unplaced.length === 0) {
-                <app-empty-state icon="box" message="Block này chưa có bay hay container nào." />
-              }
+          <app-load-state
+            [status]="mapLoader.status()"
+            [failure]="mapLoader.failure()"
+            (retry)="mapLoader.load()"
+          >
+            @if (current(); as map) {
+              @if (grid(); as view) {
+                @if (view.rows.length === 0 && map.unplaced.length === 0) {
+                  <app-empty-state icon="box" message="Block này chưa có bay hay container nào." />
+                }
 
-              @if (view.rows.length > 0) {
-                <p class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-caption text-ink-3">
-                  <span class="flex items-center gap-1">
-                    <app-icon name="chevron-up" [size]="16" />
-                    Số container ở các tầng trên
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <app-icon name="chevron-down" [size]="16" />
-                    Số container ở các tầng dưới
-                  </span>
-                </p>
-                <div class="overflow-x-auto">
-                  <div
-                    class="grid w-max gap-2"
-                    role="group"
-                    aria-label="Sơ đồ tầng đang chọn"
-                    [style.grid-template-columns]="template()"
+                @if (view.rows.length > 0) {
+                  <p
+                    class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-caption text-ink-3"
                   >
-                    @for (bay of view.bays; track bay.bayNo) {
-                      <p
-                        class="pb-1 text-center text-caption font-medium text-ink-2"
-                        [style.grid-row]="1"
-                        [style.grid-column]="bay.column + 1"
-                      >
-                        Bay {{ bay.bayNo }}
-                      </p>
-                    }
-
-                    @for (row of view.rows; track row.rowNo; let i = $index) {
-                      <p
-                        class="sticky left-0 z-10 flex items-center bg-surface pr-2 text-caption font-medium text-ink"
-                        [style.grid-row]="i + 2"
-                        [style.grid-column]="1"
-                      >
-                        Row {{ row.rowNo }}
-                      </p>
-                      @for (cell of row.cells; track cell.key) {
-                        <div
-                          class="flex h-18 flex-col justify-between overflow-hidden rounded-inset px-2 py-1.5"
-                          [class.bg-brand-soft]="cell.container"
-                          [class.bg-surface-sunken]="!cell.container"
-                          [style.grid-row]="i + 2"
-                          [style.grid-column]="cell.column + 1 + ' / span ' + cell.span"
+                    <span class="flex items-center gap-1">
+                      <app-icon name="chevron-up" [size]="16" />
+                      Số container ở các tầng trên
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <app-icon name="chevron-down" [size]="16" />
+                      Số container ở các tầng dưới
+                    </span>
+                  </p>
+                  <div class="overflow-x-auto">
+                    <div
+                      class="grid w-max gap-2"
+                      role="group"
+                      aria-label="Sơ đồ tầng đang chọn"
+                      [style.grid-template-columns]="template()"
+                    >
+                      @for (bay of view.bays; track bay.bayNo) {
+                        <p
+                          class="pb-1 text-center text-caption font-medium text-ink-2"
+                          [style.grid-row]="1"
+                          [style.grid-column]="bay.column + 1"
                         >
-                          <div class="flex min-w-0 flex-col">
-                            @if (cell.container; as container) {
-                              <span
-                                class="truncate text-caption font-medium text-ink tabular-nums"
-                                >{{ container.number }}</span
-                              >
-                              <span class="truncate text-caption text-ink-2">
-                                {{ container.operatorCode }}, {{ container.daysInYard }} ngày{{
-                                  container.sizeFeet === 40 ? ', 40 ft' : ''
-                                }}
-                              </span>
-                            } @else {
-                              <span class="sr-only">Trống</span>
-                            }
-                          </div>
-                          <div class="flex min-w-0 items-center gap-1">
-                            @if (cell.flag; as flag) {
-                              <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
-                            }
-                            <span
-                              class="ml-auto flex shrink-0 items-center gap-1 text-caption text-ink-3"
-                            >
-                              @if (cell.above > 0) {
-                                <span
-                                  class="flex items-center"
-                                  [attr.title]="cell.above + ' container ở tầng trên'"
-                                >
-                                  <app-icon name="chevron-up" [size]="16" />{{ cell.above }}
-                                  <span class="sr-only">container ở tầng trên</span>
-                                </span>
-                              }
-                              @if (cell.below > 0) {
-                                <span
-                                  class="flex items-center"
-                                  [attr.title]="cell.below + ' container ở tầng dưới'"
-                                >
-                                  <app-icon name="chevron-down" [size]="16" />{{ cell.below }}
-                                  <span class="sr-only">container ở tầng dưới</span>
-                                </span>
-                              }
-                            </span>
-                          </div>
-                        </div>
+                          Bay {{ bay.bayNo }}
+                        </p>
                       }
-                    }
-                  </div>
-                </div>
-              }
 
-              @if (map.unplaced.length > 0) {
-                <section [class]="view.rows.length > 0 ? 'border-t border-line pt-6' : ''">
-                  <h2 class="mb-2 text-small font-medium text-ink">Chưa có vị trí</h2>
-                  <ul>
-                    @for (container of map.unplaced; track container.stayId) {
-                      <li class="flex items-center gap-4 border-b border-line py-4 last:border-b-0">
-                        <span class="text-body font-medium text-ink tabular-nums">{{
-                          container.number
-                        }}</span>
-                        <span class="text-caption text-ink-3"
-                          >{{ container.operatorCode }}, {{ container.daysInYard }} ngày</span
+                      @for (row of view.rows; track row.rowNo; let i = $index) {
+                        <p
+                          class="sticky left-0 z-10 flex items-center bg-surface pr-2 text-caption font-medium text-ink"
+                          [style.grid-row]="i + 2"
+                          [style.grid-column]="1"
                         >
-                        @if (container.isDamaged) {
-                          <app-chip color="danger">Hư hỏng</app-chip>
-                        } @else if (container.isLongStay) {
-                          <app-chip color="warning">Tồn lâu</app-chip>
+                          Row {{ row.rowNo }}
+                        </p>
+                        @for (cell of row.cells; track cell.key) {
+                          <button
+                            type="button"
+                            class="flex h-18 w-full flex-col justify-between overflow-hidden rounded-inset px-2 py-1.5 text-left transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand enabled:hover:bg-brand-soft-2 motion-reduce:transition-none"
+                            [disabled]="!cell.container"
+                            [attr.aria-pressed]="cell.container ? isSelected(cell) : null"
+                            [class.bg-brand-soft]="cell.container && !isSelected(cell)"
+                            [class.bg-brand-soft-2]="isSelected(cell)"
+                            [class.bg-surface-sunken]="!cell.container"
+                            [style.grid-row]="i + 2"
+                            [style.grid-column]="cell.column + 1 + ' / span ' + cell.span"
+                            (click)="select(cell)"
+                          >
+                            <div class="flex min-w-0 flex-col">
+                              @if (cell.container; as container) {
+                                <span
+                                  class="truncate text-caption font-medium text-ink tabular-nums"
+                                  >{{ container.number }}</span
+                                >
+                                <span class="truncate text-caption text-ink-2">
+                                  {{ container.operatorCode }}, {{ container.daysInYard }} ngày{{
+                                    container.sizeFeet === 40 ? ', 40 ft' : ''
+                                  }}
+                                </span>
+                              } @else {
+                                <span class="sr-only">Trống</span>
+                              }
+                            </div>
+                            <div class="flex min-w-0 items-center gap-1">
+                              @if (cell.flag; as flag) {
+                                <app-chip [color]="flag.tone">{{ flag.label }}</app-chip>
+                              }
+                              <span
+                                class="ml-auto flex shrink-0 items-center gap-1 text-caption text-ink-3"
+                              >
+                                @if (cell.above > 0) {
+                                  <span
+                                    class="flex items-center"
+                                    [attr.title]="cell.above + ' container ở tầng trên'"
+                                  >
+                                    <app-icon name="chevron-up" [size]="16" />{{ cell.above }}
+                                    <span class="sr-only">container ở tầng trên</span>
+                                  </span>
+                                }
+                                @if (cell.below > 0) {
+                                  <span
+                                    class="flex items-center"
+                                    [attr.title]="cell.below + ' container ở tầng dưới'"
+                                  >
+                                    <app-icon name="chevron-down" [size]="16" />{{ cell.below }}
+                                    <span class="sr-only">container ở tầng dưới</span>
+                                  </span>
+                                }
+                              </span>
+                            </div>
+                          </button>
                         }
-                      </li>
-                    }
-                  </ul>
-                </section>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (map.unplaced.length > 0) {
+                  <section [class]="view.rows.length > 0 ? 'border-t border-line pt-6' : ''">
+                    <h2 class="mb-2 text-small font-medium text-ink">Chưa có vị trí</h2>
+                    <ul>
+                      @for (container of map.unplaced; track container.stayId) {
+                        <li
+                          class="flex items-center gap-4 border-b border-line py-4 last:border-b-0"
+                        >
+                          <span class="text-body font-medium text-ink tabular-nums">{{
+                            container.number
+                          }}</span>
+                          <span class="text-caption text-ink-3"
+                            >{{ container.operatorCode }}, {{ container.daysInYard }} ngày</span
+                          >
+                          @if (container.isDamaged) {
+                            <app-chip color="danger">Hư hỏng</app-chip>
+                          } @else if (container.isLongStay) {
+                            <app-chip color="warning">Tồn lâu</app-chip>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </section>
+                }
               }
             }
-          }
-        </app-load-state>
-      </div>
-    </app-card>
+          </app-load-state>
+        </div>
+      </app-card>
+
+      @if (selected(); as cell) {
+        <app-container-detail
+          class="w-full lg:sticky lg:top-6 lg:w-80 lg:shrink-0"
+          [cell]="cell"
+          [blockCode]="current()?.code ?? ''"
+          (closed)="close()"
+        />
+      }
+    </div>
   }
 </app-load-state>

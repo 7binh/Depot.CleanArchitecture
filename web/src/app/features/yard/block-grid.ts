@@ -16,6 +16,10 @@ export interface CellFlag {
 /** One box of a row on the chosen tier: a container, or a free place when `container` is null. */
 export interface GridCell {
   key: string;
+  /** Where the place is: the bay the container (or free place) belongs to, its row and the tier shown. */
+  bayNo: number;
+  rowNo: number;
+  tier: number;
   column: number;
   /** How many bay columns it covers: 2 for a 40ft container. */
   span: number;
@@ -38,6 +42,7 @@ export interface TierGrid {
 
 /** A container placed on the floor of the odd-bay columns it covers. */
 interface Placed {
+  bayNo: number;
   tier: number;
   column: number;
   span: number;
@@ -74,11 +79,13 @@ export function toTierGrid(map: BlockMap, tier: number): TierGrid {
 
 function cellsOf(rowNo: number, tier: number, bays: BayMap[], columns: GridBay[]): GridCell[] {
   const placed = bays.flatMap((bay) =>
-    (bay.rows.find((row) => row.rowNo === rowNo)?.tiers ?? []).map((t) => place(t, columns)),
+    (bay.rows.find((row) => row.rowNo === rowNo)?.tiers ?? []).map((t) =>
+      place(t, bay.bayNo, columns),
+    ),
   );
   const filled = placed
     .filter((item) => item.tier === tier)
-    .map((item) => filledCell(item, placed));
+    .map((item) => filledCell(item, rowNo, placed));
   const taken = new Set(filled.flatMap(columnsOf));
   const free = bays
     .filter((bay) => bay.sizeFeet === 20)
@@ -86,9 +93,10 @@ function cellsOf(rowNo: number, tier: number, bays: BayMap[], columns: GridBay[]
   return [...filled, ...free].sort((a, b) => a.column - b.column);
 }
 
-function place(tier: TierMap, columns: GridBay[]): Placed {
+function place(tier: TierMap, bayNo: number, columns: GridBay[]): Placed {
   const covered = columns.filter((bay) => bay.bayNo >= tier.fromBay && bay.bayNo <= tier.toBay);
   return {
+    bayNo,
     tier: tier.tier,
     column: covered.at(0)?.column ?? 1,
     span: Math.max(covered.length, 1),
@@ -96,9 +104,12 @@ function place(tier: TierMap, columns: GridBay[]): Placed {
   };
 }
 
-function filledCell(item: Placed, placed: Placed[]): GridCell {
+function filledCell(item: Placed, rowNo: number, placed: Placed[]): GridCell {
   return {
     key: `${item.container.stayId}`,
+    bayNo: item.bayNo,
+    rowNo,
+    tier: item.tier,
     column: item.column,
     span: item.span,
     container: item.container,
@@ -124,6 +135,9 @@ function freeCell(
   return [
     {
       key: `free-${rowNo}-${column}`,
+      bayNo: bay.bayNo,
+      rowNo,
+      tier,
       column,
       span: 1,
       container: null,

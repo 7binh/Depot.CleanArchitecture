@@ -68,6 +68,14 @@ describe('toTierGrid', () => {
     expect([free.container, free.column, free.span]).toEqual([null, 2, 1]);
   });
 
+  it('names the bay, row and tier of every box, a 40ft one by its own even bay', () => {
+    const [forty] = cells(1);
+    const [twenty, free] = cells(2);
+    expect([forty.bayNo, forty.rowNo, forty.tier]).toEqual([2, 1, 1]);
+    expect([twenty.bayNo, twenty.rowNo, twenty.tier]).toEqual([1, 1, 2]);
+    expect([free.bayNo, free.rowNo, free.tier]).toEqual([3, 1, 2]);
+  });
+
   it('tells when a container stands above or below a place', () => {
     const [forty] = cells(1);
     const [twenty, free] = cells(2);

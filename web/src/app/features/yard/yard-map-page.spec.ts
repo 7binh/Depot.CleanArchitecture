@@ -100,6 +100,56 @@ describe('YardMapPage', () => {
   });
 });
 
+describe('YardMapPage container detail', () => {
+  function drawn() {
+    const view = setup();
+    view.http.expectOne(`${API}/blocks/b1/map`).flush(REAL_MAP);
+    view.fixture.detectChanges();
+    const boxes = [...view.element.querySelectorAll('button')] as HTMLButtonElement[];
+    const cell = boxes.find((button) => button.textContent?.includes('CSQU3054383'));
+    return { ...view, cell: cell as HTMLButtonElement };
+  }
+
+  it('opens a card with the container and its place when its cell is clicked', () => {
+    const { fixture, element, cell } = drawn();
+    expect(element.querySelector('app-container-detail')).toBeNull();
+    cell.click();
+    fixture.detectChanges();
+    const card = element.querySelector('app-container-detail') as HTMLElement;
+    expect(card.textContent).toContain('CSQU3054383');
+    expect(card.textContent).toContain('Tồn lâu');
+    expect(card.textContent).toContain('12 ngày');
+    expect(cell.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('closes the card from its close button and when the tier changes', () => {
+    const { fixture, element, cell } = drawn();
+    cell.click();
+    fixture.detectChanges();
+    (element.querySelector('[aria-label="Đóng chi tiết"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-container-detail')).toBeNull();
+    cell.click();
+    fixture.detectChanges();
+    const tabs = [...element.querySelectorAll('app-segmented button')] as HTMLButtonElement[];
+    tabs[1].click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-container-detail')).toBeNull();
+  });
+
+  it('does not let a free place be clicked', () => {
+    const { fixture, element } = drawn();
+    const tabs = [...element.querySelectorAll('app-segmented button')] as HTMLButtonElement[];
+    tabs[1].click();
+    fixture.detectChanges();
+    const free = [...element.querySelectorAll('button')].filter((b) =>
+      b.textContent?.includes('Trống'),
+    );
+    expect(free.length).toBeGreaterThan(0);
+    expect(free.every((button) => button.disabled)).toBe(true);
+  });
+});
+
 describe('YardMapPage other blocks', () => {
   it('lists the containers of a virtual block that have no position', () => {
     const { http, fixture, element } = setup();

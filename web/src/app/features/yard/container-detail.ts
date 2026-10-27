@@ -1,0 +1,71 @@
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Chip } from '../../shared/ui/chip';
+import { Icon } from '../../shared/ui/icon';
+import { GridCell } from './block-grid';
+
+/** A floating card beside the map with what is known about the container the person clicked. */
+@Component({
+  selector: 'app-container-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Chip, Icon],
+  template: `
+    @if (cell().container; as container) {
+      <div class="flex items-start justify-between gap-2">
+        <h2 class="text-card text-ink tabular-nums">{{ container.number }}</h2>
+        <button
+          type="button"
+          aria-label="Đóng chi tiết"
+          class="grid size-9 shrink-0 place-items-center rounded-control text-ink-2 transition-colors duration-150 ease-out hover:bg-shell hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+          (click)="closed.emit()"
+        >
+          <app-icon name="x" [size]="20" />
+        </button>
+      </div>
+      @if (container.isDamaged || container.isLongStay) {
+        <div class="mt-2 flex flex-wrap gap-2">
+          @if (container.isDamaged) {
+            <app-chip color="danger">Hư hỏng</app-chip>
+          }
+          @if (container.isLongStay) {
+            <app-chip color="warning">Tồn lâu</app-chip>
+          }
+        </div>
+      }
+      <dl class="mt-4 divide-y divide-line">
+        @for (row of rows(); track row.label) {
+          <div class="flex items-center justify-between gap-4 py-3 text-body">
+            <dt class="text-ink-2">{{ row.label }}</dt>
+            <dd class="text-right text-ink">{{ row.value }}</dd>
+          </div>
+        }
+      </dl>
+    }
+  `,
+  host: {
+    class: 'block rounded-card border border-line bg-surface p-5 shadow-popover',
+    role: 'region',
+    'aria-label': 'Chi tiết container',
+  },
+})
+export class ContainerDetail {
+  readonly cell = input.required<GridCell>();
+  readonly blockCode = input.required<string>();
+  readonly closed = output();
+
+  protected readonly rows = computed(() => {
+    const cell = this.cell();
+    const container = cell.container;
+    if (!container) {
+      return [];
+    }
+    return [
+      { label: 'Hãng khai thác', value: container.operatorCode },
+      { label: 'Kích thước', value: `${container.sizeFeet} ft` },
+      { label: 'Block', value: this.blockCode() },
+      { label: 'Bay', value: `${cell.bayNo}` },
+      { label: 'Row', value: `${cell.rowNo}` },
+      { label: 'Tầng', value: `${cell.tier}` },
+      { label: 'Trong bãi', value: `${container.daysInYard} ngày` },
+    ];
+  });
+}
