@@ -18,8 +18,11 @@ export class ListLoader<T> {
     this.fetch = fetch;
   }
 
-  load(): void {
-    this.status.set('loading');
+  /** `background` keeps showing the current items instead of the loading state while the list refreshes. */
+  load(background = false): void {
+    if (!background) {
+      this.status.set('loading');
+    }
     this.fetch()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

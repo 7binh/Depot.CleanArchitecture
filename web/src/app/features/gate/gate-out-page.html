@@ -19,16 +19,19 @@
       <app-error-banner>{{ message }}</app-error-banner>
     }
 
-    <app-select-field
+    <app-search-select
       label="Container trong bãi"
-      placeholder="Chọn container"
+      placeholder="Gõ một phần số container"
+      emptyText="Không có container nào trong bãi khớp."
       [control]="form.controls.containerId"
       [options]="containerOptions()"
       [messages]="messages.container"
     />
-    <app-select-field
+    <app-search-select
       label="Lệnh giao"
-      placeholder="Chọn lệnh giao"
+      placeholder="Gõ số lệnh hoặc tên tàu"
+      emptyText="Không có lệnh giao nào khớp."
+      [control]="form.controls.releaseOrderId"
       [control]="form.controls.releaseOrderId"
       [options]="orderOptions()"
       [messages]="messages.order"

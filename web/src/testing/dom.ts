@@ -23,6 +23,37 @@ export function type(fixture: ComponentFixture<unknown>, label: string, value: s
   fixture.detectChanges();
 }
 
+function searchInput(fixture: ComponentFixture<unknown>, label: string): HTMLInputElement | null {
+  const fields = [...root(fixture).querySelectorAll('app-search-select')];
+  return fields.find((f) => f.textContent?.includes(label))?.querySelector('input') ?? null;
+}
+
+/** Types `search` into the search select whose label contains `label`; returns the suggestions listed. */
+export function search(fixture: ComponentFixture<unknown>, label: string, text: string): string[] {
+  const input = searchInput(fixture, label);
+  if (input) {
+    input.dispatchEvent(new Event('focus'));
+    input.value = text;
+    input.dispatchEvent(new Event('input'));
+  }
+  fixture.detectChanges();
+  const options = root(fixture).querySelectorAll('[role="option"]');
+  return [...options].map((o) => (o.textContent ?? '').trim());
+}
+
+/** Types `text` into the search select and picks the suggestion that contains `option`. */
+export function pick(
+  fixture: ComponentFixture<unknown>,
+  label: string,
+  text: string,
+  option: string,
+): void {
+  search(fixture, label, text);
+  const options = [...root(fixture).querySelectorAll('[role="option"]')];
+  options.find((o) => o.textContent?.includes(option))?.dispatchEvent(new Event('mousedown'));
+  fixture.detectChanges();
+}
+
 /** Picks `value` in the select field whose label contains `label`. */
 export function choose(fixture: ComponentFixture<unknown>, label: string, value: string): void {
   const fields = [...root(fixture).querySelectorAll('app-select-field')];

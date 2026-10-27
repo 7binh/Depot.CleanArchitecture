@@ -17,6 +17,7 @@ import { Button } from '../../shared/ui/button';
 import { ErrorBanner } from '../../shared/ui/error-banner';
 import { LoadState } from '../../shared/ui/load-state';
 import { PageHeader } from '../../shared/ui/page-header';
+import { SearchSelect } from '../../shared/ui/search-select';
 import { SelectField, SelectOption } from '../../shared/ui/select-field';
 import { TextField } from '../../shared/ui/text-field';
 import { ContainerTypeService } from '../catalogs/container-types/container-type.service';
@@ -78,6 +79,7 @@ function worst(statuses: LoadStatus[]): LoadStatus {
     ErrorBanner,
     LoadState,
     PageHeader,
+    SearchSelect,
     SelectField,
     TextField,
   ],
@@ -203,8 +205,8 @@ export class GateOutPage implements OnInit {
     this.done.set(number);
     this.form.reset();
     this.form.controls.gateOutAt.setValue(nowLocal());
-    this.stays.load();
-    this.orders.load();
+    this.stays.load(true);
+    this.orders.load(true);
   }
 
   private fail(error: unknown): void {

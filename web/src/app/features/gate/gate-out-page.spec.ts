@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { choose, click, type } from '../../../testing/dom';
+import { click, pick, search, type } from '../../../testing/dom';
 import { GateOutPage } from './gate-out-page';
 
 const API = 'http://localhost:5049/api';
@@ -57,30 +57,38 @@ function setup() {
   return { http, fixture, element };
 }
 
-function optionValues(element: HTMLElement, label: string): string[] {
-  const field = [...element.querySelectorAll('app-select-field')].find((f) =>
-    f.textContent?.includes(label),
-  );
-  return [...(field?.querySelectorAll('option') ?? [])].map((o) => o.value).filter(Boolean);
-}
-
 function fill(page: ReturnType<typeof setup>): void {
-  choose(page.fixture, 'Container trong bãi', 'c1');
-  choose(page.fixture, 'Lệnh giao', 'r1');
+  pick(page.fixture, 'Container trong bãi', '3054', 'CSQU3054383');
+  pick(page.fixture, 'Lệnh giao', 'RO', 'RO-1');
   type(page.fixture, 'Biển số', '51C-123.45');
   click(page.fixture, 'Xác nhận Gate Out');
 }
 
 describe('GateOutPage choices', () => {
-  it('lists only the containers that are in the yard', () => {
-    const { element } = setup();
-    expect(optionValues(element, 'Container trong bãi')).toEqual(['c1']);
+  it('suggests only containers in the yard that match what is typed', () => {
+    const { fixture } = setup();
+    expect(search(fixture, 'Container trong bãi', '3054')).toEqual([
+      'CSQU3054383 (CSQ, 20GP, 20 ft)',
+    ]);
+    expect(search(fixture, 'Container trong bãi', 'MSKU')).toEqual([]);
   });
 
-  it('offers only valid orders of the same operator with room left', () => {
+  it('says so when nothing matches', () => {
     const { fixture, element } = setup();
-    choose(fixture, 'Container trong bãi', 'c1');
-    expect(optionValues(element, 'Lệnh giao')).toEqual(['r1']);
+    search(fixture, 'Container trong bãi', 'ZZZ');
+    expect(element.textContent).toContain('Không có container nào trong bãi khớp.');
+  });
+
+  it('suggests only valid orders of the same operator with room left', () => {
+    const { fixture } = setup();
+    pick(fixture, 'Container trong bãi', 'CSQU', 'CSQU3054383');
+    expect(search(fixture, 'Lệnh giao', 'RO')).toEqual(['RO-1 - MV Sun']);
+  });
+
+  it('finds an order by vessel name', () => {
+    const { fixture } = setup();
+    pick(fixture, 'Container trong bãi', 'CSQU', 'CSQU3054383');
+    expect(search(fixture, 'Lệnh giao', 'sun')).toEqual(['RO-1 - MV Sun']);
   });
 });
 
