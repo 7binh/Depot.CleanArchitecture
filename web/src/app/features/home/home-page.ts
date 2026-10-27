@@ -10,7 +10,7 @@ import { PageHeader } from '../../shared/ui/page-header';
     <app-page-header [title]="title" [description]="description" />
     <app-empty-state icon="box" [message]="emptyMessage" />
   `,
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class HomePage {
   protected readonly title = 'Trang chủ';

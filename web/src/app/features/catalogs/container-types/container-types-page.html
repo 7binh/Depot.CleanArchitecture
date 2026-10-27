@@ -4,9 +4,15 @@
 />
 
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
-  @if (list.items().length === 0) {
-    <app-empty-state icon="layers" message="Chưa có loại container nào." />
-  } @else {
-    <app-data-table caption="Danh sách loại container" [columns]="columns" [rows]="list.items()" />
-  }
+  <app-card>
+    @if (list.items().length === 0) {
+      <app-empty-state icon="layers" message="Chưa có loại container nào." />
+    } @else {
+      <app-data-table
+        caption="Danh sách loại container"
+        [columns]="columns"
+        [rows]="list.items()"
+      />
+    }
+  </app-card>
 </app-load-state>

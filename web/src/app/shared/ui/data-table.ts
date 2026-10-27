@@ -24,7 +24,7 @@ export interface TableColumn<T> {
           @for (column of columns(); track column.key) {
             <th
               scope="col"
-              class="h-11 bg-surface-sunken px-4 text-small font-normal text-ink-2 first:rounded-l-inset last:rounded-r-inset"
+              class="h-11 bg-surface-sunken px-4 text-small whitespace-nowrap font-normal text-ink-2 first:rounded-l-inset last:rounded-r-inset"
               [class.text-right]="column.align === 'end'"
             >
               {{ column.label }}
@@ -37,7 +37,7 @@ export interface TableColumn<T> {
           <tr>
             @for (column of columns(); track column.key; let first = $first) {
               <td
-                class="h-16 border-b border-line px-4 text-body"
+                class="h-16 border-b border-line px-4 text-body whitespace-nowrap"
                 [class.font-medium]="first"
                 [class.text-ink]="first"
                 [class.text-ink-2]="!first"

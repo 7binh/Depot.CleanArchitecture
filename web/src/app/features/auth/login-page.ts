@@ -12,7 +12,7 @@ import { TextField } from '../../shared/ui/text-field';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, Button, ErrorBanner, TextField],
   templateUrl: './login-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class LoginPage {
   private readonly auth = inject(AuthService);

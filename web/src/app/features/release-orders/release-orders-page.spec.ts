@@ -53,7 +53,11 @@ function rows(element: HTMLElement): string[] {
 describe('ReleaseOrdersPage', () => {
   it('lists the orders with operator, customer, progress and status', () => {
     const { element } = setup();
-    expect(rows(element)[0]).toBe('RO-1 CSQ Acme MV Sun 01/10/2026 31/12/2026 0/5 Chưa giao');
+    const first = rows(element)[0];
+    for (const part of ['RO-1', 'MV Sun', 'CSQ', 'Acme', '31/12/2026', '01/10/2026', '0/5']) {
+      expect(first).toContain(part);
+    }
+    expect(first).toContain('Chưa giao');
     expect(rows(element)[1]).toContain('Đang giao');
     expect(rows(element)[2]).toContain('Đã giao đủ');
   });

@@ -9,36 +9,38 @@
 </app-page-header>
 
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
-  @if (list.items().length === 0) {
-    <app-empty-state icon="box" message="Chưa có container nào.">
-      <button appButton type="button" (click)="creating.set(true)">
-        <app-icon name="plus" [size]="16" />
-        Thêm container
-      </button>
-    </app-empty-state>
-  } @else {
-    <div class="grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2 my-4">
-      <app-select-field
-        label="Hãng"
-        placeholder="Tất cả hãng"
-        [control]="operatorFilter"
-        [options]="operatorOptions()"
-      />
-      <app-select-field
-        label="Loại"
-        placeholder="Tất cả loại"
-        [control]="typeFilter"
-        [options]="typeOptions()"
-      />
-    </div>
-    @if (visible().length === 0) {
-      <app-empty-state icon="box" message="Không có container nào khớp bộ lọc." />
+  <app-card>
+    @if (list.items().length === 0) {
+      <app-empty-state icon="box" message="Chưa có container nào.">
+        <button appButton type="button" (click)="creating.set(true)">
+          <app-icon name="plus" [size]="16" />
+          Thêm container
+        </button>
+      </app-empty-state>
     } @else {
-      <div class="overflow-x-auto">
-        <app-data-table caption="Danh sách container" [columns]="columns" [rows]="visible()" />
+      <div class="mb-6 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select-field
+          label="Hãng"
+          placeholder="Tất cả hãng"
+          [control]="operatorFilter"
+          [options]="operatorOptions()"
+        />
+        <app-select-field
+          label="Loại"
+          placeholder="Tất cả loại"
+          [control]="typeFilter"
+          [options]="typeOptions()"
+        />
       </div>
+      @if (visible().length === 0) {
+        <app-empty-state icon="box" message="Không có container nào khớp bộ lọc." />
+      } @else {
+        <div class="overflow-x-auto">
+          <app-data-table caption="Danh sách container" [columns]="columns" [rows]="visible()" />
+        </div>
+      }
     }
-  }
+  </app-card>
 </app-load-state>
 
 @if (creating()) {

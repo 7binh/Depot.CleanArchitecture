@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { ListLoader } from '../../../core/api/list-loader';
 import { Button } from '../../../shared/ui/button';
+import { Card } from '../../../shared/ui/card';
 import { DataTable, TableColumn } from '../../../shared/ui/data-table';
 import { EmptyState } from '../../../shared/ui/empty-state';
 import { Icon } from '../../../shared/ui/icon';
@@ -12,9 +13,18 @@ import { LineOperator, LineOperatorService } from './line-operator.service';
 @Component({
   selector: 'app-line-operators-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Button, CreateLineOperatorDialog, DataTable, EmptyState, Icon, LoadState, PageHeader],
+  imports: [
+    Card,
+    Button,
+    CreateLineOperatorDialog,
+    DataTable,
+    EmptyState,
+    Icon,
+    LoadState,
+    PageHeader,
+  ],
   templateUrl: './line-operators-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class LineOperatorsPage implements OnInit {
   private readonly service = inject(LineOperatorService);

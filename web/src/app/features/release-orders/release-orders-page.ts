@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { forkJoin, map } from 'rxjs';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
+import { Card } from '../../shared/ui/card';
 import { Chip } from '../../shared/ui/chip';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { Icon } from '../../shared/ui/icon';
@@ -22,6 +23,7 @@ import { ReleaseOrderService } from './release-order.service';
   selector: 'app-release-orders-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    Card,
     Button,
     Chip,
     EmptyState,
@@ -33,7 +35,7 @@ import { ReleaseOrderService } from './release-order.service';
     TextField,
   ],
   templateUrl: './release-orders-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class ReleaseOrdersPage implements OnInit {
   private readonly orders = inject(ReleaseOrderService);
@@ -46,12 +48,9 @@ export class ReleaseOrdersPage implements OnInit {
     ),
   );
   protected readonly headings = [
-    'Số lệnh',
-    'Hãng',
-    'Khách hàng',
-    'Tàu xuất',
-    'Ngày cấp',
-    'Hạn',
+    'Lệnh giao',
+    'Hãng và khách hàng',
+    'Hạn lệnh',
     'Đã giao',
     'Trạng thái',
   ];

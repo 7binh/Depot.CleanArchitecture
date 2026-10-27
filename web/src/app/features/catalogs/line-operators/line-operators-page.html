@@ -6,16 +6,22 @@
 </app-page-header>
 
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
-  @if (list.items().length === 0) {
-    <app-empty-state icon="ship" message="Chưa có hãng khai thác nào.">
-      <button appButton type="button" (click)="creating.set(true)">
-        <app-icon name="plus" [size]="16" />
-        Thêm hãng khai thác
-      </button>
-    </app-empty-state>
-  } @else {
-    <app-data-table caption="Danh sách hãng khai thác" [columns]="columns" [rows]="list.items()" />
-  }
+  <app-card>
+    @if (list.items().length === 0) {
+      <app-empty-state icon="ship" message="Chưa có hãng khai thác nào.">
+        <button appButton type="button" (click)="creating.set(true)">
+          <app-icon name="plus" [size]="16" />
+          Thêm hãng khai thác
+        </button>
+      </app-empty-state>
+    } @else {
+      <app-data-table
+        caption="Danh sách hãng khai thác"
+        [columns]="columns"
+        [rows]="list.items()"
+      />
+    }
+  </app-card>
 </app-load-state>
 
 @if (creating()) {

@@ -11,6 +11,7 @@ import { FormControl } from '@angular/forms';
 import { forkJoin, map } from 'rxjs';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
+import { Card } from '../../shared/ui/card';
 import { DataTable, TableColumn } from '../../shared/ui/data-table';
 import { EmptyState } from '../../shared/ui/empty-state';
 import { Icon } from '../../shared/ui/icon';
@@ -36,6 +37,7 @@ function optionsFrom(
   selector: 'app-containers-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    Card,
     Button,
     CreateContainerDialog,
     DataTable,
@@ -46,7 +48,7 @@ function optionsFrom(
     SelectField,
   ],
   templateUrl: './containers-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class ContainersPage implements OnInit {
   private readonly containers = inject(ContainerService);

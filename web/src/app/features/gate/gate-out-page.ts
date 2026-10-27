@@ -14,6 +14,7 @@ import { ERROR_MESSAGES } from '../../core/api/error-messages';
 import { ListLoader, worstStatus } from '../../core/api/list-loader';
 import { notBlank } from '../../shared/forms/not-blank.validator';
 import { Button } from '../../shared/ui/button';
+import { Card } from '../../shared/ui/card';
 import { ErrorBanner } from '../../shared/ui/error-banner';
 import { LoadState } from '../../shared/ui/load-state';
 import { PageHeader } from '../../shared/ui/page-header';
@@ -78,6 +79,7 @@ function hasRoom(order: ReleaseOrder): boolean {
   selector: 'app-gate-out-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    Card,
     ReactiveFormsModule,
     Button,
     ErrorBanner,
@@ -88,7 +90,7 @@ function hasRoom(order: ReleaseOrder): boolean {
     TextField,
   ],
   templateUrl: './gate-out-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class GateOutPage implements OnInit {
   private readonly containerService = inject(ContainerService);

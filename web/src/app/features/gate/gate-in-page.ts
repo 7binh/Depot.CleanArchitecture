@@ -12,6 +12,7 @@ import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { errorCode, toMessage } from '../../core/api/api-error';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
+import { Card } from '../../shared/ui/card';
 import { ErrorBanner } from '../../shared/ui/error-banner';
 import { Icon } from '../../shared/ui/icon';
 import { LoadState } from '../../shared/ui/load-state';
@@ -65,6 +66,7 @@ function findByNumber(rows: ContainerRow[], typed: string): ContainerRow | undef
   selector: 'app-gate-in-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    Card,
     ReactiveFormsModule,
     Button,
     CreateContainerDialog,
@@ -76,7 +78,7 @@ function findByNumber(rows: ContainerRow[], typed: string): ContainerRow | undef
     TextField,
   ],
   templateUrl: './gate-in-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class GateInPage implements OnInit {
   private readonly containerService = inject(ContainerService);

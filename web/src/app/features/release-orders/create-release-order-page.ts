@@ -13,6 +13,7 @@ import { ERROR_MESSAGES } from '../../core/api/error-messages';
 import { ListLoader, worstStatus } from '../../core/api/list-loader';
 import { parseNumber } from '../../shared/forms/number-text.validators';
 import { Button } from '../../shared/ui/button';
+import { Card } from '../../shared/ui/card';
 import { ErrorBanner } from '../../shared/ui/error-banner';
 import { Icon } from '../../shared/ui/icon';
 import { LoadState } from '../../shared/ui/load-state';
@@ -49,6 +50,7 @@ const LINE_ERRORS = new Set([
   selector: 'app-create-release-order-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    Card,
     ReactiveFormsModule,
     Button,
     ErrorBanner,
@@ -60,7 +62,7 @@ const LINE_ERRORS = new Set([
     TextField,
   ],
   templateUrl: './create-release-order-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class CreateReleaseOrderPage implements OnInit {
   private readonly service = inject(ReleaseOrderService);

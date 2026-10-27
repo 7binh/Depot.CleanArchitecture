@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, map } from 'rxjs';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
+import { Card } from '../../shared/ui/card';
 import { Chip } from '../../shared/ui/chip';
 import { ErrorBanner } from '../../shared/ui/error-banner';
 import { LoadState } from '../../shared/ui/load-state';
@@ -17,9 +18,9 @@ import { ReleaseOrderService } from './release-order.service';
 @Component({
   selector: 'app-release-order-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Button, Chip, ErrorBanner, LoadState, PageHeader, RouterLink],
+  imports: [Card, Button, Chip, ErrorBanner, LoadState, PageHeader, RouterLink],
   templateUrl: './release-order-page.html',
-  host: { class: 'flex flex-col gap-8' },
+  host: { class: 'flex flex-col gap-6' },
 })
 export class ReleaseOrderPage implements OnInit {
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';

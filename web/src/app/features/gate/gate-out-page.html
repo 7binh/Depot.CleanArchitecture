@@ -4,78 +4,75 @@
 />
 
 <app-load-state [status]="status()" [failure]="failure()" (retry)="ngOnInit()">
-  <form
-    class="flex max-w-2xl flex-col gap-6 rounded-card bg-surface p-6 shadow-raised"
-    [formGroup]="form"
-    (ngSubmit)="submit()"
-    novalidate
-  >
-    @if (done(); as number) {
-      <p class="rounded-control bg-success-bg p-4 text-small text-success-fg" role="status">
-        Đã gate out container {{ number }}.
-      </p>
-    }
-    @if (notice(); as message) {
-      <app-error-banner>{{ message }}</app-error-banner>
-    }
+  <app-card size="large" class="max-w-3xl">
+    <form class="flex flex-col gap-6" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (done(); as number) {
+        <p class="rounded-control bg-success-bg p-4 text-small text-success-fg" role="status">
+          Đã gate out container {{ number }}.
+        </p>
+      }
+      @if (notice(); as message) {
+        <app-error-banner>{{ message }}</app-error-banner>
+      }
 
-    <app-search-select
-      label="Lệnh giao"
-      placeholder="Gõ số lệnh hoặc tên tàu"
-      emptyText="Không có lệnh giao nào còn hạn và còn chỗ khớp."
-      [control]="form.controls.releaseOrderId"
-      [options]="orderOptions()"
-      [matchHint]="true"
-      [messages]="messages.order"
-    />
-    @if (orderSummary(); as summary) {
-      <p class="rounded-control bg-brand-soft p-4 text-small text-ink">
-        Lệnh {{ summary.order.orderNo }}: hãng {{ summary.operator }}, tàu
-        {{ summary.order.exportVessel }}, hạn {{ summary.order.expiryDate }}. Còn
-        {{ summary.lines.join('; ') }}.
-      </p>
-    }
-    <app-search-select
-      label="Container trong bãi"
-      placeholder="Gõ một phần số container"
-      [emptyText]="containerEmpty()"
-      [control]="form.controls.containerId"
-      [options]="containerOptions()"
-      [messages]="messages.container"
-    />
-    @if (chosen(); as container) {
-      <p class="rounded-control bg-brand-soft p-4 text-small text-ink">
-        Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
-        {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực tế.
-      </p>
-    }
-
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <app-select-field
-        label="Phương tiện ra"
-        [control]="form.controls.vehicleType"
-        [options]="vehicleOptions"
+      <app-search-select
+        label="Lệnh giao"
+        placeholder="Gõ số lệnh hoặc tên tàu"
+        emptyText="Không có lệnh giao nào còn hạn và còn chỗ khớp."
+        [control]="form.controls.releaseOrderId"
+        [options]="orderOptions()"
+        [matchHint]="true"
+        [messages]="messages.order"
       />
+      @if (orderSummary(); as summary) {
+        <p class="rounded-control bg-surface-sunken p-4 text-small text-ink">
+          Lệnh {{ summary.order.orderNo }}: hãng {{ summary.operator }}, tàu
+          {{ summary.order.exportVessel }}, hạn {{ summary.order.expiryDate }}. Còn
+          {{ summary.lines.join('; ') }}.
+        </p>
+      }
+      <app-search-select
+        label="Container trong bãi"
+        placeholder="Gõ một phần số container"
+        [emptyText]="containerEmpty()"
+        [control]="form.controls.containerId"
+        [options]="containerOptions()"
+        [messages]="messages.container"
+      />
+      @if (chosen(); as container) {
+        <p class="rounded-control bg-surface-sunken p-4 text-small text-ink">
+          Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
+          {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực tế.
+        </p>
+      }
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select-field
+          label="Phương tiện ra"
+          [control]="form.controls.vehicleType"
+          [options]="vehicleOptions"
+        />
+        <app-text-field
+          label="Biển số / tên phương tiện"
+          icon="box"
+          placeholder="Ví dụ: 51C-123.45"
+          [control]="form.controls.vehicleNumber"
+          [messages]="messages.vehicle"
+        />
+      </div>
       <app-text-field
-        label="Biển số / tên phương tiện"
-        icon="box"
-        placeholder="Ví dụ: 51C-123.45"
-        [control]="form.controls.vehicleNumber"
-        [messages]="messages.vehicle"
+        label="Giờ ra"
+        icon="calendar"
+        type="datetime-local"
+        [control]="form.controls.gateOutAt"
+        [messages]="messages.time"
       />
-    </div>
-    <app-text-field
-      label="Giờ ra"
-      icon="calendar"
-      type="datetime-local"
-      [control]="form.controls.gateOutAt"
-      [messages]="messages.time"
-    />
 
-    <div class="flex justify-end">
-      <button appButton variant="primary" type="submit" [disabled]="submitting()">
-        Xác nhận Gate Out
-      </button>
-    </div>
-  </form>
+      <div class="flex justify-end">
+        <button appButton variant="primary" type="submit" [disabled]="submitting()">
+          Xác nhận Gate Out
+        </button>
+      </div>
+    </form>
+  </app-card>
 </app-load-state>

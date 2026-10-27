@@ -18,7 +18,8 @@ const TONES: Record<ChipTone, { box: string; dot: string }> = {
     <ng-content />
   `,
   host: {
-    class: 'inline-flex h-6 items-center gap-1.5 rounded-chip px-2 text-caption font-medium',
+    class:
+      'inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-chip px-2 text-caption font-medium',
     '[class]': 'tone().box',
   },
 })

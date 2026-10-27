@@ -23,8 +23,7 @@ and fonts allowed.
 ```css
 @theme {
   /* Neutrals */
-  --color-canvas: #e6e6e6; /* backdrop behind the app shell */
-  --color-shell: #f5f5f5; /* app shell / sidebar / inset fills */
+  --color-shell: #f5f5f5; /* page field / sidebar / inset fills */
   --color-surface: #ffffff; /* cards, panels, popovers, inputs on shell */
   --color-surface-sunken: #f7f7f7; /* table header, card footer strip, search field */
   --color-line: #ebebeb; /* every border and divider */
@@ -61,13 +60,11 @@ and fonts allowed.
   --radius-control: 10px; /* buttons, inputs, dropdowns, nav items, icon tiles */
   --radius-inset: 12px; /* table header, segmented control, progress bar */
   --radius-card: 20px;
-  --radius-shell: 32px; /* outermost app frame only */
 
   /* Shadows */
   --shadow-hairline: 0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-raised: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
   --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.08), 0 2px 6px rgb(0 0 0 / 0.04);
-  --shadow-shell: 0 40px 80px -20px rgb(0 0 0 / 0.18);
 
   /* Type scale: size / line height / tracking (/ weight where fixed) */
   --text-title: 1.75rem; /* 28/36, -0.02em, 500 */
@@ -123,7 +120,7 @@ fail WCAG AA, so the `-fg` values above are slightly deeper. Use them; do not li
 ## 2. Colour rules
 
 - **Surfaces are white.** Cards, panels, popovers are `surface` with a `line` border. The page
-  field is `canvas`/`shell`, never white-on-white without a border.
+  field is `shell`, never white-on-white without a border.
 - **One accent: `brand` blue.** It marks the active tab, the primary action, selected nav
   icon tiles, and chart fill. Nothing else is blue, and nothing else gets a second accent.
 - **Colour means status.** Green = success/positive/approved. Amber = pending/in progress/
@@ -174,7 +171,6 @@ Rules:
 
 | Element                                                         | Radius       | Border     |
 | --------------------------------------------------------------- | ------------ | ---------- |
-| App shell (outermost frame)                                     | `shell` 32   | none       |
 | Card / panel                                                    | `card` 20    | 1px `line` |
 | Table header strip, segmented control track, progress bar       | `inset` 12   | none       |
 | Button, input, dropdown trigger, nav item, icon tile, promo CTA | `control` 10 | see below  |
@@ -205,7 +201,6 @@ Elevation is expressed mostly by **border and surface colour**, not shadow.
 | 0     | cards, panels, table, list                                                               | border only, **no shadow**          |
 | 1     | small white buttons on a card (`Details`, `See all`), dropdown triggers, active nav item | `shadow-hairline` / `shadow-raised` |
 | 2     | menus, popovers, dropdown lists, tooltips                                                | `shadow-popover`                    |
-| 3     | the app shell frame only                                                                 | `shadow-shell`                      |
 
 Never stack a shadow on top of a card border to make it "pop". Never use coloured shadows,
 glows (except the promo card's internal glow), inner shadows or neumorphism. Shadows are
