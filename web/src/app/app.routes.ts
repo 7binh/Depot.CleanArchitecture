@@ -52,6 +52,11 @@ export const routes: Routes = [
           import('./features/release-orders/release-order-page').then((m) => m.ReleaseOrderPage),
       },
       {
+        path: 'so-do-bai',
+        title: 'Sơ đồ bãi - Depot',
+        loadComponent: () => import('./features/yard/yard-map-page').then((m) => m.YardMapPage),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>
