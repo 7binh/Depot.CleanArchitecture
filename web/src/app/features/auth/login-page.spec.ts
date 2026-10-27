@@ -52,7 +52,7 @@ describe('LoginPage', () => {
   it('shows the API message when the login fails', () => {
     const error = new HttpErrorResponse({
       status: 401,
-      error: { detail: 'Email hoặc mật khẩu không đúng.' },
+      error: { title: 'Auth.InvalidCredentials' },
     });
     login.mockReturnValue(throwError(() => error));
     const { fixture, element } = setup();

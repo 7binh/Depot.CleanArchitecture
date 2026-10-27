@@ -1,0 +1,25 @@
+<app-dialog title="Thêm hãng khai thác" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (notice(); as message) {
+      <app-error-banner>{{ message }}</app-error-banner>
+    }
+    <app-text-field
+      label="Mã hãng (3 ký tự)"
+      icon="ship"
+      placeholder="Ví dụ: MSK"
+      [control]="form.controls.code"
+      [messages]="codeMessages"
+    />
+    <app-text-field
+      label="Tên hãng"
+      icon="users"
+      placeholder="Ví dụ: Maersk Line"
+      [control]="form.controls.name"
+      [messages]="nameMessages"
+    />
+    <div class="flex justify-end gap-2">
+      <button appButton type="button" (click)="dialog().close()">Hủy</button>
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">Lưu</button>
+    </div>
+  </form>
+</app-dialog>

@@ -1,0 +1,25 @@
+<app-dialog title="Thêm khách hàng" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (notice(); as message) {
+      <app-error-banner>{{ message }}</app-error-banner>
+    }
+    <app-text-field
+      label="Mã số thuế (10 hoặc 13 chữ số)"
+      icon="layers"
+      placeholder="Ví dụ: 0312345678"
+      [control]="form.controls.taxCode"
+      [messages]="taxCodeMessages"
+    />
+    <app-text-field
+      label="Tên khách hàng"
+      icon="users"
+      placeholder="Ví dụ: Công ty TNHH Vận tải ABC"
+      [control]="form.controls.name"
+      [messages]="nameMessages"
+    />
+    <div class="flex justify-end gap-2">
+      <button appButton type="button" (click)="dialog().close()">Hủy</button>
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">Lưu</button>
+    </div>
+  </form>
+</app-dialog>

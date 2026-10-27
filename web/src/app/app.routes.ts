@@ -15,6 +15,28 @@ export const routes: Routes = [
         title: 'Trang chủ - Depot',
         loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
       },
+      {
+        path: 'danh-muc/hang-khai-thac',
+        title: 'Hãng khai thác - Depot',
+        loadComponent: () =>
+          import('./features/catalogs/line-operators/line-operators-page').then(
+            (m) => m.LineOperatorsPage,
+          ),
+      },
+      {
+        path: 'danh-muc/loai-container',
+        title: 'Loại container - Depot',
+        loadComponent: () =>
+          import('./features/catalogs/container-types/container-types-page').then(
+            (m) => m.ContainerTypesPage,
+          ),
+      },
+      {
+        path: 'danh-muc/khach-hang',
+        title: 'Khách hàng - Depot',
+        loadComponent: () =>
+          import('./features/catalogs/customers/customers-page').then((m) => m.CustomersPage),
+      },
     ],
   },
   {
