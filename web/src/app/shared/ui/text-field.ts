@@ -17,7 +17,8 @@ export class TextField {
   readonly label = input.required<string>();
   readonly control = input.required<FormControl<string>>();
   readonly icon = input.required<IconName>();
-  readonly type = input<'text' | 'email' | 'password'>('text');
+  readonly type = input<'text' | 'email' | 'password' | 'date'>('text');
+  readonly inputmode = input<'text' | 'numeric' | 'decimal'>('text');
   readonly placeholder = input('');
   readonly autocomplete = input('off');
   /** Error key (for example `required`) mapped to the message shown to the user. */

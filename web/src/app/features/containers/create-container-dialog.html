@@ -1,0 +1,66 @@
+<app-dialog title="Thêm container" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (notice(); as message) {
+      <app-error-banner>{{ message }}</app-error-banner>
+    }
+    <app-text-field
+      label="Số container"
+      icon="box"
+      placeholder="Ví dụ: CSQU3054383"
+      [control]="form.controls.number"
+      [messages]="numberMessages"
+    />
+    <app-select-field
+      label="Loại container"
+      placeholder="Chọn loại"
+      [control]="form.controls.containerTypeId"
+      [options]="typeOptions()"
+      [messages]="typeMessages"
+    />
+    <div class="grid grid-cols-2 gap-4">
+      <app-text-field
+        label="Mã ISO"
+        icon="layers"
+        placeholder="Ví dụ: 22G1"
+        [control]="form.controls.isoCode"
+        [messages]="isoMessages"
+      />
+      <app-select-field
+        label="Cỡ"
+        placeholder="Chọn cỡ"
+        [control]="form.controls.sizeFeet"
+        [options]="sizeOptions"
+        [messages]="sizeMessages"
+      />
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <app-text-field
+        label="Tải trọng tối đa (kg)"
+        icon="box"
+        inputmode="decimal"
+        placeholder="30480"
+        [control]="form.controls.maxWeightKg"
+        [messages]="maxMessages"
+      />
+      <app-text-field
+        label="Trọng lượng vỏ (kg)"
+        icon="box"
+        inputmode="decimal"
+        placeholder="2200"
+        [control]="form.controls.tareWeightKg"
+        [messages]="tareMessages"
+      />
+    </div>
+    <app-text-field
+      label="Ngày sản xuất"
+      icon="calendar"
+      type="date"
+      [control]="form.controls.manufactureDate"
+      [messages]="dateMessages"
+    />
+    <div class="flex justify-end gap-2">
+      <button appButton type="button" (click)="dialog().close()">Hủy</button>
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">Lưu</button>
+    </div>
+  </form>
+</app-dialog>

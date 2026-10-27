@@ -10,6 +10,7 @@
       [type]="inputType()"
       [placeholder]="placeholder()"
       [attr.autocomplete]="autocomplete()"
+      [attr.inputmode]="inputmode()"
       [attr.aria-invalid]="error() ? true : null"
       [attr.aria-describedby]="error() ? id + '-error' : null"
       class="h-11 w-full rounded-control border pr-4 pl-11 text-body text-ink transition-colors duration-150 ease-out placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"

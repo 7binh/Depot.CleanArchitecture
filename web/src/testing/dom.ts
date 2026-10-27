@@ -22,3 +22,15 @@ export function type(fixture: ComponentFixture<unknown>, label: string, value: s
   }
   fixture.detectChanges();
 }
+
+/** Picks `value` in the select field whose label contains `label`. */
+export function choose(fixture: ComponentFixture<unknown>, label: string, value: string): void {
+  const fields = [...root(fixture).querySelectorAll('app-select-field')];
+  const select = fields.find((f) => f.textContent?.includes(label))?.querySelector('select');
+  if (select) {
+    select.value = value;
+    select.dispatchEvent(new Event('change'));
+    select.dispatchEvent(new Event('blur'));
+  }
+  fixture.detectChanges();
+}

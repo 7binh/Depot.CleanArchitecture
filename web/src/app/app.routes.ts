@@ -16,6 +16,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
       },
       {
+        path: 'container',
+        title: 'Container - Depot',
+        loadComponent: () =>
+          import('./features/containers/containers-page').then((m) => m.ContainersPage),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>

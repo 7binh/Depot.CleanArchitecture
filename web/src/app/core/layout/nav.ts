@@ -20,6 +20,10 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [{ label: 'Trang chủ', path: '/', icon: 'home', exact: true }],
   },
   {
+    label: 'Nghiệp vụ',
+    items: [{ label: 'Container', path: '/container', icon: 'box' }],
+  },
+  {
     label: 'Danh mục',
     items: [
       { label: 'Hãng khai thác', path: '/danh-muc/hang-khai-thac', icon: 'ship' },

@@ -24,7 +24,7 @@ let nextId = 0;
     <dialog
       #dialog
       [attr.aria-labelledby]="titleId"
-      class="m-auto w-full max-w-md rounded-card border border-line bg-surface p-0 text-ink shadow-popover backdrop:bg-ink/40"
+      class="m-auto w-full max-w-md max-h-screen overflow-y-auto rounded-card border border-line bg-surface p-0 text-ink shadow-popover backdrop:bg-ink/40"
       (close)="closed.emit()"
     >
       <div class="flex flex-col gap-6 p-6">
