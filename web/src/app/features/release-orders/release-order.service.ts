@@ -26,6 +26,24 @@ export interface ReleaseOrder {
   items: ReleaseOrderItem[];
 }
 
+export interface NewReleaseOrderLine {
+  containerTypeId: string;
+  sizeFeet: number;
+  quantity: number;
+}
+
+export interface NewReleaseOrder {
+  lineOperatorId: string;
+  customerId: string;
+  orderNo: string;
+  /** `yyyy-MM-dd` */
+  issuedDate: string;
+  /** `yyyy-MM-dd` */
+  expiryDate: string;
+  exportVessel: string;
+  lines: NewReleaseOrderLine[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReleaseOrderService {
   private readonly http = inject(HttpClient);
@@ -33,5 +51,13 @@ export class ReleaseOrderService {
 
   list(): Observable<ReleaseOrder[]> {
     return this.http.get<ReleaseOrder[]>(this.url);
+  }
+
+  get(id: string): Observable<ReleaseOrder> {
+    return this.http.get<ReleaseOrder>(`${this.url}/${id}`);
+  }
+
+  create(order: NewReleaseOrder): Observable<ReleaseOrder> {
+    return this.http.post<ReleaseOrder>(this.url, order);
   }
 }
