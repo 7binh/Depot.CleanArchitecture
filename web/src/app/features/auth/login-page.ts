@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { toMessage } from '../../core/api/api-error';
+import { AuthService } from '../../core/auth/auth.service';
 import { Button } from '../../shared/ui/button';
 import { Icon } from '../../shared/ui/icon';
 import { TextField } from '../../shared/ui/text-field';
@@ -8,11 +10,14 @@ import { TextField } from '../../shared/ui/text-field';
 @Component({
   selector: 'app-login-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, Button, Icon, TextField],
+  imports: [ReactiveFormsModule, Button, Icon, TextField],
   templateUrl: './login-page.html',
   host: { class: 'flex flex-col gap-8' },
 })
 export class LoginPage {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly form = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
@@ -28,6 +33,7 @@ export class LoginPage {
   protected readonly passwordMessages = { required: 'Nhập mật khẩu.' };
 
   protected readonly notice = signal<string | null>(null);
+  protected readonly submitting = signal(false);
 
   protected submit(): void {
     this.notice.set(null);
@@ -35,6 +41,14 @@ export class LoginPage {
       this.form.markAllAsTouched();
       return;
     }
-    this.notice.set('Thông tin hợp lệ. Việc đăng nhập sẽ được nối với API ở bước sau.');
+    this.submitting.set(true);
+    const { email, password } = this.form.getRawValue();
+    this.auth.login(email, password).subscribe({
+      next: () => void this.router.navigateByUrl('/'),
+      error: (error: unknown) => {
+        this.submitting.set(false);
+        this.notice.set(toMessage(error));
+      },
+    });
   }
 }

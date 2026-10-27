@@ -26,22 +26,14 @@
   @if (notice(); as message) {
     <p
       role="status"
-      class="flex items-start gap-3 rounded-control bg-brand-soft p-4 text-small text-brand"
+      class="flex items-start gap-3 rounded-control bg-danger-bg p-4 text-small text-danger-fg"
     >
       <app-icon name="alert-circle" />
       {{ message }}
     </p>
   }
 
-  <button appButton variant="primary" type="submit" class="w-full">Đăng nhập</button>
+  <button appButton variant="primary" type="submit" class="w-full" [disabled]="submitting()">
+    {{ submitting() ? 'Đang đăng nhập...' : 'Đăng nhập' }}
+  </button>
 </form>
-
-<p class="text-body text-ink-2">
-  Chưa có tài khoản?
-  <a
-    routerLink="/register"
-    class="rounded-chip font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-  >
-    Đăng ký
-  </a>
-</p>

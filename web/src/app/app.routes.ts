@@ -1,23 +1,26 @@
 import { Routes } from '@angular/router';
+import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { AuthLayout } from './features/auth/auth-layout';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'Depot',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
+  },
   {
     path: '',
     component: AuthLayout,
+    canActivate: [guestGuard],
     children: [
       {
         path: 'login',
         title: 'Đăng nhập - Depot',
         loadComponent: () => import('./features/auth/login-page').then((m) => m.LoginPage),
       },
-      {
-        path: 'register',
-        title: 'Tạo tài khoản - Depot',
-        loadComponent: () => import('./features/auth/register-page').then((m) => m.RegisterPage),
-      },
     ],
   },
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: '' },
 ];
