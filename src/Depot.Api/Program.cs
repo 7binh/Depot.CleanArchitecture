@@ -18,6 +18,7 @@ builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(connectionString, builder.Configuration);
 builder.Services.AddJwtAuthentication();
+builder.Services.AddWebClientCors(builder.Configuration);
 builder.Services.AddOpenApi();
 
 // Enums travel as text ("A", "Damaged", "Truck"), the same way they are stored.
@@ -33,6 +34,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(CorsExtensions.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 
