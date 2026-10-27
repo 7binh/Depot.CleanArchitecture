@@ -67,28 +67,28 @@ and fonts allowed.
   --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.08), 0 2px 6px rgb(0 0 0 / 0.04);
 
   /* Type scale: size / line height / tracking (/ weight where fixed) */
-  --text-title: 1.75rem; /* 28/36, -0.02em, 500 */
-  --text-title--line-height: 2.25rem;
+  --text-title: 1.5rem; /* 24/32, -0.02em, 500 */
+  --text-title--line-height: 2rem;
   --text-title--letter-spacing: -0.02em;
   --text-title--font-weight: 500;
-  --text-stat: 2.5rem; /* 40/44, -0.03em, 400 */
-  --text-stat--line-height: 2.75rem;
+  --text-stat: 2.25rem; /* 36/40, -0.03em, 400 */
+  --text-stat--line-height: 2.5rem;
   --text-stat--letter-spacing: -0.03em;
   --text-stat--font-weight: 400;
-  --text-section: 1.25rem; /* 20/28, -0.01em, 500 */
-  --text-section--line-height: 1.75rem;
+  --text-section: 1.125rem; /* 18/26, -0.01em, 500 */
+  --text-section--line-height: 1.625rem;
   --text-section--letter-spacing: -0.01em;
   --text-section--font-weight: 500;
-  --text-card: 1.125rem; /* 18/26, -0.01em, 500 */
-  --text-card--line-height: 1.625rem;
+  --text-card: 1rem; /* 16/24, -0.01em, 500 */
+  --text-card--line-height: 1.5rem;
   --text-card--letter-spacing: -0.01em;
   --text-card--font-weight: 500;
-  --text-body: 0.9375rem; /* 15/22; add font-medium for row primary text */
-  --text-body--line-height: 1.375rem;
-  --text-small: 0.875rem; /* 14/20: table header, segmented control, promo body */
-  --text-small--line-height: 1.25rem;
-  --text-caption: 0.8125rem; /* 13/18: captions, chips, field labels */
-  --text-caption--line-height: 1.125rem;
+  --text-body: 0.875rem; /* 14/20; add font-medium for row primary text */
+  --text-body--line-height: 1.25rem;
+  --text-small: 0.8125rem; /* 13/18: table header, segmented control, promo body */
+  --text-small--line-height: 1.125rem;
+  --text-caption: 0.75rem; /* 12/16: captions, chips, field labels */
+  --text-caption--line-height: 1rem;
   --text-label: 0.6875rem; /* 11/14, +0.04em, 500: the only uppercase text */
   --text-label--line-height: 0.875rem;
   --text-label--letter-spacing: 0.04em;
@@ -161,7 +161,7 @@ Rules:
 - Sentence case everywhere. The **only** uppercase text is the tiny sidebar-style group label.
 - Currency and figures use tabular numerals (`tabular-nums`) in tables and totals; grouping
   commas and two decimals for money (`$512,872.92`).
-- Body line length under 75 characters. No text below 11px, no text above 40px.
+- Body line length under 75 characters. No text below 11px, no text above 36px.
 - Titles never wrap into a second styled line; do not highlight one word in a different
   colour, weight or italic.
 
@@ -212,7 +212,7 @@ neutral black at 4 to 18% opacity.
 
 ### Buttons
 
-All buttons: height 40 (default) or 32 (small), `control` radius, 15px / weight 500, no
+All buttons: height 40 (default) or 32 (small), `control` radius, 14px / weight 500, no
 uppercase, no trailing arrow added by default (an arrow icon may be used where the action
 navigates onward, as `Details ->` and `See all ->` in the reference: 16px outline arrow, 6px gap).
 
@@ -236,12 +236,12 @@ navigates onward, as `Details ->` and `See all ->` in the reference: 16px outlin
   16px leading outline icon in `ink-3`, placeholder `ink-3`.
 - On a `surface-sunken` parent, use `surface` fill plus 1px `line` border instead.
 - Focus: see section 8. Error: 1px `danger-fg` border and `danger-fg` helper text with icon.
-- Labels sit above the field at 13/500 `ink-2`; helper text is 13/400 `ink-3`.
+- Labels sit above the field at 12/500 `ink-2`; helper text is 12/400 `ink-3`.
 
 ### Segmented control (tabs)
 
 - Track: `surface-sunken`, `inset` radius, 4px padding.
-- Items: equal width, 36px height, 8px radius, 14px/500.
+- Items: equal width, 36px height, 8px radius, 13px/500.
 - Active: `brand` fill, `on-brand` text. Inactive: transparent, `ink-2` text, hover `ink`.
 - Only one segment active. Never underline-style tabs.
 
@@ -251,12 +251,12 @@ navigates onward, as `Details ->` and `See all ->` in the reference: 16px outlin
 - Card header: title on the left at section-title size, optional small secondary button on the
   right. The header is not separated from the body by a divider.
 - **Stat card** adds a footer strip: `surface-sunken` background, full-bleed to card edges,
-  top corners square, 12px vertical / 20px horizontal padding, 13px `ink-3` text and a small
+  top corners square, 12px vertical / 20px horizontal padding, 12px `ink-3` text and a small
   `Quiet` button. The footer is the only place a card uses a second surface tone.
 
 ### Chips and badges
 
-- Chip: height 24, 8px horizontal padding, `chip` radius, 13/500, `*-bg` fill, `*-fg` text.
+- Chip: height 24, 8px horizontal padding, `chip` radius, 12/500, `*-bg` fill, `*-fg` text.
 - Status chip with dot: 6px round `*-dot` before the label, 6px gap (`Pending`, `Approved`,
   `Rejected`).
 - Delta chip beside a big number: same shape; may start with a 14px outline alert icon for
@@ -267,22 +267,22 @@ navigates onward, as `Details ->` and `See all ->` in the reference: 16px outlin
 
 ### Table
 
-- Header row: `surface-sunken` fill, `inset` radius, 44px height, 14/400 `ink-2`, no bold,
+- Header row: `surface-sunken` fill, `inset` radius, 44px height, 13/400 `ink-2`, no bold,
   no uppercase, no sort icons unless the column sorts.
 - Body rows: 64px height, no vertical dividers, 1px `line` divider between rows, no zebra,
   no hover fill darker than `surface-sunken`.
-- Person cell: 36px circular avatar, 12px gap, name at body 15/500 `ink`.
+- Person cell: 36px circular avatar, 12px gap, name at body 14/500 `ink`.
 - Numeric columns right-aligned with `tabular-nums`; text columns left-aligned.
 - Row actions are 20px outline icon buttons, 8px apart, with a 32x32 hit area.
 
 ### List item (people / activity)
 
-- Avatar 48px circle, 12px gap, primary line 15/500 `ink`, secondary line 13/400 `ink-3`.
+- Avatar 48px circle, 12px gap, primary line 14/500 `ink`, secondary line 12/400 `ink-3`.
 - Items separated by 1px `line` dividers, 16px vertical padding. No card per row.
 
 ### Navigation items (sidebar-style)
 
-- Height 44, `control` radius, 12px horizontal padding, 20px outline icon, 12px gap, 15px text.
+- Height 44, `control` radius, 12px horizontal padding, 20px outline icon, 12px gap, 14px text.
 - Inactive: transparent, `ink-2`. Hover: `surface` at 60% opacity, text `ink`.
 - Active: `surface` fill, `ink` text, `shadow-raised`, icon in `brand`. No left bar, no
   coloured fill, no underline.
@@ -299,7 +299,7 @@ navigates onward, as `Details ->` and `See all ->` in the reference: 16px outlin
 
 - Height 56 to 60, `inset` radius, two segments with a 6px gap: filled segment `brand`,
   remainder `line-strong` at 50% tint (`surface-sunken` darker). Both segments rounded.
-- Legend below: 8px swatch (radius 2) in the segment colour, label `ink` 15px, value
+- Legend below: 8px swatch (radius 2) in the segment colour, label `ink` 14px, value
   right-aligned `ink` with `tabular-nums`.
 - Chart palette = `brand` + grey neutrals only. Add semantic colours only when the data is
   semantically good/bad.
@@ -307,12 +307,12 @@ navigates onward, as `Details ->` and `See all ->` in the reference: 16px outlin
 ### Promotional card
 
 - The single gradient surface (section 2), `card` radius, 20px padding, 40px white icon tile
-  top-left (`control` radius, `brand` icon), title 18/500 white, body 14/400 white at 85%
+  top-left (`control` radius, `brand` icon), title 16/500 white, body 13/400 white at 85%
   opacity, full-width white `control` button with `brand` text. Use sparingly, one per screen.
 
 ### Avatars
 
-- Always circular, `object-cover`, sizes 24 / 36 / 48 only. Fallback: initials 13/500 on
+- Always circular, `object-cover`, sizes 24 / 36 / 48 only. Fallback: initials 12/500 on
   `brand-soft` with `brand` text. No square avatars, no avatar ring/border.
 
 ### Empty, error, loading
