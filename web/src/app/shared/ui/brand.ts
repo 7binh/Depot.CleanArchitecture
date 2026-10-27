@@ -6,12 +6,14 @@ import { Icon } from './icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon],
   template: `
-    <span class="flex size-10 items-center justify-center rounded-control bg-brand-soft text-brand">
-      <app-icon name="box" />
+    <span
+      class="flex size-6.5 items-center justify-center rounded-field bg-brand text-on-brand shadow-hairline"
+    >
+      <app-icon name="box" [size]="16" />
     </span>
-    <span class="text-card text-ink">{{ name() }}</span>
+    <span class="text-section text-ink">{{ name() }}</span>
   `,
-  host: { class: 'flex items-center gap-3' },
+  host: { class: 'flex items-center gap-2' },
 })
 export class Brand {
   readonly name = input('Depot');

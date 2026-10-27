@@ -7,8 +7,8 @@ import { Icon, IconName } from './icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon],
   template: `
-    <span class="flex size-10 items-center justify-center rounded-control bg-brand-soft text-brand">
-      <app-icon [name]="icon()" />
+    <span class="flex size-9 items-center justify-center rounded-control bg-control text-ink-2">
+      <app-icon [name]="icon()" [size]="16" />
     </span>
     <p class="text-body text-ink-2">{{ message() }}</p>
     <ng-content />

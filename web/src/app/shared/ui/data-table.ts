@@ -8,12 +8,15 @@ export interface TableColumn<T> {
   align?: 'start' | 'end';
 }
 
-/** Read-only table: the header names the columns, each row shows plain text per column. */
+/**
+ * Read-only table: the header names the columns, each row shows plain text per column.
+ * Rows have no divider; one turns into a card on hover.
+ */
 @Component({
   selector: 'app-data-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <table class="w-full border-separate border-spacing-0 text-left">
+    <table class="w-full border-separate border-spacing-y-1 text-left">
       <caption class="sr-only">
         {{
           caption()
@@ -24,7 +27,7 @@ export interface TableColumn<T> {
           @for (column of columns(); track column.key) {
             <th
               scope="col"
-              class="h-11 bg-surface-sunken px-4 text-small whitespace-nowrap font-normal text-ink-2 first:rounded-l-inset last:rounded-r-inset"
+              class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
               [class.text-right]="column.align === 'end'"
             >
               {{ column.label }}
@@ -34,13 +37,13 @@ export interface TableColumn<T> {
       </thead>
       <tbody>
         @for (row of rows(); track row.id) {
-          <tr>
+          <tr class="group">
             @for (column of columns(); track column.key; let first = $first) {
               <td
-                class="h-16 border-b border-line px-4 text-body whitespace-nowrap"
+                class="h-9 border-y border-transparent px-4 text-body whitespace-nowrap transition-colors duration-150 ease-out first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface motion-reduce:transition-none"
                 [class.font-medium]="first"
                 [class.text-ink]="first"
-                [class.text-ink-2]="!first"
+                [class.text-ink-body]="!first"
                 [class.text-right]="column.align === 'end'"
               >
                 {{ row[column.key] }}

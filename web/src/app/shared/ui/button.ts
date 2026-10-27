@@ -4,24 +4,25 @@ export type ButtonVariant = 'primary' | 'secondary' | 'icon';
 export type ButtonSize = 'default' | 'small';
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 rounded-control text-body font-medium ' +
+  'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-control text-small font-medium ' +
   'transition-colors duration-150 ease-out motion-reduce:transition-none ' +
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ' +
   'disabled:cursor-not-allowed disabled:border-transparent disabled:bg-surface-sunken ' +
   'disabled:text-ink-disabled disabled:shadow-none';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-on-brand hover:bg-brand-hover active:bg-brand-press',
-  secondary:
-    'border border-line bg-surface text-ink shadow-hairline hover:border-line-strong ' +
-    'hover:bg-surface-sunken active:bg-shell',
-  icon: 'bg-transparent text-ink-2 hover:bg-surface-sunken active:bg-shell',
+  primary:
+    'border border-brand-press bg-brand text-on-brand shadow-primary hover:bg-brand-hover ' +
+    'active:translate-y-px active:bg-brand-press',
+  secondary: 'bg-control text-ink hover:bg-control-hover',
+  icon: 'bg-transparent text-ink-2 hover:bg-control hover:text-ink active:bg-control-hover',
 };
 
+/** Controls are 40px high on touch-sized screens and 28px (the spec) from `sm` up. */
 const SIZES: Record<ButtonVariant, Record<ButtonSize, string>> = {
-  primary: { default: 'h-10 px-4', small: 'h-8 px-3' },
-  secondary: { default: 'h-10 px-4', small: 'h-8 px-3' },
-  icon: { default: 'size-10', small: 'size-8' },
+  primary: { default: 'h-10 px-3 sm:h-7', small: 'h-8 px-3 sm:h-6' },
+  secondary: { default: 'h-10 px-3 sm:h-7', small: 'h-8 px-3 sm:h-6' },
+  icon: { default: 'size-10 sm:size-7', small: 'size-8 sm:size-6' },
 };
 
 @Directive({

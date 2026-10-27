@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-2">
   <label [attr.for]="id" class="text-caption font-medium text-ink-2">{{ label() }}</label>
   <div class="relative">
-    <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-3">
+    <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3">
       <app-icon [name]="icon()" [size]="16" />
     </span>
     <input
@@ -13,12 +13,9 @@
       [attr.inputmode]="inputmode()"
       [attr.aria-invalid]="error() ? true : null"
       [attr.aria-describedby]="error() ? id + '-error' : null"
-      class="h-11 w-full rounded-control border pr-4 pl-11 text-body text-ink transition-colors duration-150 ease-out placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
-      [class.pr-12]="isPassword()"
-      [class.border-transparent]="!error()"
-      [class.bg-surface-sunken]="!error()"
-      [class.border-danger-fg]="error()"
-      [class.bg-surface]="error()"
+      class="h-10 w-full rounded-field border bg-surface pr-3 pl-9 text-small text-ink shadow-hairline sm:h-8 transition-colors duration-150 ease-out placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+      [class.pr-10]="isPassword()"
+      [class]="error() ? 'border-danger-fg' : 'border-line-input hover:border-line-strong'"
     />
     @if (isPassword()) {
       <div class="absolute top-1/2 right-2 -translate-y-1/2">

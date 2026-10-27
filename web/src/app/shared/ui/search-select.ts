@@ -32,7 +32,7 @@ function squash(text: string): string {
     <div class="flex flex-col gap-2">
       <label [attr.for]="id" class="text-caption font-medium text-ink-2">{{ label() }}</label>
       <div class="relative">
-        <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-3">
+        <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3">
           <app-icon name="search" [size]="16" />
         </span>
         <input
@@ -52,18 +52,15 @@ function squash(text: string): string {
           (focus)="open.set(true)"
           (blur)="leave()"
           (keydown)="press($event)"
-          class="h-11 w-full rounded-control border pr-4 pl-11 text-body text-ink transition-colors duration-150 ease-out placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
-          [class.border-transparent]="!error()"
-          [class.bg-surface-sunken]="!error()"
-          [class.border-danger-fg]="error()"
-          [class.bg-surface]="error()"
+          class="h-10 w-full rounded-field border bg-surface pr-3 pl-9 text-small text-ink shadow-hairline sm:h-8 transition-colors duration-150 ease-out placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+          [class]="error() ? 'border-danger-fg' : 'border-line-input hover:border-line-strong'"
         />
         @if (open()) {
           <ul
             [id]="id + '-list'"
             role="listbox"
             [attr.aria-label]="label()"
-            class="absolute z-10 mt-2 max-h-60 w-full overflow-y-auto rounded-control bg-surface py-2 shadow-popover"
+            class="absolute z-10 mt-2 max-h-60 w-full overflow-y-auto rounded-field border border-line bg-surface p-1 shadow-popover"
           >
             @for (option of matches(); track option.value; let i = $index) {
               <li
@@ -71,8 +68,8 @@ function squash(text: string): string {
                 role="option"
                 tabindex="-1"
                 [attr.aria-selected]="option.value === control().value"
-                class="cursor-pointer px-4 py-2 text-body text-ink"
-                [class.bg-brand-soft]="i === active()"
+                class="cursor-pointer rounded-xs px-3 py-1.5 text-body text-ink"
+                [class.bg-nav-active]="i === active()"
                 (mousedown)="choose($event, option)"
               >
                 <span>{{ option.label }}</span>

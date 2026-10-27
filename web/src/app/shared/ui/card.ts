@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-const BASE = 'block rounded-card border border-line bg-surface';
+const BASE = 'block rounded-card border border-line';
 
-/** The one level of card: white, 1px line, no shadow. Everything inside it is plain content, never another card. */
+/** A hairline group on the canvas: no fill and no shadow, so white stays for inputs and selected rows. */
 @Component({
   selector: 'app-card',
   changeDetection: ChangeDetectionStrategy.OnPush,

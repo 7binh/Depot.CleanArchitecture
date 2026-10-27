@@ -26,11 +26,8 @@ let nextId = 0;
           [formControl]="control()"
           [attr.aria-invalid]="error() ? true : null"
           [attr.aria-describedby]="error() ? id + '-error' : null"
-          class="h-11 w-full appearance-none rounded-control border pr-11 pl-4 text-body text-ink transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
-          [class.border-transparent]="!error()"
-          [class.bg-surface-sunken]="!error()"
-          [class.border-danger-fg]="error()"
-          [class.bg-surface]="error()"
+          class="h-10 w-full appearance-none rounded-field border bg-surface pr-9 pl-3 text-small text-ink shadow-hairline sm:h-8 transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+          [class]="error() ? 'border-danger-fg' : 'border-line-input hover:border-line-strong'"
         >
           @if (placeholder(); as text) {
             <option value="">{{ text }}</option>
@@ -39,7 +36,7 @@ let nextId = 0;
             <option [value]="option.value">{{ option.label }}</option>
           }
         </select>
-        <span class="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-ink-3">
+        <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-ink-3">
           <app-icon name="chevron-down" [size]="16" />
         </span>
       </div>

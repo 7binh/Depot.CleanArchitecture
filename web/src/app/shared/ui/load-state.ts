@@ -13,9 +13,9 @@ import { Skeleton } from './skeleton';
   template: `
     @switch (status()) {
       @case ('loading') {
-        <div class="flex flex-col gap-3" aria-busy="true">
+        <div class="flex flex-col gap-1" aria-busy="true">
           @for (n of placeholders; track n) {
-            <div appSkeleton class="h-16 w-full"></div>
+            <div appSkeleton class="h-9 w-full"></div>
           }
         </div>
       }
