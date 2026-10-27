@@ -1,0 +1,148 @@
+<app-page-header
+  title="Gate In"
+  description="Ghi nhận container vào bãi: đối chiếu hồ sơ, tình trạng và vị trí xếp."
+/>
+
+<app-load-state
+  [status]="containers.status() === 'ready' ? blocks.status() : containers.status()"
+  [failure]="containers.failure() || blocks.failure()"
+  (retry)="ngOnInit()"
+>
+  <form
+    class="flex max-w-2xl flex-col gap-6 rounded-card bg-surface p-6 shadow-raised"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    @if (done(); as number) {
+      <p class="rounded-control bg-success-bg p-4 text-small text-success-fg" role="status">
+        Đã gate in container {{ number }}. Container bắt đầu được tính tồn bãi.
+      </p>
+    }
+    @if (notice(); as message) {
+      <app-error-banner>{{ message }}</app-error-banner>
+    }
+
+    <section class="flex flex-col gap-4" aria-labelledby="gate-in-container">
+      <h2 id="gate-in-container" class="text-card text-ink">Container</h2>
+      <app-text-field
+        label="Số container"
+        icon="box"
+        placeholder="Ví dụ: CSQU3054383"
+        [control]="form.controls.number"
+        [messages]="messages.number"
+      />
+      @if (found(); as container) {
+        <p class="rounded-control bg-brand-soft p-4 text-small text-ink">
+          Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
+          {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực tế.
+        </p>
+      } @else if (typedSomething()) {
+        <div class="flex flex-wrap items-center gap-4">
+          <p class="text-small text-ink-2">Chưa có hồ sơ cho số container này.</p>
+          <button appButton type="button" (click)="declaring.set(true)">
+            <app-icon name="plus" [size]="16" />
+            Khai báo container
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="flex flex-col gap-4" aria-labelledby="gate-in-state">
+      <h2 id="gate-in-state" class="text-card text-ink">Tình trạng</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select-field
+          label="Phân loại"
+          [control]="form.controls.grade"
+          [options]="gradeOptions"
+        />
+        <app-select-field
+          label="Tình trạng"
+          [control]="form.controls.condition"
+          [options]="conditionOptions"
+          [messages]="messages.condition"
+        />
+      </div>
+      @if (damaged()) {
+        <app-text-field
+          label="Mô tả hư hỏng"
+          icon="alert-circle"
+          placeholder="Ví dụ: móp thành trái"
+          [control]="form.controls.damageNote"
+          [messages]="messages.note"
+        />
+      }
+    </section>
+
+    <section class="flex flex-col gap-4" aria-labelledby="gate-in-arrival">
+      <h2 id="gate-in-arrival" class="text-card text-ink">Phương tiện và giờ vào</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select-field
+          label="Phương tiện"
+          [control]="form.controls.vehicleType"
+          [options]="vehicleOptions"
+        />
+        <app-text-field
+          label="Biển số / tên phương tiện"
+          icon="box"
+          placeholder="Ví dụ: 51C-123.45"
+          [control]="form.controls.vehicleNumber"
+          [messages]="messages.vehicle"
+        />
+      </div>
+      <app-text-field
+        label="Giờ vào"
+        icon="calendar"
+        type="datetime-local"
+        [control]="form.controls.gateInAt"
+        [messages]="messages.time"
+      />
+    </section>
+
+    <section class="flex flex-col gap-4" aria-labelledby="gate-in-position">
+      <h2 id="gate-in-position" class="text-card text-ink">Vị trí</h2>
+      <app-select-field
+        label="Block"
+        placeholder="Chọn block"
+        [control]="form.controls.blockId"
+        [options]="blockOptions()"
+        [messages]="messages.block"
+      />
+      @if (positioned()) {
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <app-select-field
+            label="Bay"
+            placeholder="Chọn bay"
+            [control]="form.controls.bayId"
+            [options]="bayOptions()"
+            [messages]="messages.bay"
+          />
+          <app-select-field
+            label="Row"
+            placeholder="Chọn row"
+            [control]="form.controls.rowId"
+            [options]="rowOptions()"
+            [messages]="messages.row"
+          />
+          <app-select-field
+            label="Tầng"
+            placeholder="Chọn tầng"
+            [control]="form.controls.tier"
+            [options]="tierOptions()"
+            [messages]="messages.tier"
+          />
+        </div>
+      }
+    </section>
+
+    <div class="flex justify-end">
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">
+        Xác nhận Gate In
+      </button>
+    </div>
+  </form>
+</app-load-state>
+
+@if (declaring()) {
+  <app-create-container-dialog (closed)="declaring.set(false)" (created)="declared($event)" />
+}

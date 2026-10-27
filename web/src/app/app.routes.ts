@@ -22,6 +22,11 @@ export const routes: Routes = [
           import('./features/containers/containers-page').then((m) => m.ContainersPage),
       },
       {
+        path: 'gate-in',
+        title: 'Gate In - Depot',
+        loadComponent: () => import('./features/gate/gate-in-page').then((m) => m.GateInPage),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>
