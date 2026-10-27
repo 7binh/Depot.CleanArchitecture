@@ -137,6 +137,15 @@ describe('YardMapPage container detail', () => {
     expect(element.querySelector('app-container-detail')).toBeNull();
   });
 
+  it('closes the drawer on Escape', () => {
+    const { fixture, element, cell } = drawn();
+    cell.click();
+    fixture.detectChanges();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(element.querySelector('app-container-detail')).toBeNull();
+  });
+
   it('does not let a free place be clicked', () => {
     const { fixture, element } = drawn();
     const tabs = [...element.querySelectorAll('app-segmented button')] as HTMLButtonElement[];

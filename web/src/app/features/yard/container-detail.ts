@@ -42,9 +42,11 @@ import { GridCell } from './block-grid';
     }
   `,
   host: {
-    class: 'block rounded-card border border-line bg-surface p-5 shadow-popover',
+    class:
+      'fixed inset-y-4 right-4 left-4 z-40 overflow-y-auto sm:left-auto sm:w-96 rounded-card border border-line bg-surface p-5 shadow-popover',
     role: 'region',
     'aria-label': 'Chi tiết container',
+    '(document:keydown.escape)': 'closed.emit()',
   },
 })
 export class ContainerDetail {
