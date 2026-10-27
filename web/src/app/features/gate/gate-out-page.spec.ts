@@ -58,54 +58,58 @@ function setup() {
 }
 
 function fill(page: ReturnType<typeof setup>): void {
-  pick(page.fixture, 'Container trong bãi', '3054', 'CSQU3054383');
   pick(page.fixture, 'Lệnh giao', 'RO', 'RO-1');
+  pick(page.fixture, 'Container trong bãi', '3054', 'CSQU3054383');
   type(page.fixture, 'Biển số', '51C-123.45');
   click(page.fixture, 'Xác nhận Gate Out');
 }
 
 describe('GateOutPage choices', () => {
-  it('suggests only containers in the yard that match what is typed', () => {
+  it('suggests only orders that are valid and have room left', () => {
     const { fixture } = setup();
-    expect(search(fixture, 'Container trong bãi', '3054')).toEqual([
-      'CSQU3054383 CSQ · 20GP · 20 ft',
-    ]);
-    expect(search(fixture, 'Container trong bãi', 'MSKU')).toEqual([]);
-  });
-
-  it('says so when nothing matches', () => {
-    const { fixture, element } = setup();
-    search(fixture, 'Container trong bãi', 'ZZZ');
-    expect(element.textContent).toContain('Không có container nào trong bãi khớp.');
-  });
-
-  it('suggests only valid orders of the same operator with room left', () => {
-    const { fixture } = setup();
-    pick(fixture, 'Container trong bãi', 'CSQU', 'CSQU3054383');
-    expect(search(fixture, 'Lệnh giao', 'RO')).toEqual(['RO-1 MV Sun']);
+    expect(search(fixture, 'Lệnh giao', 'RO')).toEqual(['RO-1 MV Sun', 'RO-2 MV Sun']);
   });
 
   it('finds an order by vessel name', () => {
     const { fixture } = setup();
-    pick(fixture, 'Container trong bãi', 'CSQU', 'CSQU3054383');
-    expect(search(fixture, 'Lệnh giao', 'sun')).toEqual(['RO-1 MV Sun']);
+    expect(search(fixture, 'Lệnh giao', 'sun')).toEqual(['RO-1 MV Sun', 'RO-2 MV Sun']);
+  });
+
+  it('asks for an order first', () => {
+    const { fixture, element } = setup();
+    search(fixture, 'Container trong bãi', '3054');
+    expect(element.textContent).toContain('Chọn lệnh giao trước.');
+  });
+
+  it('suggests only containers in the yard that fit the order', () => {
+    const { fixture, element } = setup();
+    pick(fixture, 'Lệnh giao', 'RO-1', 'RO-1');
+    expect(element.textContent).toContain('hãng CSQ, tàu MV Sun');
+    expect(search(fixture, 'Container trong bãi', '3054')).toEqual([
+      'CSQU3054383 CSQ · 20GP · 20 ft',
+    ]);
+    expect(search(fixture, 'Container trong bãi', 'MSKU')).toEqual([]);
+    expect(element.textContent).toContain('Không có container nào trong bãi khớp lệnh này.');
+  });
+
+  it('clears the container when the order changes', () => {
+    const { fixture, element } = setup();
+    pick(fixture, 'Lệnh giao', 'RO-1', 'RO-1');
+    pick(fixture, 'Container trong bãi', '3054', 'CSQU3054383');
+    pick(fixture, 'Lệnh giao', 'RO-2', 'RO-2');
+    const input = element.querySelectorAll('app-search-select input')[1] as HTMLInputElement;
+    expect(input.value).toBe('');
   });
 });
 
 describe('GateOutPage container profile', () => {
   it('accepts a full number typed without picking and shows its profile', () => {
     const { fixture, element } = setup();
+    pick(fixture, 'Lệnh giao', 'RO-1', 'RO-1');
     search(fixture, 'Container trong bãi', 'csqu3054383');
-    const input = element.querySelector('app-search-select input') as HTMLInputElement;
+    const input = element.querySelectorAll('app-search-select input')[1] as HTMLInputElement;
     expect(input.value).toBe('CSQU3054383');
     expect(element.textContent).toContain('hãng CSQ, loại 20GP, cỡ 20 ft, ISO 22G1');
-  });
-
-  it('shows only the number in the box once picked', () => {
-    const { fixture, element } = setup();
-    pick(fixture, 'Container trong bãi', '3054', 'CSQU3054383');
-    const input = element.querySelector('app-search-select input') as HTMLInputElement;
-    expect(input.value).toBe('CSQU3054383');
   });
 });
 

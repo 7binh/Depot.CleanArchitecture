@@ -20,9 +20,25 @@
     }
 
     <app-search-select
+      label="Lệnh giao"
+      placeholder="Gõ số lệnh hoặc tên tàu"
+      emptyText="Không có lệnh giao nào còn hạn và còn chỗ khớp."
+      [control]="form.controls.releaseOrderId"
+      [options]="orderOptions()"
+      [matchHint]="true"
+      [messages]="messages.order"
+    />
+    @if (orderSummary(); as summary) {
+      <p class="rounded-control bg-brand-soft p-4 text-small text-ink">
+        Lệnh {{ summary.order.orderNo }}: hãng {{ summary.operator }}, tàu
+        {{ summary.order.exportVessel }}, hạn {{ summary.order.expiryDate }}. Còn
+        {{ summary.lines.join('; ') }}.
+      </p>
+    }
+    <app-search-select
       label="Container trong bãi"
       placeholder="Gõ một phần số container"
-      emptyText="Không có container nào trong bãi khớp."
+      [emptyText]="containerEmpty()"
       [control]="form.controls.containerId"
       [options]="containerOptions()"
       [messages]="messages.container"
@@ -31,21 +47,6 @@
       <p class="rounded-control bg-brand-soft p-4 text-small text-ink">
         Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
         {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực tế.
-      </p>
-    }
-    <app-search-select
-      label="Lệnh giao"
-      placeholder="Gõ số lệnh hoặc tên tàu"
-      emptyText="Không có lệnh giao nào khớp."
-      [control]="form.controls.releaseOrderId"
-      [options]="orderOptions()"
-      [matchHint]="true"
-      [messages]="messages.order"
-    />
-    @if (chosen() && orderOptions().length === 0) {
-      <p class="text-small text-ink-2">
-        Không có lệnh giao nào của hãng {{ chosen()?.lineOperator }} còn hạn và còn chỗ cho loại
-        {{ chosen()?.containerType }} cỡ {{ chosen()?.size }}.
       </p>
     }
 

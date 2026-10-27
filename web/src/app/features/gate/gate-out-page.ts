@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { forkJoin, map } from 'rxjs';
+import { forkJoin, map, tap } from 'rxjs';
 import { errorCode, toMessage } from '../../core/api/api-error';
 import { ERROR_MESSAGES } from '../../core/api/error-messages';
 import { ListLoader, LoadStatus } from '../../core/api/list-loader';
@@ -20,8 +20,14 @@ import { PageHeader } from '../../shared/ui/page-header';
 import { SearchSelect } from '../../shared/ui/search-select';
 import { SelectField, SelectOption } from '../../shared/ui/select-field';
 import { TextField } from '../../shared/ui/text-field';
-import { ContainerTypeService } from '../catalogs/container-types/container-type.service';
-import { LineOperatorService } from '../catalogs/line-operators/line-operator.service';
+import {
+  ContainerType,
+  ContainerTypeService,
+} from '../catalogs/container-types/container-type.service';
+import {
+  LineOperator,
+  LineOperatorService,
+} from '../catalogs/line-operators/line-operator.service';
 import { ContainerRow, toContainerRows } from '../containers/container-rows';
 import { ContainerService } from '../containers/container.service';
 import { ReleaseOrder, ReleaseOrderService } from '../release-orders/release-order.service';
@@ -63,6 +69,11 @@ function canRelease(order: ReleaseOrder, container: ContainerRow): boolean {
   );
 }
 
+/** An order can still take containers while it is valid and some line has room. */
+function hasRoom(order: ReleaseOrder): boolean {
+  return !order.isExpired && order.items.some((item) => item.remaining > 0);
+}
+
 function worst(statuses: LoadStatus[]): LoadStatus {
   if (statuses.includes('failed')) {
     return 'failed';
@@ -93,8 +104,14 @@ export class GateOutPage implements OnInit {
   private readonly orderService = inject(ReleaseOrderService);
   private readonly gate = inject(GateService);
 
+  private readonly operatorList = signal<LineOperator[]>([]);
+  private readonly typeList = signal<ContainerType[]>([]);
   private readonly containers = new ListLoader<ContainerRow>(() =>
     forkJoin([this.containerService.list(), this.operators.list(), this.types.list()]).pipe(
+      tap(([, operators, types]) => {
+        this.operatorList.set(operators);
+        this.typeList.set(types);
+      }),
       map(([containers, operators, types]) => toContainerRows(containers, operators, types)),
     ),
   );
@@ -130,42 +147,66 @@ export class GateOutPage implements OnInit {
     },
   };
 
+  private readonly orderId = toSignal(this.form.controls.releaseOrderId.valueChanges, {
+    initialValue: '',
+  });
   private readonly containerId = toSignal(this.form.controls.containerId.valueChanges, {
     initialValue: '',
+  });
+
+  protected readonly orderOptions = computed<SelectOption[]>(() =>
+    this.orders
+      .items()
+      .filter(hasRoom)
+      .map((order) => ({ value: order.id, label: order.orderNo, hint: order.exportVessel })),
+  );
+  protected readonly order = computed(() =>
+    this.orders.items().find((order) => order.id === this.orderId()),
+  );
+  protected readonly orderSummary = computed(() => {
+    const order = this.order();
+    if (!order) {
+      return null;
+    }
+    const operator = this.operatorList().find((o) => o.id === order.lineOperatorId);
+    const lines = order.items.map((item) => {
+      const type = this.typeList().find((t) => t.id === item.containerTypeId);
+      return `${type?.code ?? '?'} cỡ ${item.sizeFeet} ft: còn ${item.remaining}/${item.quantity}`;
+    });
+    return { operator: operator?.code ?? '?', order, lines };
   });
 
   private readonly inYard = computed(() => {
     const ids = new Set(this.stays.items().map((stay) => stay.containerId));
     return this.containers.items().filter((row) => ids.has(row.id));
   });
-  protected readonly containerOptions = computed<SelectOption[]>(() =>
-    this.inYard().map((row) => ({
-      value: row.id,
-      label: row.number,
-      hint: `${row.lineOperator} · ${row.containerType} · ${row.size}`,
-    })),
+  protected readonly containerOptions = computed<SelectOption[]>(() => {
+    const order = this.order();
+    if (!order) {
+      return [];
+    }
+    return this.inYard()
+      .filter((row) => canRelease(order, row))
+      .map((row) => ({
+        value: row.id,
+        label: row.number,
+        hint: `${row.lineOperator} · ${row.containerType} · ${row.size}`,
+      }));
+  });
+  protected readonly containerEmpty = computed(() =>
+    this.order() ? 'Không có container nào trong bãi khớp lệnh này.' : 'Chọn lệnh giao trước.',
   );
   protected readonly chosen = computed(() =>
     this.inYard().find((row) => row.id === this.containerId()),
   );
-  protected readonly orderOptions = computed<SelectOption[]>(() => {
-    const container = this.chosen();
-    if (!container) {
-      return [];
-    }
-    return this.orders
-      .items()
-      .filter((order) => canRelease(order, container))
-      .map((order) => ({ value: order.id, label: order.orderNo, hint: order.exportVessel }));
-  });
 
   protected readonly notice = signal<string | null>(null);
   protected readonly submitting = signal(false);
   protected readonly done = signal<string | null>(null);
 
   constructor() {
-    this.form.controls.containerId.valueChanges.subscribe(() => {
-      this.form.controls.releaseOrderId.setValue('');
+    this.form.controls.releaseOrderId.valueChanges.subscribe(() => {
+      this.form.controls.containerId.setValue('');
     });
   }
 
