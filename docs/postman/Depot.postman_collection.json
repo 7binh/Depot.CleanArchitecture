@@ -2897,6 +2897,1637 @@
       ]
     },
     {
+      "name": "Yard structure",
+      "item": [
+        {
+          "name": "1. Setup - find the seeded DRY container type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const dry = pm.response.json().find(function (x) { return x.code === 'DRY'; });",
+                  "pm.collectionVariables.set('ysTypeId', dry.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Setup - create the line operator",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('ysOwner', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysOperatorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{ysOwner}}\",\n  \"name\": \"Postman gate operator\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Setup - create the customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let tax = '';",
+                  "for (let i = 0; i < 10; i++) { tax += Math.floor(Math.random() * 10); }",
+                  "pm.collectionVariables.set('ysTaxCode', tax);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysCustomerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"{{ysTaxCode}}\",\n  \"name\": \"Postman gate customer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Setup - register a container",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('ysOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('ysNumber1', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysContainer1', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{ysNumber1}}\",\n  \"containerTypeId\": \"{{ysTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Setup - release order for 1 container of 20ft DRY",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ysOrderNo', 'RO-' + Date.now());",
+                  "const day = 24 * 60 * 60 * 1000;",
+                  "pm.collectionVariables.set('ysIssued', new Date(Date.now() - day).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('ysExpiry', new Date(Date.now() + 30 * day).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysOrderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{ysOperatorId}}\",\n  \"customerId\": \"{{ysCustomerId}}\",\n  \"orderNo\": \"{{ysOrderNo}}\",\n  \"issuedDate\": \"{{ysIssued}}\",\n  \"expiryDate\": \"{{ysExpiry}}\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{ysTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 1\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Setup - create a block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('ysBlockCode', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{ysBlockCode}}\",\n  \"name\": \"Postman yard block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Layout - bays 1 to 5 with 3 rows of 4 tiers each",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('5 bays and 15 rows are created', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.baysCreated).to.eql(5);",
+                  "    pm.expect(body.rowsCreated).to.eql(15);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 5,\n  \"rowCount\": 3,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Layout - the same range again creates nothing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Nothing new is created', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.baysCreated).to.eql(0);",
+                  "    pm.expect(body.rowsCreated).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 5,\n  \"rowCount\": 3,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Layout - range from 5 down to 1 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is BayRange.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('BayRange.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 5,\n  \"toBay\": 1,\n  \"rowCount\": 3,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Layout - zero rows returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is RowCount.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('RowCount.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 5,\n  \"rowCount\": 0,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. Layout - max tier 9 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is MaxTier.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('MaxTier.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 5,\n  \"rowCount\": 3,\n  \"maxTier\": 9\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. Layout - unknown block returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Block.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "00000000-0000-0000-0000-000000000000",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 5,\n  \"rowCount\": 3,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13. List bays - five bays, ordered by number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Bays 1 to 5', function () {",
+                  "    pm.expect(pm.response.json().map(function (x) { return x.bayNo; })).to.eql([1, 2, 3, 4, 5]);",
+                  "});",
+                  "const bays = pm.response.json();",
+                  "pm.collectionVariables.set('ysBay1Id', bays.find(function (x) { return x.bayNo === 1; }).id);",
+                  "pm.collectionVariables.set('ysBay3Id', bays.find(function (x) { return x.bayNo === 3; }).id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14. List rows of bay 1 - three rows",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const rows = pm.response.json();",
+                  "pm.test('Rows 1 to 3 with 4 tiers', function () {",
+                  "    pm.expect(rows.map(function (x) { return x.rowNo; })).to.eql([1, 2, 3]);",
+                  "    pm.expect(rows.every(function (x) { return x.maxTier === 4; })).to.eql(true);",
+                  "});",
+                  "pm.collectionVariables.set('ysRow1Id', rows.find(function (x) { return x.rowNo === 1; }).id);",
+                  "pm.collectionVariables.set('ysRow3Id', rows.find(function (x) { return x.rowNo === 3; }).id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15. Rename block - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Name is trimmed, code is unchanged', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.name).to.eql('Renamed yard block');",
+                  "    pm.expect(body.code).to.eql(pm.collectionVariables.get('ysBlockCode'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"  Renamed yard block  \"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16. Rename block - empty name returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is Name.Empty', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Name.Empty');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"  \"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "17. Rename block - unknown block returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Block.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Anything\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "18. Change max tier of row 3 to 5 - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Max tier is 5', function () {",
+                  "    pm.expect(pm.response.json().maxTier).to.eql(5);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/{{ysRow3Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "{{ysRow3Id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxTier\": 5\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "19. Change max tier to 1 returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is MaxTier.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('MaxTier.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/{{ysRow3Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "{{ysRow3Id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxTier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20. Change max tier - unknown row returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is YardRow.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('YardRow.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxTier\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "21. Gate in - the container at bay 1, row 1, tier 1 (success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysStay1', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{ysContainer1}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{ysBlockId}}\",\n  \"rowId\": \"{{ysRow1Id}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "22. Change max tier of row 1 to 2 - still holds tier 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/{{ysRow1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "{{ysRow1Id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxTier\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "23. Shrink - delete row 1 while a container stands there returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Row.HasContainers', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Row.HasContainers');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/{{ysRow1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "{{ysRow1Id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "24. Shrink - delete bay 1 while a container stands there returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Bay.HasContainers', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Bay.HasContainers');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "25. Shrink - delete a block that is in use returns 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Block.InUse', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.InUse');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "26. Shrink - delete the empty row 3 returns 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/{{ysRow3Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "{{ysRow3Id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "27. Shrink - delete the unknown row returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is YardRow.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('YardRow.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "28. Shrink - delete the empty bay 3 returns 204 (its rows go with it)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay3Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay3Id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "29. List bays - bay 3 is now a gap",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Bays 1, 2, 4, 5', function () {",
+                  "    pm.expect(pm.response.json().map(function (x) { return x.bayNo; })).to.eql([1, 2, 4, 5]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "30. Gate out - the container leaves",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{ysContainer1}}\",\n  \"releaseOrderId\": \"{{ysOrderId}}\",\n  \"outVehicleType\": \"Truck\",\n  \"outVehicleNumber\": \"51C-99999\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "31. Shrink - delete row 1 after the container left returns 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}/rows/{{ysRow1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}",
+                "rows",
+                "{{ysRow1Id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "32. Get stay - the history stays, only the row and tier are forgotten",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Row and tier are forgotten, block and gate-out time are kept', function () {",
+                  "    const stay = pm.response.json();",
+                  "    pm.expect(stay.rowId).to.eql(null);",
+                  "    pm.expect(stay.tier).to.eql(null);",
+                  "    pm.expect(stay.blockId).to.eql(pm.collectionVariables.get('ysBlockId'));",
+                  "    pm.expect(stay.gateOutAt).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-stays/{{ysStay1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-stays",
+                "{{ysStay1}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "33. Shrink - delete bay 1 after the container left returns 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}/bays/{{ysBay1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}",
+                "bays",
+                "{{ysBay1Id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "34. Shrink - a block that once held a container cannot be deleted (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error is Block.InUse', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.InUse');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysBlockId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysBlockId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "35. Setup - create a block that never holds a container",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('ysSpareCode', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('ysSpareId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{ysSpareCode}}\",\n  \"name\": \"Postman spare block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "36. Setup - give it bays 1 to 3 with 2 rows each",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysSpareId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysSpareId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 3,\n  \"rowCount\": 2,\n  \"maxTier\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "37. Shrink - delete the never-used block with its bays and rows returns 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysSpareId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysSpareId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "38. Get the deleted block returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Block.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{ysSpareId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{ysSpareId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Containers",
       "item": [
         {
@@ -5252,6 +6883,932 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "1. Setup - find the seeded DRY container type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const dry = pm.response.json().find(function (x) { return x.code === 'DRY'; });",
+                  "pm.collectionVariables.set('rpTypeId', dry.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Setup - create the line operator",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('rpOwner', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpOperatorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{rpOwner}}\",\n  \"name\": \"Postman gate operator\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Setup - register container 1",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('rpOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('rpNumber1', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpContainer1', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{rpNumber1}}\",\n  \"containerTypeId\": \"{{rpTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Setup - register container 2",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('rpOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('rpNumber2', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpContainer2', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{rpNumber2}}\",\n  \"containerTypeId\": \"{{rpTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Setup - create the customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let tax = '';",
+                  "for (let i = 0; i < 10; i++) { tax += Math.floor(Math.random() * 10); }",
+                  "pm.collectionVariables.set('rpTaxCode', tax);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpCustomerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taxCode\": \"{{rpTaxCode}}\",\n  \"name\": \"Postman gate customer\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Setup - create a normal block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('rpBlockCode', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{rpBlockCode}}\",\n  \"name\": \"Postman gate block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Setup - add odd bay 1 (20ft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpBayId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rpBlockId}}/bays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{rpBlockId}}",
+                "bays"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bayNo\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Setup - add row 1 with 4 tiers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpRowId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{rpBlockId}}/bays/{{rpBayId}}/rows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{rpBlockId}}",
+                "bays",
+                "{{rpBayId}}",
+                "rows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rowNo\": 1,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Setup - release order for 1 container of 20ft DRY",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('rpOrderNo', 'RO-' + Date.now());",
+                  "const day = 24 * 60 * 60 * 1000;",
+                  "pm.collectionVariables.set('rpIssued', new Date(Date.now() - day).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('rpExpiry', new Date(Date.now() + 30 * day).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('rpOrderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/release-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "release-orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lineOperatorId\": \"{{rpOperatorId}}\",\n  \"customerId\": \"{{rpCustomerId}}\",\n  \"orderNo\": \"{{rpOrderNo}}\",\n  \"issuedDate\": \"{{rpIssued}}\",\n  \"expiryDate\": \"{{rpExpiry}}\",\n  \"exportVessel\": \"EVER GIVEN V.12\",\n  \"lines\": [\n    {\n      \"containerTypeId\": \"{{rpTypeId}}\",\n      \"sizeFeet\": 20,\n      \"quantity\": 1\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Gate in - container 1 at tier 1, 11 days ago",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = function (n) { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d; };",
+                  "const at = day(-11); at.setUTCHours(12, 0, 0, 0);",
+                  "pm.collectionVariables.set('rpAt1', at.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{rpContainer1}}\",\n  \"gateInAt\": \"{{rpAt1}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{rpBlockId}}\",\n  \"rowId\": \"{{rpRowId}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. Gate in - container 2 at tier 2, 3 days ago",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = function (n) { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d; };",
+                  "const at = day(-3); at.setUTCHours(12, 0, 0, 0);",
+                  "pm.collectionVariables.set('rpAt2', at.toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{rpContainer2}}\",\n  \"gateInAt\": \"{{rpAt2}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{rpBlockId}}\",\n  \"rowId\": \"{{rpRowId}}\",\n  \"tier\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. Yard stock today - container 1 is a long stay, container 2 is recent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const mine = pm.response.json().filter(function (x) { return x.operatorCode === pm.collectionVariables.get('rpOwner'); });",
+                  "pm.test('1 recent, 1 long stay, 2 in total', function () {",
+                  "    pm.expect(mine.length).to.eql(1);",
+                  "    pm.expect(mine[0].recent).to.eql(1);",
+                  "    pm.expect(mine[0].longStay).to.eql(1);",
+                  "    pm.expect(mine[0].total).to.eql(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/yard-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "yard-stock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13. Yard stock 5 days ago - only container 1 was in, 6 days",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = function (n) { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d; };",
+                  "pm.collectionVariables.set('rpFiveDaysAgo', day(-5).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const mine = pm.response.json().filter(function (x) { return x.operatorCode === pm.collectionVariables.get('rpOwner'); });",
+                  "pm.test('1 recent and nothing else', function () {",
+                  "    pm.expect(mine.length).to.eql(1);",
+                  "    pm.expect(mine[0].recent).to.eql(1);",
+                  "    pm.expect(mine[0].total).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/yard-stock?date={{rpFiveDaysAgo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "yard-stock?date={{rpFiveDaysAgo}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14. Yard stock - a date in the future returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is ReportDate.InFuture', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('ReportDate.InFuture');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/yard-stock?date=2999-01-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "yard-stock?date=2999-01-01"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15. Throughput - two gate ins, no gate out yet",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = function (n) { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d; };",
+                  "pm.collectionVariables.set('rpFrom', day(-12).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('rpTo', day(1).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const mine = pm.response.json().filter(function (x) { return x.operatorCode === pm.collectionVariables.get('rpOwner'); });",
+                  "pm.test('2 gate ins on 2 days, 0 gate outs', function () {",
+                  "    pm.expect(mine.length).to.eql(2);",
+                  "    pm.expect(mine.reduce(function (total, x) { return total + x.gateIns; }, 0)).to.eql(2);",
+                  "    pm.expect(mine.reduce(function (total, x) { return total + x.gateOuts; }, 0)).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/throughput?from={{rpFrom}}&to={{rpTo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "throughput?from={{rpFrom}}&to={{rpTo}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16. Throughput - from after to returns 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error is DateRange.Invalid', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('DateRange.Invalid');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/throughput?from=2026-12-01&to=2026-10-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "throughput?from=2026-12-01&to=2026-10-01"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "17. Throughput - missing dates return 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/throughput",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "throughput"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "18. Gate out - container 2 (the top one) leaves",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{rpContainer2}}\",\n  \"releaseOrderId\": \"{{rpOrderId}}\",\n  \"outVehicleType\": \"Truck\",\n  \"outVehicleNumber\": \"51C-99999\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "19. Throughput - the gate out is counted",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = function (n) { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d; };",
+                  "pm.collectionVariables.set('rpFrom', day(-12).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('rpTo', day(1).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const mine = pm.response.json().filter(function (x) { return x.operatorCode === pm.collectionVariables.get('rpOwner'); });",
+                  "pm.test('2 gate ins and 1 gate out', function () {",
+                  "    pm.expect(mine.reduce(function (total, x) { return total + x.gateIns; }, 0)).to.eql(2);",
+                  "    pm.expect(mine.reduce(function (total, x) { return total + x.gateOuts; }, 0)).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/throughput?from={{rpFrom}}&to={{rpTo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "throughput?from={{rpFrom}}&to={{rpTo}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20. Yard stock today - the container that left is no longer counted",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const mine = pm.response.json().filter(function (x) { return x.operatorCode === pm.collectionVariables.get('rpOwner'); });",
+                  "pm.test('Only the long stay is left', function () {",
+                  "    pm.expect(mine.length).to.eql(1);",
+                  "    pm.expect(mine[0].recent).to.eql(0);",
+                  "    pm.expect(mine[0].longStay).to.eql(1);",
+                  "    pm.expect(mine[0].total).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/yard-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "yard-stock"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -5473,6 +8030,174 @@
     },
     {
       "key": "giStay1",
+      "value": ""
+    },
+    {
+      "key": "ysTypeId",
+      "value": ""
+    },
+    {
+      "key": "ysOwner",
+      "value": ""
+    },
+    {
+      "key": "ysOperatorId",
+      "value": ""
+    },
+    {
+      "key": "ysNumber1",
+      "value": ""
+    },
+    {
+      "key": "ysContainer1",
+      "value": ""
+    },
+    {
+      "key": "ysTaxCode",
+      "value": ""
+    },
+    {
+      "key": "ysCustomerId",
+      "value": ""
+    },
+    {
+      "key": "ysOrderNo",
+      "value": ""
+    },
+    {
+      "key": "ysIssued",
+      "value": ""
+    },
+    {
+      "key": "ysExpiry",
+      "value": ""
+    },
+    {
+      "key": "ysOrderId",
+      "value": ""
+    },
+    {
+      "key": "ysBlockCode",
+      "value": ""
+    },
+    {
+      "key": "ysBlockId",
+      "value": ""
+    },
+    {
+      "key": "ysBay1Id",
+      "value": ""
+    },
+    {
+      "key": "ysBay3Id",
+      "value": ""
+    },
+    {
+      "key": "ysRow1Id",
+      "value": ""
+    },
+    {
+      "key": "ysRow3Id",
+      "value": ""
+    },
+    {
+      "key": "ysStay1",
+      "value": ""
+    },
+    {
+      "key": "ysSpareCode",
+      "value": ""
+    },
+    {
+      "key": "ysSpareId",
+      "value": ""
+    },
+    {
+      "key": "rpTypeId",
+      "value": ""
+    },
+    {
+      "key": "rpOwner",
+      "value": ""
+    },
+    {
+      "key": "rpOperatorId",
+      "value": ""
+    },
+    {
+      "key": "rpNumber1",
+      "value": ""
+    },
+    {
+      "key": "rpNumber2",
+      "value": ""
+    },
+    {
+      "key": "rpContainer1",
+      "value": ""
+    },
+    {
+      "key": "rpContainer2",
+      "value": ""
+    },
+    {
+      "key": "rpTaxCode",
+      "value": ""
+    },
+    {
+      "key": "rpCustomerId",
+      "value": ""
+    },
+    {
+      "key": "rpBlockCode",
+      "value": ""
+    },
+    {
+      "key": "rpBlockId",
+      "value": ""
+    },
+    {
+      "key": "rpBayId",
+      "value": ""
+    },
+    {
+      "key": "rpRowId",
+      "value": ""
+    },
+    {
+      "key": "rpOrderNo",
+      "value": ""
+    },
+    {
+      "key": "rpIssued",
+      "value": ""
+    },
+    {
+      "key": "rpExpiry",
+      "value": ""
+    },
+    {
+      "key": "rpOrderId",
+      "value": ""
+    },
+    {
+      "key": "rpAt1",
+      "value": ""
+    },
+    {
+      "key": "rpAt2",
+      "value": ""
+    },
+    {
+      "key": "rpFiveDaysAgo",
+      "value": ""
+    },
+    {
+      "key": "rpFrom",
+      "value": ""
+    },
+    {
+      "key": "rpTo",
       "value": ""
     }
   ],
