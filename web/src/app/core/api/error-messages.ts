@@ -50,6 +50,18 @@ export const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'Tier.OutOfRange': 'Tầng vượt quá số tầng tối đa của row.',
   'Tier.BelowEmpty': 'Tầng bên dưới còn trống, hãy đặt từ tầng thấp nhất.',
 
+  'GateOut.ContainerNotFound': 'Không tìm thấy container.',
+  'GateOut.ReleaseOrderNotFound': 'Không tìm thấy lệnh giao đã chọn.',
+  'GateOut.ContainerNotInYard': 'Container này không còn trong bãi.',
+  'GateOutAt.InFuture': 'Giờ ra không được ở tương lai.',
+  'GateOutAt.BeforeGateIn': 'Giờ ra không được trước giờ vào.',
+  'Stay.HasContainerAbove': 'Còn container xếp phía trên, phải lấy container đó ra trước.',
+  'Stay.AlreadyClosed': 'Lần lưu bãi này đã kết thúc.',
+  'ReleaseOrder.Expired': 'Lệnh giao đã hết hạn.',
+  'ReleaseOrder.LineFull': 'Dòng lệnh giao của loại container này đã giao đủ số lượng.',
+  'ReleaseOrder.OperatorMismatch': 'Lệnh giao thuộc hãng khai thác khác với container.',
+  'ReleaseOrder.NoMatchingLine': 'Lệnh giao không có dòng nào cho loại và cỡ của container này.',
+
   'LineOperator.CodeExists': 'Mã hãng khai thác này đã tồn tại.',
   'LineOperator.NotFound': 'Không tìm thấy hãng khai thác.',
   'ContainerType.CodeExists': 'Mã loại container này đã tồn tại.',

@@ -48,7 +48,7 @@ export function nowLocal(): string {
   return new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
-function notInFuture(control: AbstractControl<string>): { future: true } | null {
+export function notInFuture(control: AbstractControl<string>): { future: true } | null {
   return control.value > nowLocal() ? { future: true } : null;
 }
 

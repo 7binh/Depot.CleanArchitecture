@@ -1,0 +1,71 @@
+<app-page-header
+  title="Gate Out"
+  description="Cho container rời bãi theo lệnh giao của đúng hãng khai thác."
+/>
+
+<app-load-state [status]="status()" [failure]="failure()" (retry)="ngOnInit()">
+  <form
+    class="flex max-w-2xl flex-col gap-6 rounded-card bg-surface p-6 shadow-raised"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    @if (done(); as number) {
+      <p class="rounded-control bg-success-bg p-4 text-small text-success-fg" role="status">
+        Đã gate out container {{ number }}.
+      </p>
+    }
+    @if (notice(); as message) {
+      <app-error-banner>{{ message }}</app-error-banner>
+    }
+
+    <app-select-field
+      label="Container trong bãi"
+      placeholder="Chọn container"
+      [control]="form.controls.containerId"
+      [options]="containerOptions()"
+      [messages]="messages.container"
+    />
+    <app-select-field
+      label="Lệnh giao"
+      placeholder="Chọn lệnh giao"
+      [control]="form.controls.releaseOrderId"
+      [options]="orderOptions()"
+      [messages]="messages.order"
+    />
+    @if (chosen() && orderOptions().length === 0) {
+      <p class="text-small text-ink-2">
+        Không có lệnh giao nào của hãng {{ chosen()?.lineOperator }} còn hạn và còn chỗ cho loại
+        {{ chosen()?.containerType }} cỡ {{ chosen()?.size }}.
+      </p>
+    }
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-select-field
+        label="Phương tiện ra"
+        [control]="form.controls.vehicleType"
+        [options]="vehicleOptions"
+      />
+      <app-text-field
+        label="Biển số / tên phương tiện"
+        icon="box"
+        placeholder="Ví dụ: 51C-123.45"
+        [control]="form.controls.vehicleNumber"
+        [messages]="messages.vehicle"
+      />
+    </div>
+    <app-text-field
+      label="Giờ ra"
+      icon="calendar"
+      type="datetime-local"
+      [control]="form.controls.gateOutAt"
+      [messages]="messages.time"
+    />
+
+    <div class="flex justify-end">
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">
+        Xác nhận Gate Out
+      </button>
+    </div>
+  </form>
+</app-load-state>
