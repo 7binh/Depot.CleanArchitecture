@@ -11,6 +11,13 @@ export function click(fixture: ComponentFixture<unknown>, label: string): void {
   fixture.detectChanges();
 }
 
+/** Clicks the button inside an open dialog whose text is exactly `label`, then renders. */
+export function clickInDialog(fixture: ComponentFixture<unknown>, label: string): void {
+  const buttons = [...root(fixture).querySelectorAll<HTMLButtonElement>('dialog button')];
+  buttons.find((b) => b.textContent?.trim() === label)?.click();
+  fixture.detectChanges();
+}
+
 /** Types into the text field whose label contains `label`, then leaves it (touched). */
 export function type(fixture: ComponentFixture<unknown>, label: string, value: string): void {
   const fields = [...root(fixture).querySelectorAll('app-text-field')];

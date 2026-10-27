@@ -1,0 +1,45 @@
+<app-dialog title="Tạo bay và row" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (notice(); as failure) {
+      <app-error-banner>{{ failure }}</app-error-banner>
+    }
+    <p class="text-small text-ink-2">
+      Tạo các bay trong khoảng đã nhập, mỗi bay có đủ số row. Bay và row đã có được giữ nguyên, chỉ
+      tạo phần còn thiếu. Bay lẻ dành cho container 20 feet, bay chẵn cho 40 feet.
+    </p>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-text-field
+        label="Từ bay"
+        icon="layers"
+        inputmode="numeric"
+        [control]="form.controls.fromBay"
+        [messages]="bayMessages"
+      />
+      <app-text-field
+        label="Đến bay"
+        icon="layers"
+        inputmode="numeric"
+        [control]="form.controls.toBay"
+        [messages]="toBayMessages"
+      />
+      <app-text-field
+        label="Số row mỗi bay"
+        icon="layers"
+        inputmode="numeric"
+        [control]="form.controls.rowCount"
+        [messages]="rowMessages"
+      />
+      <app-text-field
+        label="Số tầng tối đa"
+        icon="layers"
+        inputmode="numeric"
+        [control]="form.controls.maxTier"
+        [messages]="tierMessages"
+      />
+    </div>
+    <div class="flex justify-end gap-2">
+      <button appButton type="button" (click)="dialog().close()">Hủy</button>
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">Tạo</button>
+    </div>
+  </form>
+</app-dialog>

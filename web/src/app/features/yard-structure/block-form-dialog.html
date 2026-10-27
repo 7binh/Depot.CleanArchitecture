@@ -1,0 +1,30 @@
+<app-dialog [title]="block() ? 'Đổi tên block' : 'Thêm block'" (closed)="closed.emit()">
+  <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (notice(); as failure) {
+      <app-error-banner>{{ failure }}</app-error-banner>
+    }
+    @if (!block()) {
+      <app-text-field
+        label="Mã block"
+        icon="layers"
+        placeholder="Ví dụ: A"
+        [control]="form.controls.code"
+        [messages]="codeMessages"
+      />
+    }
+    <app-text-field
+      label="Tên block"
+      icon="box"
+      placeholder="Ví dụ: Khu A"
+      [control]="form.controls.name"
+      [messages]="nameMessages"
+    />
+    @if (!block()) {
+      <app-select-field label="Loại block" [control]="form.controls.kind" [options]="kindOptions" />
+    }
+    <div class="flex justify-end gap-2">
+      <button appButton type="button" (click)="dialog().close()">Hủy</button>
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">Lưu</button>
+    </div>
+  </form>
+</app-dialog>

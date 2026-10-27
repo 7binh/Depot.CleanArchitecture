@@ -1,0 +1,92 @@
+<app-page-header
+  title="Cấu trúc bãi"
+  description="Block, bay và row của bãi. Chỉ thay đổi được khi chưa có container ở đó."
+>
+  <button appButton variant="primary" type="button" (click)="creating.set(true)">
+    <app-icon name="plus" [size]="16" />
+    Thêm block
+  </button>
+</app-page-header>
+
+<app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
+  <div>
+    @if (list.items().length === 0) {
+      <app-empty-state icon="layers" message="Chưa có block nào trong bãi.">
+        <button appButton type="button" (click)="creating.set(true)">
+          <app-icon name="plus" [size]="16" />
+          Thêm block
+        </button>
+      </app-empty-state>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full border-separate border-spacing-y-1 text-left">
+          <caption class="sr-only">
+            Danh sách block
+          </caption>
+          <thead>
+            <tr>
+              @for (label of headings; track label) {
+                <th
+                  scope="col"
+                  class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
+                >
+                  {{ label }}
+                </th>
+              }
+              <th scope="col" class="h-9 border-b border-line px-4">
+                <span class="sr-only">Thao tác</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (block of list.items(); track block.id) {
+              <tr class="group">
+                <td [class]="cell + ' font-medium text-ink'">{{ block.code }}</td>
+                <td [class]="cell + ' text-ink-body'">{{ block.name }}</td>
+                <td [class]="cell">
+                  <app-chip [color]="block.isVirtual ? 'neutral' : 'info'">{{
+                    block.isVirtual ? 'Block ảo' : 'Block thật'
+                  }}</app-chip>
+                </td>
+                <td [class]="cell">
+                  <div class="flex justify-end gap-2">
+                    @if (!block.isVirtual) {
+                      <a appButton size="small" [routerLink]="['/cau-truc-bai', block.id]"
+                        >Bay và row</a
+                      >
+                    }
+                    <button appButton size="small" type="button" (click)="renaming.set(block)">
+                      Đổi tên
+                    </button>
+                    <button appButton size="small" type="button" (click)="askRemove(block)">
+                      Xóa
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</app-load-state>
+
+@if (creating()) {
+  <app-block-form-dialog (closed)="creating.set(false)" (saved)="list.load(true)" />
+}
+
+@if (renaming(); as block) {
+  <app-block-form-dialog [block]="block" (closed)="renaming.set(null)" (saved)="list.load(true)" />
+}
+
+@if (removing(); as block) {
+  <app-confirm-dialog
+    title="Xóa block"
+    [message]="'Xóa block ' + block.code + ' cùng toàn bộ bay và row của nó? Không thể hoàn tác.'"
+    [notice]="removeNotice()"
+    [submitting]="removeBusy()"
+    (confirmed)="remove(block)"
+    (closed)="removing.set(null)"
+  />
+}

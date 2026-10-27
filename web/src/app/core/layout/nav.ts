@@ -32,6 +32,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Danh mục',
     items: [
+      { label: 'Cấu trúc bãi', path: '/cau-truc-bai', icon: 'layers' },
       { label: 'Hãng khai thác', path: '/danh-muc/hang-khai-thac', icon: 'ship' },
       { label: 'Loại container', path: '/danh-muc/loai-container', icon: 'layers' },
       { label: 'Khách hàng', path: '/danh-muc/khach-hang', icon: 'users' },

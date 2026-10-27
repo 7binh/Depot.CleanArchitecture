@@ -1,0 +1,137 @@
+<app-page-header
+  [title]="block() ? 'Block ' + block()?.code : 'Cấu trúc block'"
+  [description]="block()?.name ?? ''"
+>
+  <a appButton routerLink="/cau-truc-bai">Về danh sách block</a>
+  @if (block(); as current) {
+    @if (!current.isVirtual) {
+      <button appButton variant="primary" type="button" (click)="layouting.set(true)">
+        <app-icon name="plus" [size]="16" />
+        Tạo bay và row
+      </button>
+    }
+  }
+</app-page-header>
+
+<app-load-state [status]="status()" [failure]="failure()" (retry)="ngOnInit()">
+  @if (!block() || block()?.isVirtual) {
+    <app-empty-state
+      icon="layers"
+      message="Không tìm thấy block này, hoặc block ảo không có bay."
+    />
+  } @else {
+    <div class="flex flex-col gap-4">
+      @if (layoutDone(); as text) {
+        <p class="rounded-control bg-success-bg p-4 text-small text-success-fg" role="status">
+          {{ text }}
+        </p>
+      }
+      @if (bays.items().length === 0) {
+        <app-empty-state icon="layers" message="Block này chưa có bay nào.">
+          <button appButton type="button" (click)="layouting.set(true)">
+            <app-icon name="plus" [size]="16" />
+            Tạo bay và row
+          </button>
+        </app-empty-state>
+      } @else {
+        <ul class="flex flex-col gap-2">
+          @for (bay of bays.items(); track bay.id) {
+            <li class="rounded-card border border-line">
+              <div class="flex flex-wrap items-center gap-3 px-4 py-2">
+                <p class="text-body font-medium text-ink">Bay {{ bay.bayNo }}</p>
+                <app-chip color="neutral">{{ size(bay.bayNo) }} ft</app-chip>
+                <div class="ml-auto flex gap-2">
+                  <button
+                    appButton
+                    size="small"
+                    type="button"
+                    [attr.aria-expanded]="expanded() === bay.id"
+                    (click)="toggle(bay)"
+                  >
+                    {{ expanded() === bay.id ? 'Ẩn row' : 'Xem row' }}
+                  </button>
+                  <button
+                    appButton
+                    size="small"
+                    type="button"
+                    (click)="askRemove({ kind: 'bay', bay })"
+                  >
+                    Xóa bay
+                  </button>
+                </div>
+              </div>
+              @if (expanded() === bay.id) {
+                <div class="border-t border-line px-4 py-2">
+                  <app-load-state
+                    [status]="rows.status()"
+                    [failure]="rows.failure()"
+                    (retry)="rows.load()"
+                  >
+                    @if (rows.items().length === 0) {
+                      <p class="py-2 text-small text-ink-2">Bay này chưa có row nào.</p>
+                    }
+                    <ul>
+                      @for (row of rows.items(); track row.id) {
+                        <li
+                          class="flex min-h-9 flex-wrap items-center gap-x-4 gap-y-1 rounded-card border border-transparent px-3 hover:border-line-card hover:bg-surface"
+                        >
+                          <span class="w-16 text-body font-medium text-ink"
+                            >Row {{ row.rowNo }}</span
+                          >
+                          <span class="text-body text-ink-2 tabular-nums"
+                            >Tối đa {{ row.maxTier }} tầng</span
+                          >
+                          <div class="ml-auto flex gap-2">
+                            <button appButton size="small" type="button" (click)="tierRow.set(row)">
+                              Đổi số tầng
+                            </button>
+                            <button
+                              appButton
+                              size="small"
+                              type="button"
+                              (click)="askRemove({ kind: 'row', row })"
+                            >
+                              Xóa row
+                            </button>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  </app-load-state>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</app-load-state>
+
+@if (layouting()) {
+  <app-layout-dialog
+    [blockId]="blockId"
+    (closed)="layouting.set(false)"
+    (created)="built($event)"
+  />
+}
+
+@if (tierRow(); as row) {
+  <app-row-tier-dialog
+    [blockId]="blockId"
+    [row]="row"
+    (closed)="tierRow.set(null)"
+    (saved)="refresh()"
+  />
+}
+
+@if (removal(); as pending) {
+  <app-confirm-dialog
+    [title]="pending.kind === 'bay' ? 'Xóa bay' : 'Xóa row'"
+    [message]="removeMessage()"
+    [notice]="removeNotice()"
+    [submitting]="removeBusy()"
+    (confirmed)="remove(pending)"
+    (closed)="removal.set(null)"
+  />
+}

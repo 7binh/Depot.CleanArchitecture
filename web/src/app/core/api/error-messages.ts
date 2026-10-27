@@ -82,4 +82,18 @@ export const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'ContainerType.NotFound': 'Không tìm thấy loại container.',
   'Customer.TaxCodeExists': 'Mã số thuế này đã có khách hàng sử dụng.',
   'Customer.NotFound': 'Không tìm thấy khách hàng.',
+
+  'Block.CodeExists': 'Mã block này đã tồn tại.',
+  'Block.NotFound': 'Không tìm thấy block.',
+  'Block.InUse': 'Block này đã từng chứa container nên không xóa được.',
+  'Bay.NotFound': 'Không tìm thấy bay.',
+  'Bay.BlockIsVirtual': 'Block ảo không có bay.',
+  'Bay.HasContainers': 'Bay đang có container, chưa xóa được.',
+  'YardRow.NotFound': 'Không tìm thấy row.',
+  'Row.HasContainers': 'Row đang có container, chưa xóa được.',
+  'MaxTier.BelowOccupied': 'Đang có container ở tầng cao hơn, chưa hạ số tầng xuống mức này được.',
+  'MaxTier.Invalid': 'Số tầng tối đa phải từ 2 đến 5.',
+  'BayRange.Invalid': 'Bay bắt đầu phải từ 1, không lớn hơn bay kết thúc, tối đa 999.',
+  'RowCount.Invalid': 'Số row mỗi bay phải từ 1 đến 99.',
+  'Layout.Changed': 'Cấu trúc bãi vừa được thay đổi ở nơi khác. Hãy thử lại.',
 };

@@ -57,6 +57,20 @@ export const routes: Routes = [
         loadComponent: () => import('./features/yard/yard-map-page').then((m) => m.YardMapPage),
       },
       {
+        path: 'cau-truc-bai',
+        title: 'Cấu trúc bãi - Depot',
+        loadComponent: () =>
+          import('./features/yard-structure/yard-structure-page').then((m) => m.YardStructurePage),
+      },
+      {
+        path: 'cau-truc-bai/:id',
+        title: 'Cấu trúc block - Depot',
+        loadComponent: () =>
+          import('./features/yard-structure/block-structure-page').then(
+            (m) => m.BlockStructurePage,
+          ),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>
