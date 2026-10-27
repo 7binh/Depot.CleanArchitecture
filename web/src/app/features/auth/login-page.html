@@ -24,13 +24,7 @@
   />
 
   @if (notice(); as message) {
-    <p
-      role="status"
-      class="flex items-start gap-3 rounded-control bg-danger-bg p-4 text-small text-danger-fg"
-    >
-      <app-icon name="alert-circle" />
-      {{ message }}
-    </p>
+    <app-error-banner>{{ message }}</app-error-banner>
   }
 
   <button appButton variant="primary" type="submit" class="w-full" [disabled]="submitting()">

@@ -60,7 +60,7 @@ describe('LoginPage', () => {
     fillAndSubmit(element, 'a@b.vn', 'wrong');
     fixture.detectChanges();
 
-    expect(element.querySelector('[role="status"]')?.textContent).toContain(
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain(
       'Email hoặc mật khẩu không đúng.',
     );
   });

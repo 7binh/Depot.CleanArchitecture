@@ -46,6 +46,16 @@ describe('AuthService', () => {
     expect(sessionStorage.getItem('depot.tokens')).toContain('refresh');
   });
 
+  it('exposes the email found in the access token', () => {
+    const payload = btoa(JSON.stringify({ email: 'a@b.vn' })).replaceAll('=', '');
+    service.login('a@b.vn', 'secret').subscribe();
+    http
+      .expectOne('http://api.test/api/auth/login')
+      .flush({ ...TOKENS, accessToken: `h.${payload}.s` });
+
+    expect(service.email()).toBe('a@b.vn');
+  });
+
   it('stays signed out when the login fails', () => {
     service.login('a@b.vn', 'wrong').subscribe({ error: () => undefined });
 

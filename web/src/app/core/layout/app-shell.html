@@ -1,0 +1,61 @@
+<div class="flex min-h-screen gap-3 bg-shell p-3">
+  <aside class="hidden w-64 shrink-0 flex-col gap-8 p-3 lg:flex">
+    <app-brand />
+    <app-sidebar-nav />
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col gap-3">
+    <header class="flex h-14 items-center gap-3 px-1">
+      <button
+        appButton
+        variant="icon"
+        type="button"
+        class="lg:hidden"
+        aria-label="Mở menu"
+        (click)="openMenu()"
+      >
+        <app-icon name="menu" />
+      </button>
+      <app-brand class="lg:hidden" />
+
+      <div class="ml-auto flex items-center gap-3">
+        @if (email(); as address) {
+          <span class="hidden text-small text-ink-2 sm:block">{{ address }}</span>
+          <app-avatar [name]="address" />
+        }
+        <button appButton variant="icon" type="button" aria-label="Đăng xuất" (click)="logout()">
+          <app-icon name="log-out" />
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 rounded-card border border-line bg-surface p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+@if (menuOpen()) {
+  <div class="fixed inset-0 z-40 lg:hidden">
+    <button
+      type="button"
+      aria-label="Đóng menu"
+      class="absolute inset-0 bg-ink/40"
+      (click)="closeMenu()"
+    ></button>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
+      class="relative flex h-full w-72 flex-col gap-8 bg-shell p-4 shadow-popover"
+    >
+      <div class="flex items-center justify-between">
+        <app-brand />
+        <button appButton variant="icon" type="button" aria-label="Đóng menu" (click)="closeMenu()">
+          <app-icon name="x" />
+        </button>
+      </div>
+      <app-sidebar-nav (navigated)="closeMenu()" />
+    </div>
+  </div>
+}

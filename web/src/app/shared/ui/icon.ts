@@ -23,6 +23,10 @@ const ICON_PATHS = {
     'm3.3 7 8.7 5 8.7-5',
     'M12 22V12',
   ],
+  home: ['M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z', 'M9 21v-9h6v9'],
+  menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
+  x: ['M18 6 6 18', 'm6 6 12 12'],
+  'log-out': ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'm16 17 5-5-5-5', 'M21 12H9'],
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

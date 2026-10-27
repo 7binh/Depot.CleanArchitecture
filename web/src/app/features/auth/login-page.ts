@@ -4,13 +4,13 @@ import { Router } from '@angular/router';
 import { toMessage } from '../../core/api/api-error';
 import { AuthService } from '../../core/auth/auth.service';
 import { Button } from '../../shared/ui/button';
-import { Icon } from '../../shared/ui/icon';
+import { ErrorBanner } from '../../shared/ui/error-banner';
 import { TextField } from '../../shared/ui/text-field';
 
 @Component({
   selector: 'app-login-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, Button, Icon, TextField],
+  imports: [ReactiveFormsModule, Button, ErrorBanner, TextField],
   templateUrl: './login-page.html',
   host: { class: 'flex flex-col gap-8' },
 })

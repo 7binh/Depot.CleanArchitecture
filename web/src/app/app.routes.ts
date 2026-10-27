@@ -1,14 +1,21 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/auth/auth.guard';
+import { AppShell } from './core/layout/app-shell';
 import { AuthLayout } from './features/auth/auth-layout';
 
 export const routes: Routes = [
   {
     path: '',
-    pathMatch: 'full',
-    title: 'Depot',
+    component: AppShell,
     canActivate: [authGuard],
-    loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        title: 'Trang chủ - Depot',
+        loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
+      },
+    ],
   },
   {
     path: '',

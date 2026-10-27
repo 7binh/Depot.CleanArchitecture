@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, finalize, shareReplay, tap, throwError } from 'rxjs';
 import { API_URL } from '../api/api-config';
+import { emailFromToken } from './jwt';
 
 export interface TokenResponse {
   accessToken: string;
@@ -24,6 +25,10 @@ export class AuthService {
 
   readonly isAuthenticated = computed(() => this.tokens() !== null);
   readonly accessToken = computed(() => this.tokens()?.accessToken ?? null);
+  readonly email = computed(() => {
+    const token = this.accessToken();
+    return token ? emailFromToken(token) : null;
+  });
 
   login(email: string, password: string): Observable<TokenResponse> {
     return this.http

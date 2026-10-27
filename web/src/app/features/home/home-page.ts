@@ -1,23 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { AuthService } from '../../core/auth/auth.service';
-import { Button } from '../../shared/ui/button';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { EmptyState } from '../../shared/ui/empty-state';
+import { PageHeader } from '../../shared/ui/page-header';
 
 @Component({
   selector: 'app-home-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Button],
+  imports: [PageHeader, EmptyState],
   template: `
-    <main class="flex min-h-screen flex-col items-start gap-6 bg-shell p-8">
-      <h1 class="text-title text-ink">Depot</h1>
-      <p class="text-body text-ink-2">Bạn đã đăng nhập.</p>
-      <button appButton type="button" (click)="logout()">Đăng xuất</button>
-    </main>
+    <app-page-header [title]="title" [description]="description" />
+    <app-empty-state icon="box" [message]="emptyMessage" />
   `,
+  host: { class: 'flex flex-col gap-8' },
 })
 export class HomePage {
-  private readonly auth = inject(AuthService);
-
-  protected logout(): void {
-    this.auth.logout();
-  }
+  protected readonly title = 'Trang chủ';
+  protected readonly description = 'Tổng quan bãi sẽ hiển thị ở đây khi các màn hình được thêm.';
+  protected readonly emptyMessage = 'Chưa có màn hình nào để hiển thị.';
 }
