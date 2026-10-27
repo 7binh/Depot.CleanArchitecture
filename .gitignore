@@ -12,3 +12,5 @@ dist/
 .claude/
 .codex/
 .agents/
+CLAUDE.md
+AGENTS.md
