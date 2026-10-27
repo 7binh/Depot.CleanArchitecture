@@ -46,6 +46,12 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'lenh-giao/:id',
+        title: 'Chi tiết lệnh giao - Depot',
+        loadComponent: () =>
+          import('./features/release-orders/release-order-page').then((m) => m.ReleaseOrderPage),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>

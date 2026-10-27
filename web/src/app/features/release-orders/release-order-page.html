@@ -1,0 +1,99 @@
+<app-page-header
+  [title]="order() ? 'Lệnh giao ' + order()?.orderNo : 'Lệnh giao'"
+  description="Số lượng đã giao và còn lại của từng dòng loại và cỡ."
+>
+  <a appButton routerLink="/lenh-giao">Quay lại danh sách</a>
+</app-page-header>
+
+<app-load-state [status]="loader.status()" [failure]="loader.failure()" (retry)="ngOnInit()">
+  @if (order(); as detail) {
+    <div class="flex max-w-3xl flex-col gap-6 rounded-card bg-surface p-6 shadow-raised">
+      @if (detail.status === 'Expired') {
+        <app-error-banner> Lệnh đã quá hạn, không dùng để Gate Out được nữa. </app-error-banner>
+      }
+      <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <dt class="text-caption text-ink-3">Hãng khai thác</dt>
+          <dd class="text-body text-ink">{{ detail.lineOperator }}</dd>
+        </div>
+        <div>
+          <dt class="text-caption text-ink-3">Khách hàng</dt>
+          <dd class="text-body text-ink">{{ detail.customer }}</dd>
+        </div>
+        <div>
+          <dt class="text-caption text-ink-3">Tàu xuất</dt>
+          <dd class="text-body text-ink">{{ detail.exportVessel }}</dd>
+        </div>
+        <div>
+          <dt class="text-caption text-ink-3">Trạng thái</dt>
+          <dd class="mt-1">
+            <app-chip [color]="statuses[detail.status].tone">{{
+              statuses[detail.status].label
+            }}</app-chip>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-caption text-ink-3">Ngày cấp</dt>
+          <dd class="text-body text-ink">{{ detail.issuedDate }}</dd>
+        </div>
+        <div>
+          <dt class="text-caption text-ink-3">Hạn lệnh</dt>
+          <dd class="text-body text-ink">{{ detail.expiryDate }}</dd>
+        </div>
+      </dl>
+
+      <div class="overflow-x-auto">
+        <table class="w-full border-separate border-spacing-0 text-left">
+          <caption class="sr-only">
+            Các dòng của lệnh giao
+          </caption>
+          <thead>
+            <tr>
+              @for (label of headings; track label) {
+                <th
+                  scope="col"
+                  class="h-11 bg-surface-sunken px-4 text-small font-normal text-ink-2 first:rounded-l-inset last:rounded-r-inset"
+                >
+                  {{ label }}
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of detail.lines; track $index) {
+              <tr>
+                <td class="h-16 border-b border-line px-4 text-body font-medium text-ink">
+                  {{ line.type }}
+                </td>
+                <td class="h-16 border-b border-line px-4 text-body text-ink-2">
+                  {{ line.size }}
+                </td>
+                <td class="h-16 border-b border-line px-4 text-body text-ink-2">
+                  {{ line.quantity }}
+                </td>
+                <td class="h-16 border-b border-line px-4 text-body text-ink-2">
+                  {{ line.delivered }}
+                </td>
+                <td class="h-16 border-b border-line px-4 text-body text-ink-2">
+                  {{ line.remaining }}
+                </td>
+                <td class="h-16 w-40 border-b border-line px-4">
+                  <div
+                    class="h-2 overflow-hidden rounded-chip bg-surface-sunken"
+                    role="progressbar"
+                    aria-label="Tiến độ giao"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    [attr.aria-valuenow]="line.percent"
+                  >
+                    <div class="h-full bg-brand" [style.width.%]="line.percent"></div>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</app-load-state>
