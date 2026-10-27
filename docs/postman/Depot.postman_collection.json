@@ -7809,6 +7809,692 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Block map",
+      "item": [
+        {
+          "name": "1. Setup - find the seeded DRY container type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const dry = pm.response.json().find(function (x) { return x.code === 'DRY'; });",
+                  "pm.collectionVariables.set('mpTypeId', dry.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/container-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "container-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Setup - create the line operator",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 3; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('mpOwner', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('mpOperatorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/line-operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "line-operators"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{mpOwner}}\",\n  \"name\": \"Postman gate operator\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Setup - register container 1 (20ft)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('mpOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('mpNumber1', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('mpContainer1', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{mpNumber1}}\",\n  \"containerTypeId\": \"{{mpTypeId}}\",\n  \"isoCode\": \"22G1\",\n  \"sizeFeet\": 20,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Setup - register container 2 (40ft)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const values = [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];",
+                  "const owner = pm.collectionVariables.get('mpOwner');",
+                  "let serial = '';",
+                  "for (let i = 0; i < 6; i++) { serial += Math.floor(Math.random() * 10); }",
+                  "const body = owner + 'U' + serial;",
+                  "let sum = 0;",
+                  "for (let i = 0; i < 10; i++) {",
+                  "    const c = body.charAt(i);",
+                  "    const value = /[0-9]/.test(c) ? Number(c) : values[c.charCodeAt(0) - 65];",
+                  "    sum += value * Math.pow(2, i);",
+                  "}",
+                  "pm.collectionVariables.set('mpNumber2', body + ((sum % 11) % 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('mpContainer2', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/containers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "containers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"{{mpNumber2}}\",\n  \"containerTypeId\": \"{{mpTypeId}}\",\n  \"isoCode\": \"42G1\",\n  \"sizeFeet\": 40,\n  \"maxWeightKg\": 30480,\n  \"tareWeightKg\": 2200,\n  \"manufactureDate\": \"2020-01-15\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Setup - create a normal block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('mpBlockCode', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('mpBlockId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{mpBlockCode}}\",\n  \"name\": \"Postman gate block\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Setup - create bays 1 to 5 with 2 rows of 4 tiers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{mpBlockId}}/layout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{mpBlockId}}",
+                "layout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromBay\": 1,\n  \"toBay\": 5,\n  \"rowCount\": 2,\n  \"maxTier\": 4\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Setup - create a virtual block",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+                  "let code = '';",
+                  "for (let i = 0; i < 6; i++) { code += letters.charAt(Math.floor(Math.random() * letters.length)); }",
+                  "pm.collectionVariables.set('mpVirtualCode', code);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('mpVirtualId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{mpVirtualCode}}\",\n  \"name\": \"Postman virtual block\",\n  \"isVirtual\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Setup - find bays 1 and 4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const bays = pm.response.json();",
+                  "pm.collectionVariables.set('mpBay1Id', bays.find(function (x) { return x.bayNo === 1; }).id);",
+                  "pm.collectionVariables.set('mpBay4Id', bays.find(function (x) { return x.bayNo === 4; }).id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{mpBlockId}}/bays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{mpBlockId}}",
+                "bays"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Setup - find row 1 of bay 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('mpRow1Id', pm.response.json().find(function (x) { return x.rowNo === 1; }).id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{mpBlockId}}/bays/{{mpBay1Id}}/rows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{mpBlockId}}",
+                "bays",
+                "{{mpBay1Id}}",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Setup - find row 1 of bay 4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.collectionVariables.set('mpRow4Id', pm.response.json().find(function (x) { return x.rowNo === 1; }).id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{mpBlockId}}/bays/{{mpBay4Id}}/rows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{mpBlockId}}",
+                "bays",
+                "{{mpBay4Id}}",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. Gate in - the 20ft container at bay 1, row 1, tier 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{mpContainer1}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{mpBlockId}}\",\n  \"rowId\": \"{{mpRow1Id}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. Gate in - the 40ft container at bay 4, row 1, tier 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/gate-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "gate-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"containerId\": \"{{mpContainer2}}\",\n  \"grade\": \"A\",\n  \"condition\": \"Normal\",\n  \"inVehicleType\": \"Truck\",\n  \"inVehicleNumber\": \"51C-12345\",\n  \"blockId\": \"{{mpBlockId}}\",\n  \"rowId\": \"{{mpRow4Id}}\",\n  \"tier\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13. Map - five bays, the 20ft container in bay 1 and the 40ft container covering bays 3 to 5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const map = pm.response.json();",
+                  "const bay = function (no) { return map.bays.find(function (x) { return x.bayNo === no; }); };",
+                  "pm.test('Block, five bays in order, odd bays 20ft and even bays 40ft', function () {",
+                  "    pm.expect(map.isVirtual).to.eql(false);",
+                  "    pm.expect(map.bays.map(function (x) { return x.bayNo; })).to.eql([1, 2, 3, 4, 5]);",
+                  "    pm.expect(map.bays.map(function (x) { return x.sizeFeet; })).to.eql([20, 40, 20, 40, 20]);",
+                  "    pm.expect(bay(1).rows.map(function (x) { return x.rowNo; })).to.eql([1, 2]);",
+                  "    pm.expect(bay(1).rows[0].maxTier).to.eql(4);",
+                  "});",
+                  "pm.test('The 20ft container stands on tier 1 of bay 1, row 1 and covers only bay 1', function () {",
+                  "    const tier = bay(1).rows[0].tiers[0];",
+                  "    pm.expect(bay(1).rows[0].tiers.length).to.eql(1);",
+                  "    pm.expect(tier.tier).to.eql(1);",
+                  "    pm.expect(tier.container.number).to.eql(pm.collectionVariables.get('mpNumber1'));",
+                  "    pm.expect(tier.container.sizeFeet).to.eql(20);",
+                  "    pm.expect(tier.container.operatorCode).to.eql(pm.collectionVariables.get('mpOwner'));",
+                  "    pm.expect([tier.fromBay, tier.toBay]).to.eql([1, 1]);",
+                  "    pm.expect(tier.container.isLongStay).to.eql(false);",
+                  "});",
+                  "pm.test('The 40ft container stands in bay 4 and covers bays 3 to 5', function () {",
+                  "    const tier = bay(4).rows[0].tiers[0];",
+                  "    pm.expect(tier.container.number).to.eql(pm.collectionVariables.get('mpNumber2'));",
+                  "    pm.expect([tier.fromBay, tier.toBay]).to.eql([3, 5]);",
+                  "});",
+                  "pm.test('Everything else is empty', function () {",
+                  "    pm.expect(bay(1).rows[1].tiers.length).to.eql(0);",
+                  "    pm.expect(bay(2).rows[0].tiers.length).to.eql(0);",
+                  "    pm.expect(map.unplaced.length).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{mpBlockId}}/map",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{mpBlockId}}",
+                "map"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14. Map - a virtual block has no bays and no containers yet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Virtual, empty', function () {",
+                  "    const map = pm.response.json();",
+                  "    pm.expect(map.isVirtual).to.eql(true);",
+                  "    pm.expect(map.bays.length).to.eql(0);",
+                  "    pm.expect(map.unplaced.length).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/{{mpVirtualId}}/map",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "{{mpVirtualId}}",
+                "map"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15. Map - unknown block returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error is Block.NotFound', function () {",
+                  "    pm.expect(pm.response.json().title).to.eql('Block.NotFound');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/blocks/00000000-0000-0000-0000-000000000000/map",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "blocks",
+                "00000000-0000-0000-0000-000000000000",
+                "map"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -8198,6 +8884,66 @@
     },
     {
       "key": "rpTo",
+      "value": ""
+    },
+    {
+      "key": "mpTypeId",
+      "value": ""
+    },
+    {
+      "key": "mpOwner",
+      "value": ""
+    },
+    {
+      "key": "mpOperatorId",
+      "value": ""
+    },
+    {
+      "key": "mpNumber1",
+      "value": ""
+    },
+    {
+      "key": "mpNumber2",
+      "value": ""
+    },
+    {
+      "key": "mpContainer1",
+      "value": ""
+    },
+    {
+      "key": "mpContainer2",
+      "value": ""
+    },
+    {
+      "key": "mpBlockCode",
+      "value": ""
+    },
+    {
+      "key": "mpBlockId",
+      "value": ""
+    },
+    {
+      "key": "mpVirtualCode",
+      "value": ""
+    },
+    {
+      "key": "mpVirtualId",
+      "value": ""
+    },
+    {
+      "key": "mpBay1Id",
+      "value": ""
+    },
+    {
+      "key": "mpBay4Id",
+      "value": ""
+    },
+    {
+      "key": "mpRow1Id",
+      "value": ""
+    },
+    {
+      "key": "mpRow4Id",
       "value": ""
     }
   ],
