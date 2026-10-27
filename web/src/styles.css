@@ -8,83 +8,108 @@
   --shadow-*: initial;
   --text-*: initial;
 
-  /* Neutrals */
-  --color-shell: #f5f5f5;
-  --color-surface: #ffffff;
-  --color-surface-sunken: #f7f7f7;
-  --color-line: #ebebeb;
-  --color-line-strong: #dcdcdc;
+  /* Surfaces */
+  --color-shell: #f7f7f7; /* canvas: the page */
+  --color-surface: #fdfdfd; /* elevated: selected row, input, popover, drawer, dialog */
+  --color-surface-sunken: #f1f1f1; /* recessed well */
+  --color-sidebar: #f2f2f4;
+  --color-topbar: #f6f6f6;
+  --color-nav-active: #e7e6eb;
+  --color-control: #e5e5e8;
+  --color-control-hover: #dadade;
+  --color-avatar: #e3e3e3;
+
+  /* Strokes */
+  --color-line: #ebebeb; /* hairline */
+  --color-line-strong: #cfcfd4; /* hovered input border */
+  --color-line-card: #eaeaea; /* selected / hovered row card */
+  --color-line-input: #e6e5e8;
+  --color-line-check: #dcdcdd; /* idle checkbox */
+  --color-line-obsidian: #38383a;
 
   /* Ink */
-  --color-ink: #171717;
-  --color-ink-2: #5c5c5c;
-  --color-ink-3: #767676;
-  --color-ink-disabled: #b3b3b3;
+  --color-ink-display: #050505;
+  --color-ink: #18181a;
+  --color-ink-body: #39393b;
+  --color-ink-2: #5b5a5f;
+  --color-ink-3: #8e8d92; /* muted: placeholders, inactive tabs, column heads only */
+  --color-ink-overline: #a4a4a6; /* decorative: menu group labels, key hints only */
+  --color-ink-disabled: #a4a4a6;
 
-  /* Brand */
-  --color-brand: #1e5edb;
-  --color-brand-hover: #1a52c2;
-  --color-brand-press: #1645a6;
-  --color-brand-soft: #eaf1fd;
-  --color-brand-soft-2: #d6e4fb;
-  --color-on-brand: #ffffff;
+  /* Obsidian: primary actions. Named brand so existing classes keep working. */
+  --color-brand: #1d1d1f;
+  --color-brand-hover: #2c2c2e;
+  --color-brand-press: #121214;
+  --color-on-brand: #fdfdfd;
 
-  /* Semantic */
-  --color-success-bg: #e8f7ee;
-  --color-success-fg: #15803d;
-  --color-success-dot: #22a559;
-  --color-warning-bg: #fff4db;
-  --color-warning-fg: #9a5b00;
-  --color-warning-dot: #e5a000;
-  --color-danger-bg: #fdecec;
-  --color-danger-fg: #c42318;
-  --color-danger-dot: #e5392d;
-  --color-danger-solid: #e5231b;
+  /* Semantic: opaque pastel with deep ink of the same hue, no dot, no border */
+  --color-success-bg: #d1efd4;
+  --color-success-fg: #122d17;
+  --color-trend-bg: #d8efe2;
+  --color-trend-fg: #203a23;
+  --color-info-bg: #cfe2ed;
+  --color-info-fg: #2f4048;
+  --color-neutral-bg: #eaeae8;
+  --color-neutral-fg: #2a2b28;
+  --color-warning-bg: #ecead2;
+  --color-warning-fg: #423d24;
+  --color-promo-bg: #f3d6f8;
+  --color-promo-fg: #472e4f;
+  --color-danger-bg: #f5d6d6;
+  --color-danger-fg: #4a1c1c;
 
   /* Radii */
-  --radius-chip: 6px;
-  --radius-control: 10px;
-  --radius-inset: 12px;
-  --radius-card: 20px;
+  --radius-xs: 4px; /* checkbox, keycap, counter, promo tag */
+  --radius-chip: 5px; /* status badges */
+  --radius-control: 6px; /* buttons, nav items */
+  --radius-field: 7px; /* inputs, brand mark */
+  --radius-inset: 8px; /* wells, segmented track */
+  --radius-card: 8px; /* selected row card, groups */
+  --radius-island: 9px; /* floating bar, drawer */
 
-  /* Shadows */
-  --shadow-hairline: 0 1px 2px rgb(0 0 0 / 0.05);
-  --shadow-raised: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
-  --shadow-popover: 0 8px 24px rgb(0 0 0 / 0.08), 0 2px 6px rgb(0 0 0 / 0.04);
+  /* Elevation: four tiers, no large soft shadows */
+  --shadow-hairline: 0 1px 2px rgb(0 0 0 / 0.03);
+  --shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(0 0 0 / 0.035);
+  --shadow-primary: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.1);
+  --shadow-popover: 0 10px 24px -4px rgb(0 0 0 / 0.18), 0 3px 8px -2px rgb(0 0 0 / 0.12);
 
   /* Type scale: size / line height / tracking (/ weight where fixed) */
-  --text-title: 1.5rem;
-  --text-title--line-height: 2rem;
+  --text-metric: 1.75rem;
+  --text-metric--line-height: 2rem;
+  --text-metric--letter-spacing: -0.03em;
+  --text-metric--font-weight: 500;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
   --text-title--letter-spacing: -0.02em;
-  --text-title--font-weight: 500;
-  --text-stat: 2.25rem;
-  --text-stat--line-height: 2.5rem;
-  --text-stat--letter-spacing: -0.03em;
-  --text-stat--font-weight: 400;
-  --text-section: 1.125rem;
-  --text-section--line-height: 1.625rem;
-  --text-section--letter-spacing: -0.01em;
-  --text-section--font-weight: 500;
-  --text-card: 1rem;
-  --text-card--line-height: 1.5rem;
+  --text-title--font-weight: 600;
+  --text-section: 0.875rem;
+  --text-section--line-height: 1.125rem;
+  --text-section--letter-spacing: -0.015em;
+  --text-section--font-weight: 600;
+  --text-card: 0.8125rem;
+  --text-card--line-height: 1.125rem;
   --text-card--letter-spacing: -0.01em;
   --text-card--font-weight: 500;
-  --text-body: 0.875rem;
-  --text-body--line-height: 1.25rem;
-  --text-small: 0.8125rem;
-  --text-small--line-height: 1.125rem;
-  --text-caption: 0.75rem;
-  --text-caption--line-height: 1rem;
-  --text-label: 0.6875rem;
-  --text-label--line-height: 0.875rem;
-  --text-label--letter-spacing: 0.04em;
-  --text-label--font-weight: 500;
-
-  /* Promotional surface: the only gradient allowed */
-  --background-image-promo:
-    radial-gradient(60% 45% at 30% 8%, rgb(255 255 255 / 0.28), transparent),
-    linear-gradient(160deg, #1e5edb 0%, #3b82e8 55%, #8ec5f4 100%);
+  --text-body: 0.8125rem;
+  --text-body--line-height: 1.125rem;
+  --text-body--letter-spacing: -0.005em;
+  --text-small: 0.78125rem;
+  --text-small--line-height: 0.9375rem;
+  --text-small--letter-spacing: -0.005em;
+  --text-caption: 0.71875rem;
+  --text-caption--line-height: 0.875rem;
+  --text-note: 0.6875rem;
+  --text-note--line-height: 0.875rem;
+  --text-label: 0.625rem;
+  --text-label--line-height: 0.75rem;
+  --text-label--letter-spacing: 0.06em;
+  --text-label--font-weight: 600;
+  --text-micro: 0.59375rem;
+  --text-micro--line-height: 0.75rem;
+  --text-micro--letter-spacing: 0.04em;
+  --text-micro--font-weight: 700;
 
   /* Type */
   --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }

@@ -43,7 +43,7 @@ Ba điểm cần chốt trước khi viết code:
 - Xong khi: đăng nhập thật, F5 vẫn còn phiên, token hết hạn tự refresh, đăng xuất thu hồi token.
 
 ### F1. App shell và bộ component dùng chung
-- Shell theo Design.md: canvas, shell bo 32, sidebar với nhóm menu, header. Route con bọc `authGuard`.
+- Shell theo Design.md: nền canvas xám ấm, sidebar nền tinted có đường kẻ dọc với nhóm menu, top bar, nội dung trên canvas. Route con bọc `authGuard`.
 - Thêm vào `shared/ui`: `data-table`, `status-chip`, `select-field`, `dialog`, `toast`, `empty-state`, `page-header`, `spinner`/skeleton. Mỗi cái làm khi màn hình đầu tiên cần, không làm trước hàng loạt.
 - Xong khi: có một trang mẫu rỗng trong shell, dùng đủ token, không có màu/radius ngoài Design.md.
 
