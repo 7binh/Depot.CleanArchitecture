@@ -11,7 +11,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin, map, tap } from 'rxjs';
 import { errorCode, toMessage } from '../../core/api/api-error';
 import { ERROR_MESSAGES } from '../../core/api/error-messages';
-import { ListLoader, LoadStatus } from '../../core/api/list-loader';
+import { ListLoader, worstStatus } from '../../core/api/list-loader';
 import { notBlank } from '../../shared/forms/not-blank.validator';
 import { Button } from '../../shared/ui/button';
 import { ErrorBanner } from '../../shared/ui/error-banner';
@@ -74,13 +74,6 @@ function hasRoom(order: ReleaseOrder): boolean {
   return !order.isExpired && order.items.some((item) => item.remaining > 0);
 }
 
-function worst(statuses: LoadStatus[]): LoadStatus {
-  if (statuses.includes('failed')) {
-    return 'failed';
-  }
-  return statuses.includes('loading') ? 'loading' : 'ready';
-}
-
 @Component({
   selector: 'app-gate-out-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -119,7 +112,7 @@ export class GateOutPage implements OnInit {
   private readonly orders = new ListLoader(() => this.orderService.list());
 
   protected readonly status = computed(() =>
-    worst([this.containers.status(), this.stays.status(), this.orders.status()]),
+    worstStatus([this.containers.status(), this.stays.status(), this.orders.status()]),
   );
   protected readonly failure = computed(
     () => this.containers.failure() || this.stays.failure() || this.orders.failure(),

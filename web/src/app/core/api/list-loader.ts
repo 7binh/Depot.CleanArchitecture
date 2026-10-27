@@ -5,6 +5,14 @@ import { toMessage } from './api-error';
 
 export type LoadStatus = 'loading' | 'ready' | 'failed';
 
+/** The status of a screen that waits for several lists: failed if any failed, else loading if any is. */
+export function worstStatus(statuses: LoadStatus[]): LoadStatus {
+  if (statuses.includes('failed')) {
+    return 'failed';
+  }
+  return statuses.includes('loading') ? 'loading' : 'ready';
+}
+
 /** Loads a list once and keeps its status, items and failure message as signals. Create it in a field initializer. */
 export class ListLoader<T> {
   private readonly destroyRef = inject(DestroyRef);

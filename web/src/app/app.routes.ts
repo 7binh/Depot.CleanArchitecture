@@ -38,6 +38,14 @@ export const routes: Routes = [
           import('./features/release-orders/release-orders-page').then((m) => m.ReleaseOrdersPage),
       },
       {
+        path: 'lenh-giao/them',
+        title: 'Thêm lệnh giao - Depot',
+        loadComponent: () =>
+          import('./features/release-orders/create-release-order-page').then(
+            (m) => m.CreateReleaseOrderPage,
+          ),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>

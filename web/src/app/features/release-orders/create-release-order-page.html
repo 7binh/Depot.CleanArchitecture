@@ -1,0 +1,122 @@
+<app-page-header
+  title="Thêm lệnh giao"
+  description="Nhập lệnh của khách: hãng, hạn lệnh và các dòng loại, cỡ, số lượng được phép lấy."
+>
+  <a appButton routerLink="/lenh-giao">Quay lại danh sách</a>
+</app-page-header>
+
+<app-load-state [status]="status()" [failure]="failure()" (retry)="ngOnInit()">
+  <form
+    class="flex max-w-3xl flex-col gap-6 rounded-card bg-surface p-6 shadow-raised"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+  >
+    @if (notice(); as message) {
+      <app-error-banner>{{ message }}</app-error-banner>
+    }
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-select-field
+        label="Hãng khai thác"
+        placeholder="Chọn hãng"
+        [control]="form.controls.lineOperatorId"
+        [options]="operatorOptions()"
+        [messages]="messages.operator"
+      />
+      <app-select-field
+        label="Khách hàng"
+        placeholder="Chọn khách hàng"
+        [control]="form.controls.customerId"
+        [options]="customerOptions()"
+        [messages]="messages.customer"
+      />
+      <app-text-field
+        label="Số lệnh"
+        icon="layers"
+        placeholder="Ví dụ: RO-2026-001"
+        [control]="form.controls.orderNo"
+        [messages]="messages.orderNo"
+      />
+      <app-text-field
+        label="Tàu xuất"
+        icon="ship"
+        placeholder="Ví dụ: MV Sun"
+        [control]="form.controls.exportVessel"
+        [messages]="messages.vessel"
+      />
+      <app-text-field
+        label="Ngày cấp"
+        icon="calendar"
+        type="date"
+        [control]="form.controls.issuedDate"
+        [messages]="messages.issued"
+      />
+      <app-text-field
+        label="Hạn lệnh"
+        icon="calendar"
+        type="date"
+        [control]="form.controls.expiryDate"
+        [messages]="messages.expiry"
+      />
+    </div>
+
+    <div class="flex flex-col gap-4" role="group" aria-labelledby="lines-heading">
+      <h2 id="lines-heading" class="text-section text-ink">Các dòng lệnh</h2>
+      @for (line of form.controls.lines.controls; track line; let i = $index) {
+        <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-[1fr_9rem_9rem_auto]">
+          <app-select-field
+            [label]="'Loại (dòng ' + (i + 1) + ')'"
+            placeholder="Chọn loại"
+            [control]="line.controls.containerTypeId"
+            [options]="typeOptions()"
+            [messages]="messages.type"
+          />
+          <app-select-field
+            [label]="'Cỡ (dòng ' + (i + 1) + ')'"
+            placeholder="Chọn cỡ"
+            [control]="line.controls.sizeFeet"
+            [options]="sizeOptions"
+            [messages]="messages.size"
+          />
+          <app-text-field
+            [label]="'Số lượng (dòng ' + (i + 1) + ')'"
+            icon="box"
+            inputmode="numeric"
+            [control]="line.controls.quantity"
+            [messages]="messages.quantity"
+          />
+          <button
+            appButton
+            variant="icon"
+            type="button"
+            class="sm:mt-7"
+            [attr.aria-label]="'Xóa dòng ' + (i + 1)"
+            [disabled]="form.controls.lines.length === 1"
+            (click)="removeLine(i)"
+          >
+            <app-icon name="x" />
+          </button>
+        </div>
+      }
+      @if (linesError(); as message) {
+        <p class="flex items-center gap-2 text-caption text-danger-fg" role="alert">
+          <app-icon name="alert-circle" [size]="16" />
+          {{ message }}
+        </p>
+      }
+      <div>
+        <button appButton type="button" (click)="addLine()">
+          <app-icon name="plus" [size]="16" />
+          Thêm dòng
+        </button>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button appButton variant="primary" type="submit" [disabled]="submitting()">
+        Tạo lệnh giao
+      </button>
+    </div>
+  </form>
+</app-load-state>
