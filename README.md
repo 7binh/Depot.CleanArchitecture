@@ -58,9 +58,6 @@ Domain  <-  Application  <-  Infrastructure
 Entities are created through `Create(...)` methods that return a `Result`, with `private` setters, so an invalid
 object cannot be built. Expected failures are values, not exceptions.
 
-The reasons behind each choice, including where Depot differs from the team template, are in
-[`docs/QUYET_DINH_THIET_KE.md`](docs/QUYET_DINH_THIET_KE.md).
-
 ## Adding a feature (vertical slice)
 
 The project is built one vertical slice at a time, from the inside out. A slice is one use case taken from the
@@ -74,8 +71,6 @@ Domain to the screen. The Application layer mirrors this: one folder per action 
 5. **Tests** - Domain tests for the rules, Application tests for the handler on a real `AppDbContext` (InMemory).
 6. **Web** - the screen in `web/src/app/features/<feature>/`.
 7. **Check** - `sh scripts/check.sh` must pass before the slice is done.
-
-The order the project followed, phase by phase, is in [`docs/QUY_TRINH_TRIEN_KHAI.md`](docs/QUY_TRINH_TRIEN_KHAI.md).
 
 ## Project structure
 
@@ -93,7 +88,7 @@ Depot/
 ├── database/
 │   ├── seed/                  # Sample data (SQL)
 │   └── queries/               # Report SQL
-├── docs/                      # Requirements, design decisions, process, Postman collection
+├── docs/                      # Requirements, ERD, Postman collection
 ├── scripts/check.sh           # The quality gate
 ├── docker-compose.yml
 └── Depot.slnx
@@ -202,8 +197,6 @@ cd web && npm run lint && npm run format:check
 |:-----|:--------|
 | [`docs/requirements/BR_DEPOT.md`](docs/requirements/BR_DEPOT.md) | Business requirements |
 | [`docs/requirements/ERD_DEPOT.md`](docs/requirements/ERD_DEPOT.md) | Data model |
-| [`docs/QUYET_DINH_THIET_KE.md`](docs/QUYET_DINH_THIET_KE.md) | Design decisions and assumptions |
-| [`docs/QUY_TRINH_TRIEN_KHAI.md`](docs/QUY_TRINH_TRIEN_KHAI.md) | Delivery process, phase by phase |
-| [`docs/FRONTEND_ROADMAP.md`](docs/FRONTEND_ROADMAP.md) | Frontend plan |
+| [`docs/requirements/SNP_HE_THONG_QUAN_LY_DEPOT.md`](docs/requirements/SNP_HE_THONG_QUAN_LY_DEPOT.md) | System specification |
 | [`web/Design.md`](web/Design.md) | Design system the UI follows |
 | [`AGENTS.md`](AGENTS.md) | Rules for coding agents and contributors |
