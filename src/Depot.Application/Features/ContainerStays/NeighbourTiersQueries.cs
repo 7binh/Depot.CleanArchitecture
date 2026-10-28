@@ -8,12 +8,14 @@ namespace Depot.Application.Features.ContainerStays;
 internal static class NeighbourTiersQueries
 {
     // A 40ft container in an even bay also covers the odd bays beside it, so the bays within two numbers of this one,
-    // in the rows with the same row number, share its floor space. Only containers still in the yard count.
+    // in the rows with the same row number, share its floor space. Only containers still in the yard count;
+    // a stay being moved is left out (excludedStayId) so it does not block its own new position.
     public static async Task<NeighbourTiers> LoadNeighbourTiersAsync(
         this IAppDbContext dbContext,
         Bay bay,
         YardRow row,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? excludedStayId = null)
     {
         var bayNos = new[] { bay.BayNo - 2, bay.BayNo - 1, bay.BayNo + 1, bay.BayNo + 2 };
         var taken = await (
@@ -21,6 +23,7 @@ internal static class NeighbourTiersQueries
             join nearRow in dbContext.YardRows on stay.RowId equals nearRow.Id
             join nearBay in dbContext.Bays on nearRow.BayId equals nearBay.Id
             where stay.GateOutAt == null
+                && stay.Id != excludedStayId
                 && stay.Tier != null
                 && nearBay.BlockId == bay.BlockId
                 && nearRow.RowNo == row.RowNo

@@ -59,6 +59,7 @@ public sealed class GetBlockMapHandler(IAppDbContext dbContext, TimeProvider tim
         var rowMaps = rows
             .OrderBy(x => x.RowNo)
             .Select(row => new RowMap(
+                row.Id,
                 row.RowNo,
                 row.MaxTier,
                 staysByRow[row.Id]

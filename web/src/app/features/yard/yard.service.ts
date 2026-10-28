@@ -43,6 +43,7 @@ export interface TierMap {
 }
 
 export interface RowMap {
+  rowId: string;
   rowNo: number;
   maxTier: number;
   /** Only the tiers that hold a container. */
@@ -65,6 +66,13 @@ export interface BlockMap {
   unplaced: MapContainer[];
 }
 
+/** Where a container goes; `rowId` and `tier` are null for a virtual block. */
+export interface MovePosition {
+  blockId: string;
+  rowId: string | null;
+  tier: number | null;
+}
+
 /** Odd bays hold 20ft containers, even bays hold 40ft ones. */
 export function baySize(bayNo: number): 20 | 40 {
   return bayNo % 2 === 1 ? 20 : 40;
@@ -74,6 +82,7 @@ export function baySize(bayNo: number): 20 | 40 {
 export class YardService {
   private readonly http = inject(HttpClient);
   private readonly url = `${inject(API_URL)}/api/blocks`;
+  private readonly staysUrl = `${inject(API_URL)}/api/container-stays`;
 
   blocks(): Observable<Block[]> {
     return this.http.get<Block[]>(this.url);
@@ -89,5 +98,10 @@ export class YardService {
 
   rows(blockId: string, bayId: string): Observable<YardRow[]> {
     return this.http.get<YardRow[]>(`${this.url}/${blockId}/bays/${bayId}/rows`);
+  }
+
+  /** Moves a container that is in the yard to another position, without gating it out. */
+  move(stayId: string, position: MovePosition): Observable<unknown> {
+    return this.http.put(`${this.staysUrl}/${stayId}/position`, position);
   }
 }

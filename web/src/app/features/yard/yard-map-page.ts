@@ -21,6 +21,7 @@ import { Segmented } from '../../shared/ui/segmented';
 import { SelectField } from '../../shared/ui/select-field';
 import { GridCell, tierCount, toTierGrid } from './block-grid';
 import { ContainerDetail } from './container-detail';
+import { MoveContainerDialog } from './move-container-dialog';
 import { Block, BlockMap, YardService } from './yard.service';
 
 /** Fixed widths of the row label column and of a bay column, so a long number never stretches the map. */
@@ -37,6 +38,7 @@ const BAY_WIDTH = '8.75rem';
     EmptyState,
     Icon,
     LoadState,
+    MoveContainerDialog,
     PageHeader,
     Segmented,
     SelectField,
@@ -92,6 +94,8 @@ export class YardMapPage implements OnInit {
 
   /** The container whose card is open; the card shows only while that container is on the tier on view. */
   private readonly selectedId = signal<string | null>(null);
+  /** Whether the dialog for choosing the container's new place is open. */
+  protected readonly moving = signal(false);
   protected readonly selected = computed(() => {
     const id = this.selectedId();
     const cells = this.grid()?.rows.flatMap((row) => row.cells) ?? [];
@@ -128,6 +132,13 @@ export class YardMapPage implements OnInit {
 
   protected close(): void {
     this.selectedId.set(null);
+  }
+
+  /** The container has a new place: close the card and the dialog, and draw the map again. */
+  protected afterMove(): void {
+    this.moving.set(false);
+    this.close();
+    this.mapLoader.load(true);
   }
 
   ngOnInit(): void {

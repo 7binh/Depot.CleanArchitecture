@@ -16,7 +16,7 @@ public sealed record BlockMapResponse(
 public sealed record BayMap(int BayNo, int SizeFeet, IReadOnlyList<RowMap> Rows);
 
 /// <summary>Tiers lists only the tiers that hold a container, from the bottom up; an empty list is an empty stack.</summary>
-public sealed record RowMap(int RowNo, int MaxTier, IReadOnlyList<TierMap> Tiers);
+public sealed record RowMap(Guid RowId, int RowNo, int MaxTier, IReadOnlyList<TierMap> Tiers);
 
 /// <summary>FromBay and ToBay are the bays the container covers on the floor: its own bay, or for a 40ft container also the odd bays beside it.</summary>
 public sealed record TierMap(int Tier, int FromBay, int ToBay, MapContainer Container);

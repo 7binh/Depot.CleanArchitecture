@@ -51,7 +51,7 @@ public sealed class GateOutHandler(IAppDbContext dbContext, TimeProvider timePro
             command.GateOutAt ?? now,
             new Vehicle(command.OutVehicleType, command.OutVehicleNumber));
 
-        var hasContainerAbove = await HasContainerAboveAsync(stay, cancellationToken);
+        var hasContainerAbove = await dbContext.HasContainerAboveAsync(stay, cancellationToken);
         var done = stay.GateOut(
             container,
             new GateOutRelease(order, delivered),
@@ -84,34 +84,6 @@ public sealed class GateOutHandler(IAppDbContext dbContext, TimeProvider timePro
         }
 
         return Result.Success(ContainerStayResponse.From(stay));
-    }
-
-    // BR-YD-06: a container on a higher tier of the same row is still resting on this one. A virtual block has no tiers.
-    private async Task<bool> HasContainerAboveAsync(ContainerStay stay, CancellationToken cancellationToken)
-    {
-        if (stay.RowId is null || stay.Tier is null)
-        {
-            return false;
-        }
-
-        var stackedInRow = await dbContext.ContainerStays
-            .AnyAsync(x => x.RowId == stay.RowId && x.GateOutAt == null && x.Tier > stay.Tier, cancellationToken);
-
-        return stackedInRow || await IsCarryingFortyFootAsync(stay, cancellationToken);
-    }
-
-    // A 20ft container in an odd bay can carry a 40ft one whose own row is in the even bay beside it.
-    private async Task<bool> IsCarryingFortyFootAsync(ContainerStay stay, CancellationToken cancellationToken)
-    {
-        var row = await dbContext.YardRows.AsNoTracking().FirstAsync(x => x.Id == stay.RowId, cancellationToken);
-        var bay = await dbContext.Bays.AsNoTracking().FirstAsync(x => x.Id == row.BayId, cancellationToken);
-        if (bay.BayNo % 2 == 0)
-        {
-            return false;
-        }
-
-        var neighbours = await dbContext.LoadNeighbourTiersAsync(bay, row, cancellationToken);
-        return neighbours.Before.Concat(neighbours.After).Any(tier => tier > stay.Tier);
     }
 
     // BR-RO-06: how many containers already left on this line, across all stays.

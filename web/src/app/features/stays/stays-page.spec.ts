@@ -129,6 +129,18 @@ describe('StaysPage filters', () => {
     expect(rowTexts(element).length).toBe(1);
   });
 
+  it('asks only for the stays that ended when Đã ra is chosen', () => {
+    const { http, fixture, element } = setup();
+    click(fixture, 'Đã ra');
+    const request = searchRequest(http);
+    expect(request.request.params.get('inYard')).toBe('false');
+    request.flush(paged([STAYS[1]]));
+    answerPlaces(http, false);
+    fixture.detectChanges();
+    expect(rowTexts(element).length).toBe(1);
+    expect(rowTexts(element)[0]).toContain('Đã ra');
+  });
+
   it('sends the typed number once typing pauses', () => {
     const { http, fixture } = setup();
     type(fixture, 'Tìm container', '0000');

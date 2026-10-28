@@ -5,6 +5,7 @@ using Depot.Application.Features.ContainerStays.GateIn;
 using Depot.Application.Features.ContainerStays.GateOut;
 using Depot.Application.Features.ContainerStays.GetAll;
 using Depot.Application.Features.ContainerStays.GetById;
+using Depot.Application.Features.ContainerStays.Move;
 using Depot.Application.Features.ContainerStays.Search;
 using Depot.Domain.Common;
 
@@ -34,6 +35,10 @@ public static class ContainerStayEndpoints
         group.MapGet("/search", Search)
             .WithName("SearchContainerStays")
             .WithSummary("List container stays one page at a time, newest gate in first, with the container number and operator");
+
+        group.MapPut("/{id:guid}/position", Move)
+            .WithName("MoveContainerStay")
+            .WithSummary("Move a container that is in the yard to another position (block, row and tier), without gating it out");
 
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetContainerStayById")
@@ -78,6 +83,18 @@ public static class ContainerStayEndpoints
         return result.ToHttpResult();
     }
 
+    private static async Task<IResult> Move(
+        Guid id,
+        MovePositionBody body,
+        ICommandHandler<MoveContainerCommand, Result<ContainerStayResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(
+            new MoveContainerCommand(id, body.BlockId, body.RowId, body.Tier),
+            cancellationToken);
+        return result.ToHttpResult();
+    }
+
     private static async Task<IResult> GetById(
         Guid id,
         IQueryHandler<GetContainerStayByIdQuery, Result<ContainerStayResponse>> handler,
@@ -87,3 +104,6 @@ public static class ContainerStayEndpoints
         return result.ToHttpResult();
     }
 }
+
+/// <summary>Where to move the container; the stay comes from the route. Row and tier stay empty for a virtual block.</summary>
+public sealed record MovePositionBody(Guid BlockId, Guid? RowId, int? Tier);

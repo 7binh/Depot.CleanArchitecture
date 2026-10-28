@@ -29,17 +29,27 @@ const MAP: BlockMap = {
       bayNo: 1,
       sizeFeet: 20,
       rows: [
-        { rowNo: 1, maxTier: 2, tiers: [{ tier: 2, fromBay: 1, toBay: 1, container: TWENTY }] },
+        {
+          rowId: 'r1',
+          rowNo: 1,
+          maxTier: 2,
+          tiers: [{ tier: 2, fromBay: 1, toBay: 1, container: TWENTY }],
+        },
       ],
     },
     {
       bayNo: 2,
       sizeFeet: 40,
       rows: [
-        { rowNo: 1, maxTier: 2, tiers: [{ tier: 1, fromBay: 1, toBay: 3, container: FORTY }] },
+        {
+          rowId: 'r1',
+          rowNo: 1,
+          maxTier: 2,
+          tiers: [{ tier: 1, fromBay: 1, toBay: 3, container: FORTY }],
+        },
       ],
     },
-    { bayNo: 3, sizeFeet: 20, rows: [{ rowNo: 1, maxTier: 2, tiers: [] }] },
+    { bayNo: 3, sizeFeet: 20, rows: [{ rowId: 'r1', rowNo: 1, maxTier: 2, tiers: [] }] },
   ],
 };
 

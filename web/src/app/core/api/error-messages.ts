@@ -42,6 +42,7 @@ export const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'Position.NotAllowedInVirtualBlock': 'Block ảo không có vị trí bay, row, tầng.',
   'Position.Inconsistent': 'Row không thuộc block đã chọn.',
   'Position.Occupied': 'Vị trí này đã có container.',
+  'Position.Unchanged': 'Container đang ở vị trí này rồi.',
   'Position.OverlapsNeighbour':
     'Container 40 feet chiếm cả các bay lẻ bên cạnh, nhưng chỗ đó đã bị chiếm.',
   'Bay.SizeMismatch':
@@ -57,6 +58,7 @@ export const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'GateOutAt.BeforeGateIn': 'Giờ ra không được trước giờ vào.',
   'Stay.HasContainerAbove': 'Còn container xếp phía trên, phải lấy container đó ra trước.',
   'Stay.AlreadyClosed': 'Lần lưu bãi này đã kết thúc.',
+  'ContainerStay.NotFound': 'Không tìm thấy lần lưu bãi của container này.',
   'ReleaseOrder.Expired': 'Lệnh giao đã hết hạn.',
   'ReleaseOrder.LineFull': 'Dòng lệnh giao của loại container này đã giao đủ số lượng.',
   'ReleaseOrder.OperatorMismatch': 'Lệnh giao thuộc hãng khai thác khác với container.',

@@ -24,7 +24,9 @@ let nextId = 0;
     <dialog
       #dialog
       [attr.aria-labelledby]="titleId"
-      class="m-auto w-full max-w-md max-h-screen overflow-y-auto rounded-card border border-line bg-surface p-0 text-ink shadow-popover backdrop:bg-ink/40"
+      class="m-auto max-h-screen w-full overflow-y-auto rounded-card border border-line bg-surface p-0 text-ink shadow-popover backdrop:bg-ink/40"
+      [class.max-w-md]="size() === 'default'"
+      [class.max-w-5xl]="size() === 'wide'"
       (close)="closed.emit()"
     >
       <div class="flex flex-col gap-6 p-6">
@@ -41,6 +43,8 @@ let nextId = 0;
 })
 export class Dialog {
   readonly title = input.required<string>();
+  /** `wide` is for a dialog that holds a map or a table. */
+  readonly size = input<'default' | 'wide'>('default');
   readonly closed = output();
 
   protected readonly titleId = `dialog-title-${nextId++}`;

@@ -148,6 +148,33 @@ public sealed class ContainerStay : AuditableEntity
     }
 
     /// <summary>
+    /// Moves the container to another position of the yard while it stays (the stay, times and vehicles do not
+    /// change). The target must follow the same placement rules as gate in (BR-YD-03 to BR-YD-06), counted without
+    /// this stay's own place, and nothing may rest on the container (BR-YD-06). Nothing changes on failure.
+    /// </summary>
+    public Result MoveTo(Container container, GateInPlacement placement, bool hasContainerAbove)
+    {
+        var isSamePosition = BlockId == placement.Block.Id && RowId == placement.Row?.Id && Tier == placement.Tier;
+
+        var check = BusinessRuleValidator.Check(
+            [
+                new StayIsOpenRule(IsOpen),
+                new NothingStackedAboveRule(hasContainerAbove),
+                new PositionChangesRule(isSamePosition),
+                .. PlacementRules(container, placement)
+            ]);
+        if (check.IsFailure)
+        {
+            return check;
+        }
+
+        BlockId = placement.Block.Id;
+        RowId = placement.Row?.Id;
+        Tier = placement.Tier;
+        return Result.Success();
+    }
+
+    /// <summary>
     /// Drops the row and tier of a stay that is over, so the row can be removed while the history stays: the
     /// container, the block, the times and the vehicles are kept (BR-YD-09). Nothing changes on failure.
     /// </summary>

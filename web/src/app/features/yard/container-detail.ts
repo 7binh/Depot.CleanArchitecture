@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Button } from '../../shared/ui/button';
 import { Chip } from '../../shared/ui/chip';
 import { Icon } from '../../shared/ui/icon';
 import { GridCell } from './block-grid';
@@ -10,7 +11,7 @@ import { GridCell } from './block-grid';
 @Component({
   selector: 'app-container-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Chip, Icon],
+  imports: [Button, Chip, Icon],
   template: `
     <button
       type="button"
@@ -55,6 +56,22 @@ import { GridCell } from './block-grid';
             </div>
           }
         </dl>
+        <div class="mt-4 flex flex-col gap-2">
+          <button
+            appButton
+            variant="primary"
+            type="button"
+            [disabled]="cell().above > 0"
+            (click)="moveRequested.emit()"
+          >
+            Di chuyển
+          </button>
+          @if (cell().above > 0) {
+            <p class="text-caption text-ink-2">
+              Còn container xếp phía trên, phải di chuyển hoặc cho nó ra trước.
+            </p>
+          }
+        </div>
       </div>
     }
   `,
@@ -67,6 +84,7 @@ export class ContainerDetail {
   readonly cell = input.required<GridCell>();
   readonly blockCode = input.required<string>();
   readonly closed = output();
+  readonly moveRequested = output();
 
   protected readonly rows = computed(() => {
     const cell = this.cell();

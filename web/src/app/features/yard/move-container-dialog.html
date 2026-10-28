@@ -1,0 +1,151 @@
+<app-dialog [title]="'Di chuyển ' + container().number" size="wide" (closed)="closed.emit()">
+  <div class="flex flex-col gap-4">
+    @if (notice(); as failure) {
+      <app-error-banner>{{ failure }}</app-error-banner>
+    }
+
+    <div class="flex flex-wrap items-end gap-4">
+      <app-select-field
+        class="w-full max-w-xs"
+        label="Block đích"
+        [control]="blockControl"
+        [options]="blockOptions()"
+      />
+      @if (tierOptions().length > 0 && !current()?.isVirtual) {
+        <div class="flex flex-col gap-2">
+          <span class="text-caption font-medium text-ink-2">Tầng</span>
+          <app-segmented
+            label="Chọn tầng"
+            [options]="tierOptions()"
+            [value]="tier()"
+            (valueChange)="chooseTier($event)"
+          />
+        </div>
+      }
+    </div>
+
+    <app-load-state
+      [status]="mapLoader.status()"
+      [failure]="mapLoader.failure()"
+      (retry)="mapLoader.load()"
+    >
+      @if (current(); as blockMap) {
+        @if (blockMap.isVirtual) {
+          <app-empty-state
+            icon="box"
+            message="Block ảo không có bay, row, tầng. Container sẽ được chuyển vào block này mà không có vị trí."
+          />
+        } @else if (grid(); as view) {
+          @if (view.rows.length === 0) {
+            <app-empty-state
+              icon="box"
+              [message]="
+                'Không có vị trí nào nhận container ' + container().sizeFeet + ' ft ở tầng này.'
+              "
+            />
+          } @else {
+            <p class="text-caption text-ink-2">
+              Container {{ container().sizeFeet }} ft chỉ đặt được vào bay
+              {{ container().sizeFeet === 20 ? 'lẻ' : 'chẵn' }}. Rê chuột vào ô trống để thấy vị
+              trí, bấm để chọn. Ô mờ không đặt được.
+            </p>
+            <div class="overflow-x-auto">
+              <div
+                class="grid w-max gap-2"
+                role="group"
+                aria-label="Sơ đồ chọn vị trí mới"
+                [style.grid-template-columns]="template()"
+              >
+                @for (bay of view.bays; track bay.bayNo) {
+                  <p
+                    class="pb-1 text-center text-caption font-medium text-ink-2"
+                    [style.grid-row]="1"
+                    [style.grid-column]="bay.column + 1"
+                  >
+                    Bay {{ bay.bayNo }}
+                  </p>
+                }
+
+                @for (row of view.rows; track row.rowNo; let i = $index) {
+                  <p
+                    class="flex items-center pr-2 text-caption font-medium text-ink"
+                    [style.grid-row]="i + 2"
+                    [style.grid-column]="1"
+                  >
+                    Row {{ row.rowNo }}
+                  </p>
+                  @for (cell of row.cells; track cell.key) {
+                    @if (cell.state === 'free') {
+                      <button
+                        type="button"
+                        class="flex h-14 w-full cursor-pointer items-center justify-center rounded-card border text-caption font-medium transition-colors duration-150 ease-out hover:bg-brand hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+                        [class.border-line-card]="!isSelected(cell)"
+                        [class.bg-surface-sunken]="!isSelected(cell)"
+                        [class.text-ink-3]="!isSelected(cell)"
+                        [class.border-brand-press]="isSelected(cell)"
+                        [class.bg-brand]="isSelected(cell)"
+                        [class.text-on-brand]="isSelected(cell)"
+                        [class.shadow-raised]="isSelected(cell)"
+                        [attr.aria-pressed]="isSelected(cell)"
+                        [attr.aria-label]="
+                          'Chọn bay ' + cell.bayNo + ', row ' + cell.rowNo + ', tầng ' + cell.tier
+                        "
+                        [style.grid-row]="i + 2"
+                        [style.grid-column]="cell.column + 1"
+                        (click)="choose(cell)"
+                      >
+                        {{ isSelected(cell) ? 'Đã chọn' : 'Trống' }}
+                      </button>
+                    } @else if (cell.container; as other) {
+                      <div
+                        class="flex h-14 w-full flex-col justify-center overflow-hidden rounded-card border border-line-card bg-surface px-2 opacity-60"
+                        [style.grid-row]="i + 2"
+                        [style.grid-column]="cell.column + 1"
+                      >
+                        <span class="truncate text-caption font-medium text-ink tabular-nums">{{
+                          other.number
+                        }}</span>
+                        <span class="truncate text-caption text-ink-2">{{
+                          other.operatorCode
+                        }}</span>
+                      </div>
+                    } @else {
+                      <div
+                        class="flex h-14 w-full items-center justify-center rounded-card bg-surface-sunken px-2 text-center text-caption text-ink-disabled opacity-60"
+                        [attr.title]="cell.reason"
+                        [style.grid-row]="i + 2"
+                        [style.grid-column]="cell.column + 1"
+                      >
+                        <span class="sr-only">Không đặt được: {{ cell.reason }}</span>
+                      </div>
+                    }
+                  }
+                }
+              </div>
+            </div>
+          }
+        }
+      }
+    </app-load-state>
+
+    <dl class="grid grid-cols-1 gap-1 text-body sm:grid-cols-[auto_1fr] sm:gap-x-4">
+      <dt class="text-ink-2">Hiện tại</dt>
+      <dd class="text-ink">{{ from() }}</dd>
+      <dt class="text-ink-2">Vị trí mới</dt>
+      <dd class="text-ink">{{ destination() ?? 'Chưa chọn' }}</dd>
+    </dl>
+
+    <div class="flex justify-end gap-2">
+      <button appButton type="button" (click)="dialog().close()">Hủy</button>
+      <button
+        appButton
+        variant="primary"
+        type="button"
+        [disabled]="destination() === null || submitting()"
+        (click)="confirm()"
+      >
+        Xác nhận di chuyển
+      </button>
+    </div>
+  </div>
+</app-dialog>

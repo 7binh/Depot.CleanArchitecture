@@ -23,7 +23,12 @@ public sealed class GateInHandler(IAppDbContext dbContext, TimeProvider timeProv
             return Result.Failure<ContainerStayResponse>(ContainerStayErrors.ContainerNotFound(command.ContainerId));
         }
 
-        var placement = await LoadPlacementAsync(command, cancellationToken);
+        var placement = await dbContext.LoadPlacementAsync(
+            command.BlockId,
+            command.RowId,
+            command.Tier,
+            null,
+            cancellationToken);
         if (placement.IsFailure)
         {
             return Result.Failure<ContainerStayResponse>(placement.Error);
@@ -47,57 +52,11 @@ public sealed class GateInHandler(IAppDbContext dbContext, TimeProvider timeProv
         return await SaveAsync(created.Value, cancellationToken);
     }
 
-    // Loads the block, and for a row also its bay and the tiers already taken. A row that does not match the block
-    // is left for the Domain rules to reject, so this method only reports what does not exist.
-    private async Task<Result<GateInPlacement>> LoadPlacementAsync(
-        GateInCommand command,
-        CancellationToken cancellationToken)
-    {
-        var block = await dbContext.Blocks
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == command.BlockId, cancellationToken);
-        if (block is null)
-        {
-            return Result.Failure<GateInPlacement>(ContainerStayErrors.BlockNotFound(command.BlockId));
-        }
-
-        if (command.RowId is null)
-        {
-            return Result.Success(new GateInPlacement(block, null, null, command.Tier, []));
-        }
-
-        var row = await dbContext.YardRows
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == command.RowId, cancellationToken);
-        if (row is null)
-        {
-            return Result.Failure<GateInPlacement>(ContainerStayErrors.RowNotFound(command.RowId.Value));
-        }
-
-        var bay = await dbContext.Bays
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == row.BayId, cancellationToken);
-        var occupiedTiers = await OccupiedTiersAsync(row.Id, cancellationToken);
-        var neighbours = bay is null
-            ? NeighbourTiers.None
-            : await dbContext.LoadNeighbourTiersAsync(bay, row, cancellationToken);
-
-        return Result.Success(new GateInPlacement(block, bay, row, command.Tier, occupiedTiers, neighbours));
-    }
-
     // Only open stays count: a container that has left may come back, and its old position is free again.
     private Task<bool> HasOpenStayAsync(Guid containerId, CancellationToken cancellationToken)
     {
         return dbContext.ContainerStays
             .AnyAsync(x => x.ContainerId == containerId && x.GateOutAt == null, cancellationToken);
-    }
-
-    private async Task<IReadOnlyCollection<int>> OccupiedTiersAsync(Guid rowId, CancellationToken cancellationToken)
-    {
-        return await dbContext.ContainerStays
-            .Where(x => x.RowId == rowId && x.Tier != null && x.GateOutAt == null)
-            .Select(x => x.Tier!.Value)
-            .ToListAsync(cancellationToken);
     }
 
     private async Task<Result<ContainerStayResponse>> SaveAsync(ContainerStay stay, CancellationToken cancellationToken)

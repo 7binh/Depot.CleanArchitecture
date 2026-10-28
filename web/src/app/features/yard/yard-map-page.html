@@ -183,7 +183,18 @@
           [cell]="cell"
           [blockCode]="current()?.code ?? ''"
           (closed)="close()"
+          (moveRequested)="moving.set(true)"
         />
+        @if (moving()) {
+          <app-move-container-dialog
+            [cell]="cell"
+            [blockId]="current()?.blockId ?? ''"
+            [blockCode]="current()?.code ?? ''"
+            [blocks]="blocks.items()"
+            (closed)="moving.set(false)"
+            (moved)="afterMove()"
+          />
+        }
       }
     </div>
   }
