@@ -71,6 +71,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'lich-su-luu-bai',
+        title: 'Lịch sử lưu bãi - Depot',
+        loadComponent: () => import('./features/stays/stays-page').then((m) => m.StaysPage),
+      },
+      {
         path: 'bao-cao/ton-bai',
         title: 'Báo cáo tồn bãi - Depot',
         loadComponent: () =>

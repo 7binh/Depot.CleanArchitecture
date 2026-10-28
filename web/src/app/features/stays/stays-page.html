@@ -1,0 +1,92 @@
+<app-page-header
+  title="Lịch sử lưu bãi"
+  description="Mỗi lần container vào bãi, từ lúc gate in đến lúc gate out."
+/>
+
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <app-segmented
+    label="Lọc theo trạng thái"
+    [options]="scopeOptions"
+    [value]="scope()"
+    (valueChange)="choose($event)"
+  />
+  <div class="w-full max-w-xs">
+    <app-text-field
+      label="Tìm container"
+      icon="search"
+      placeholder="Số container"
+      [control]="searchFilter"
+    />
+  </div>
+</div>
+
+<app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
+  <div>
+    @if (list.items().length === 0) {
+      <app-empty-state icon="box" message="Chưa có lần lưu bãi nào." />
+    } @else if (visible().length === 0) {
+      <app-empty-state icon="box" message="Không có container nào khớp số đã nhập." />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full border-separate border-spacing-y-1 text-left">
+          <caption class="sr-only">
+            Lịch sử lưu bãi
+          </caption>
+          <thead>
+            <tr>
+              @for (label of headings; track label) {
+                <th
+                  scope="col"
+                  class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
+                >
+                  {{ label }}
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of visible(); track row.id) {
+              <tr class="group">
+                <td
+                  class="h-12 border-y border-transparent px-4 whitespace-nowrap first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <p class="text-body font-medium text-ink">{{ row.number }}</p>
+                  <p class="text-caption text-ink-2">{{ row.operator }}</p>
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body whitespace-nowrap text-ink-body tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.gateIn }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body whitespace-nowrap text-ink-body tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.gateOut }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body whitespace-nowrap text-ink-body first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.place }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 whitespace-nowrap first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <app-chip [color]="row.isDamaged ? 'warning' : 'neutral'">{{
+                    row.condition
+                  }}</app-chip>
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 whitespace-nowrap first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <app-chip [color]="row.inYard ? 'success' : 'neutral'">{{
+                    row.inYard ? 'Trong bãi' : 'Đã ra'
+                  }}</app-chip>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</app-load-state>
