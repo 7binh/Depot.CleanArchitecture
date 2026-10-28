@@ -5,6 +5,7 @@ using Depot.Application.Features.ContainerStays.GateIn;
 using Depot.Application.Features.ContainerStays.GateOut;
 using Depot.Application.Features.ContainerStays.GetAll;
 using Depot.Application.Features.ContainerStays.GetById;
+using Depot.Application.Features.ContainerStays.Search;
 using Depot.Domain.Common;
 
 namespace Depot.Api.Endpoints;
@@ -29,6 +30,10 @@ public static class ContainerStayEndpoints
         group.MapGet("/", GetAll)
             .WithName("GetContainerStays")
             .WithSummary("List container stays, newest gate in first; inYard=true keeps only containers now in the yard");
+
+        group.MapGet("/search", Search)
+            .WithName("SearchContainerStays")
+            .WithSummary("List container stays one page at a time, newest gate in first, with the container number and operator");
 
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetContainerStayById")
@@ -61,6 +66,15 @@ public static class ContainerStayEndpoints
         bool inYard = false)
     {
         var result = await handler.HandleAsync(new GetContainerStaysQuery(inYard), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> Search(
+        [AsParameters] SearchContainerStaysQuery query,
+        IQueryHandler<SearchContainerStaysQuery, Result<PagedResult<ContainerStayListItem>>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(query, cancellationToken);
         return result.ToHttpResult();
     }
 

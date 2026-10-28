@@ -58,6 +58,12 @@ export interface NewReleaseOrder {
   lines: NewReleaseOrderLine[];
 }
 
+/** Empty text means no filter on that field; `status` is one of the statuses a list shows, such as `Expired`. */
+export interface ReleaseOrderFilter {
+  orderNo: string;
+  status: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReleaseOrderService {
   private readonly http = inject(HttpClient);
@@ -65,6 +71,21 @@ export class ReleaseOrderService {
 
   list(): Observable<ReleaseOrder[]> {
     return this.http.get<ReleaseOrder[]>(this.url);
+  }
+
+  /** One page of orders matching the filter, newest first. */
+  search(
+    filter: ReleaseOrderFilter,
+    page: number,
+    pageSize: number,
+  ): Observable<Paged<ReleaseOrder>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    for (const [key, value] of Object.entries(filter)) {
+      if (value.trim()) {
+        params = params.set(key, value.trim());
+      }
+    }
+    return this.http.get<Paged<ReleaseOrder>>(`${this.url}/search`, { params });
   }
 
   /** One page of the orders that can still deliver: not expired and with room on some line. */

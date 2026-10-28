@@ -9,6 +9,8 @@ namespace Depot.Application.Features.ReleaseOrders.Search;
 public sealed class SearchReleaseOrdersHandler(IAppDbContext dbContext, TimeProvider timeProvider)
     : IQueryHandler<SearchReleaseOrdersQuery, Result<PagedResult<ReleaseOrderResponse>>>
 {
+    private const string LikeEscape = "\\";
+
     public async Task<Result<PagedResult<ReleaseOrderResponse>>> HandleAsync(
         SearchReleaseOrdersQuery query,
         CancellationToken cancellationToken = default)
@@ -49,6 +51,47 @@ public sealed class SearchReleaseOrdersHandler(IAppDbContext dbContext, TimeProv
                 && x.Items.Any(i => i.Quantity > dbContext.ContainerStays.Count(s => s.ReleaseOrderItemId == i.Id)));
         }
 
-        return source;
+        if (query.Status is { } status)
+        {
+            source = FilterByStatus(source, status, today);
+        }
+
+        return string.IsNullOrWhiteSpace(query.OrderNo) ? source : FilterByOrderNo(source, query.OrderNo.Trim());
+    }
+
+    private IQueryable<ReleaseOrder> FilterByStatus(IQueryable<ReleaseOrder> source, ReleaseOrderListStatus status, DateOnly today)
+    {
+        return status switch
+        {
+            ReleaseOrderListStatus.Delivered => source.Where(x => x.Items.All(i =>
+                i.Quantity <= dbContext.ContainerStays.Count(s => s.ReleaseOrderItemId == i.Id))),
+            ReleaseOrderListStatus.Expired => source.Where(x => x.ExpiryDate < today && x.Items.Any(i =>
+                i.Quantity > dbContext.ContainerStays.Count(s => s.ReleaseOrderItemId == i.Id))),
+            ReleaseOrderListStatus.Delivering => source.Where(x => x.ExpiryDate >= today
+                && x.Items.Any(i => i.Quantity > dbContext.ContainerStays.Count(s => s.ReleaseOrderItemId == i.Id))
+                && x.Items.Any(i => dbContext.ContainerStays.Any(s => s.ReleaseOrderItemId == i.Id))),
+            _ => source.Where(x => x.ExpiryDate >= today
+                && !x.Items.Any(i => dbContext.ContainerStays.Any(s => s.ReleaseOrderItemId == i.Id))),
+        };
+    }
+
+    // Order numbers keep the case they were entered in, and a LIKE on PostgreSQL is case-sensitive, so the
+    // text is tried as typed, upper-case and lower-case instead of changing the case of the column.
+    private static IQueryable<ReleaseOrder> FilterByOrderNo(IQueryable<ReleaseOrder> source, string text)
+    {
+        var typed = $"%{EscapeLike(text)}%";
+        var upper = $"%{EscapeLike(text.ToUpperInvariant())}%";
+        var lower = $"%{EscapeLike(text.ToLowerInvariant())}%";
+        return source.Where(x => EF.Functions.Like(x.OrderNo, typed, LikeEscape)
+            || EF.Functions.Like(x.OrderNo, upper, LikeEscape)
+            || EF.Functions.Like(x.OrderNo, lower, LikeEscape));
+    }
+
+    private static string EscapeLike(string text)
+    {
+        return text
+            .Replace(LikeEscape, LikeEscape + LikeEscape, StringComparison.Ordinal)
+            .Replace("%", LikeEscape + "%", StringComparison.Ordinal)
+            .Replace("_", LikeEscape + "_", StringComparison.Ordinal);
     }
 }

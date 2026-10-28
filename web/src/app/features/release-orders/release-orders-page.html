@@ -8,92 +8,104 @@
   </a>
 </app-page-header>
 
+<div class="grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
+  <app-text-field
+    label="Tìm lệnh"
+    icon="search"
+    placeholder="Một phần số lệnh"
+    [control]="filters.controls.orderNo"
+  />
+  <app-select-field
+    label="Trạng thái"
+    placeholder="Tất cả trạng thái"
+    [control]="filters.controls.status"
+    [options]="statusOptions"
+  />
+</div>
+
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
   <div>
     @if (list.items().length === 0) {
-      <app-empty-state icon="layers" message="Chưa có lệnh giao nào.">
-        <a appButton routerLink="/lenh-giao/them">
-          <app-icon name="plus" [size]="16" />
-          Thêm lệnh giao
-        </a>
-      </app-empty-state>
-    } @else {
-      <div class="mb-6 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
-        <app-text-field
-          label="Tìm lệnh"
-          icon="search"
-          placeholder="Số lệnh hoặc tên tàu"
-          [control]="searchFilter"
-        />
-        <app-select-field
-          label="Trạng thái"
-          placeholder="Tất cả trạng thái"
-          [control]="statusFilter"
-          [options]="statusOptions"
-        />
-      </div>
-      @if (visible().length === 0) {
+      @if (filtered()) {
         <app-empty-state icon="layers" message="Không có lệnh giao nào khớp bộ lọc." />
       } @else {
-        <div class="overflow-x-auto">
-          <table class="w-full border-separate border-spacing-y-1 text-left">
-            <caption class="sr-only">
-              Danh sách lệnh giao
-            </caption>
-            <thead>
-              <tr>
-                @for (label of headings; track label) {
-                  <th
-                    scope="col"
-                    class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
-                    [class.text-right]="label === 'Đã giao'"
-                  >
-                    {{ label }}
-                  </th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of visible(); track row.id) {
-                <tr class="group">
-                  <td
-                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
-                  >
-                    <a
-                      class="text-body font-medium text-ink underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                      [routerLink]="['/lenh-giao', row.id]"
-                      >{{ row.orderNo }}</a
-                    >
-                    <p class="text-caption text-ink-2">Tàu {{ row.exportVessel }}</p>
-                  </td>
-                  <td
-                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
-                  >
-                    <p class="text-body text-ink">{{ row.lineOperator }}</p>
-                    <p class="text-caption text-ink-2">{{ row.customer }}</p>
-                  </td>
-                  <td
-                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
-                  >
-                    <p class="text-body text-ink-2">{{ row.expiryDate }}</p>
-                    <p class="text-caption text-ink-2">Cấp {{ row.issuedDate }}</p>
-                  </td>
-                  <td
-                    class="h-12 border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-right text-body text-ink-2 tabular-nums"
-                  >
-                    {{ row.progress }}
-                  </td>
-                  <td
-                    class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body"
-                  >
-                    <app-chip [color]="statuses[row.status].tone">{{
-                      statuses[row.status].label
-                    }}</app-chip>
-                  </td>
-                </tr>
+        <app-empty-state icon="layers" message="Chưa có lệnh giao nào.">
+          <a appButton routerLink="/lenh-giao/them">
+            <app-icon name="plus" [size]="16" />
+            Thêm lệnh giao
+          </a>
+        </app-empty-state>
+      }
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full border-separate border-spacing-y-1 text-left">
+          <caption class="sr-only">
+            Danh sách lệnh giao
+          </caption>
+          <thead>
+            <tr>
+              @for (label of headings; track label) {
+                <th
+                  scope="col"
+                  class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
+                  [class.text-right]="label === 'Đã giao'"
+                >
+                  {{ label }}
+                </th>
               }
-            </tbody>
-          </table>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.id) {
+              <tr class="group">
+                <td
+                  class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <a
+                    class="text-body font-medium text-ink underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                    [routerLink]="['/lenh-giao', row.id]"
+                    >{{ row.orderNo }}</a
+                  >
+                  <p class="text-caption text-ink-2">Tàu {{ row.exportVessel }}</p>
+                </td>
+                <td
+                  class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <p class="text-body text-ink">{{ row.lineOperator }}</p>
+                  <p class="text-caption text-ink-2">{{ row.customer }}</p>
+                </td>
+                <td
+                  class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <p class="text-body text-ink-2">{{ row.expiryDate }}</p>
+                  <p class="text-caption text-ink-2">Cấp {{ row.issuedDate }}</p>
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-right text-body text-ink-2 tabular-nums"
+                >
+                  {{ row.progress }}
+                </td>
+                <td
+                  class="h-12 whitespace-nowrap border-y border-transparent px-4 first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface text-body"
+                >
+                  <app-chip [color]="statuses[row.status].tone">{{
+                    statuses[row.status].label
+                  }}</app-chip>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (paging(); as paged) {
+        <div class="mt-4">
+          <app-pagination
+            [page]="paged.page"
+            [pageSize]="paged.pageSize"
+            [totalCount]="paged.totalCount"
+            [totalPages]="paged.totalPages"
+            (pageChange)="goTo($event)"
+          />
         </div>
       }
     }

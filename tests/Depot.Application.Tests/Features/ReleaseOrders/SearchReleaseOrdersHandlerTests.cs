@@ -61,6 +61,62 @@ public sealed class SearchReleaseOrdersHandlerTests
         Assert.Empty(result.Value.Items);
     }
 
+    [Theory]
+    [InlineData(ReleaseOrderListStatus.NotDelivered, "RO-OPEN")]
+    [InlineData(ReleaseOrderListStatus.Delivered, "RO-FULL")]
+    [InlineData(ReleaseOrderListStatus.Expired, "RO-OLD")]
+    public async Task HandleAsync_FiltersByTheStatusAListShows(ReleaseOrderListStatus status, string expected)
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        await SeedOrdersAsync(dbContext);
+
+        var result = await Handler(dbContext).HandleAsync(new SearchReleaseOrdersQuery(Status: status), _ct);
+
+        Assert.Equal([expected], result.Value.Items.Select(x => x.OrderNo));
+        Assert.Equal(1, result.Value.TotalCount);
+    }
+
+    [Fact]
+    public async Task HandleAsync_FiltersDeliveringOrders_ThatHaveSentSomeButNotAll()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var yard = await GateOutTestData.CreateYardWithContainerInAsync(dbContext, _ct);
+        await GateOutTestData.CreateOrderAsync(dbContext, 2, _ct, orderNo: "RO-NONE");
+        var partly = await GateOutTestData.CreateOrderAsync(dbContext, 2, _ct, orderNo: "RO-PART");
+        await GateOutTestData.CreateHandler(dbContext)
+            .HandleAsync(GateOutTestData.Command(yard.ContainerId, partly), _ct);
+
+        var result = await Handler(dbContext)
+            .HandleAsync(new SearchReleaseOrdersQuery(Status: ReleaseOrderListStatus.Delivering), _ct);
+
+        Assert.Equal(["RO-PART"], result.Value.Items.Select(x => x.OrderNo));
+    }
+
+    [Theory]
+    [InlineData("old", "RO-OLD")]
+    [InlineData("ro-full", "RO-FULL")]
+    [InlineData("O-OP", "RO-OPEN")]
+    public async Task HandleAsync_FindsAnOrderByPartOfItsNumber_InAnyCase(string text, string expected)
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        await SeedOrdersAsync(dbContext);
+
+        var result = await Handler(dbContext).HandleAsync(new SearchReleaseOrdersQuery(OrderNo: text), _ct);
+
+        Assert.Equal([expected], result.Value.Items.Select(x => x.OrderNo));
+    }
+
+    [Fact]
+    public async Task HandleAsync_ReadsPercentAndUnderscoreAsPlainCharacters()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        await SeedOrdersAsync(dbContext);
+
+        var result = await Handler(dbContext).HandleAsync(new SearchReleaseOrdersQuery(OrderNo: "RO_"), _ct);
+
+        Assert.Empty(result.Value.Items);
+    }
+
     private static SearchReleaseOrdersHandler Handler(AppDbContext dbContext)
     {
         return new SearchReleaseOrdersHandler(dbContext, ContainerTestData.Clock);

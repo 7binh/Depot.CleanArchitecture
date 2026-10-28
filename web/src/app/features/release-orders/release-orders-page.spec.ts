@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { choose, type } from '../../../testing/dom';
+import { choose, click, type } from '../../../testing/dom';
 import { ReleaseOrdersPage } from './release-orders-page';
 
 const API = 'http://localhost:5049/api';
@@ -29,7 +29,15 @@ const ORDERS = [
   order('r4', 'RO-4', { isExpired: true }),
 ];
 
-function setup(orders: unknown[] = ORDERS) {
+function paged(items: unknown[], totalCount = items.length, page = 1) {
+  return { items, totalCount, page, pageSize: 20, totalPages: Math.ceil(totalCount / 20) };
+}
+
+function searchRequest(http: HttpTestingController) {
+  return http.expectOne((r) => r.url === `${API}/release-orders/search`);
+}
+
+function setup(orders: unknown[] = ORDERS, totalCount = orders.length) {
   TestBed.configureTestingModule({
     providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
   });
@@ -37,11 +45,11 @@ function setup(orders: unknown[] = ORDERS) {
   const fixture = TestBed.createComponent(ReleaseOrdersPage);
   const element = fixture.nativeElement as HTMLElement;
   fixture.detectChanges();
-  http.expectOne(`${API}/release-orders`).flush(orders);
+  searchRequest(http).flush(paged(orders, totalCount));
   http.expectOne(`${API}/line-operators`).flush([{ id: 'o1', code: 'CSQ', name: 'Cosco' }]);
   http.expectOne(`${API}/customers`).flush([{ id: 'cu1', taxCode: '0123456789', name: 'Acme' }]);
   fixture.detectChanges();
-  return { fixture, element };
+  return { http, fixture, element };
 }
 
 function rows(element: HTMLElement): string[] {
@@ -50,7 +58,7 @@ function rows(element: HTMLElement): string[] {
   );
 }
 
-describe('ReleaseOrdersPage', () => {
+describe('ReleaseOrdersPage list', () => {
   it('lists the orders with operator, customer, progress and status', () => {
     const { element } = setup();
     const first = rows(element)[0];
@@ -72,29 +80,85 @@ describe('ReleaseOrdersPage', () => {
     expect(rows(element)[0]).toContain('Đã giao đủ');
   });
 
-  it('finds an order by number or vessel', () => {
-    const { fixture, element } = setup();
-    type(fixture, 'Tìm lệnh', 'moon');
-    expect(rows(element).length).toBe(1);
-    type(fixture, 'Tìm lệnh', 'ro-3');
-    expect(rows(element)[0]).toContain('RO-3');
+  it('offers to add the first order when there are none', () => {
+    const { element } = setup([]);
+    expect(element.textContent).toContain('Chưa có lệnh giao nào.');
   });
 
-  it('filters by status', () => {
-    const { fixture, element } = setup();
+  it('asks for the first page of 20 with no filter', () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    TestBed.createComponent(ReleaseOrdersPage).detectChanges();
+    const { params } = searchRequest(http).request;
+    expect(params.keys().sort()).toEqual(['page', 'pageSize']);
+    expect(params.get('pageSize')).toBe('20');
+  });
+});
+
+describe('ReleaseOrdersPage filters', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('sends the typed order number once typing pauses', () => {
+    const { http, fixture } = setup();
+    type(fixture, 'Tìm lệnh', 'ro-3');
+    http.expectNone((r) => r.url === `${API}/release-orders/search`);
+    vi.advanceTimersByTime(300);
+    expect(searchRequest(http).request.params.get('orderNo')).toBe('ro-3');
+  });
+
+  it('sends the chosen status and shows the orders that come back', () => {
+    const { http, fixture, element } = setup();
     choose(fixture, 'Trạng thái', 'Expired');
+    vi.advanceTimersByTime(300);
+    const request = searchRequest(http);
+    expect(request.request.params.get('status')).toBe('Expired');
+    request.flush(paged([ORDERS[3]]));
+    fixture.detectChanges();
     expect(rows(element).length).toBe(1);
     expect(rows(element)[0]).toContain('RO-4');
   });
 
   it('says so when nothing matches the filter', () => {
-    const { fixture, element } = setup();
+    const { http, fixture, element } = setup();
     type(fixture, 'Tìm lệnh', 'zzz');
+    vi.advanceTimersByTime(300);
+    searchRequest(http).flush(paged([]));
+    fixture.detectChanges();
     expect(element.textContent).toContain('Không có lệnh giao nào khớp bộ lọc.');
   });
+});
 
-  it('offers to add the first order when there are none', () => {
-    const { element } = setup([]);
-    expect(element.textContent).toContain('Chưa có lệnh giao nào.');
+describe('ReleaseOrdersPage paging', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('shows the range and the page count', () => {
+    const { element } = setup(ORDERS, 45);
+    expect(element.querySelector('nav')?.textContent).toContain('1–20 / 45');
+    expect(element.querySelector('nav')?.textContent).toContain('1 / 3');
+  });
+
+  it('asks for the next page when Sau is clicked', () => {
+    const { http, fixture, element } = setup(ORDERS, 45);
+    click(fixture, 'Sau');
+    const request = searchRequest(http);
+    expect(request.request.params.get('page')).toBe('2');
+    request.flush(paged(ORDERS, 45, 2));
+    fixture.detectChanges();
+    expect(element.querySelector('nav')?.textContent).toContain('21–40 / 45');
+  });
+
+  it('goes back to page 1 when a filter changes', () => {
+    const { http, fixture } = setup(ORDERS, 45);
+    click(fixture, 'Sau');
+    searchRequest(http).flush(paged(ORDERS, 45, 2));
+    fixture.detectChanges();
+
+    choose(fixture, 'Trạng thái', 'Delivered');
+    vi.advanceTimersByTime(300);
+    expect(searchRequest(http).request.params.get('page')).toBe('1');
   });
 });

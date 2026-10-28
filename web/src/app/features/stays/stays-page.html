@@ -23,9 +23,11 @@
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
   <div>
     @if (list.items().length === 0) {
-      <app-empty-state icon="box" message="Chưa có lần lưu bãi nào." />
-    } @else if (visible().length === 0) {
-      <app-empty-state icon="box" message="Không có container nào khớp số đã nhập." />
+      @if (filtered()) {
+        <app-empty-state icon="box" message="Không có lần lưu bãi nào khớp bộ lọc." />
+      } @else {
+        <app-empty-state icon="box" message="Chưa có lần lưu bãi nào." />
+      }
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full border-separate border-spacing-y-1 text-left">
@@ -45,7 +47,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (row of visible(); track row.id) {
+            @for (row of list.items(); track row.id) {
               <tr class="group">
                 <td
                   class="h-12 border-y border-transparent px-4 whitespace-nowrap first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
@@ -87,6 +89,17 @@
           </tbody>
         </table>
       </div>
+      @if (paging(); as paged) {
+        <div class="mt-4">
+          <app-pagination
+            [page]="paged.page"
+            [pageSize]="paged.pageSize"
+            [totalCount]="paged.totalCount"
+            [totalPages]="paged.totalPages"
+            (pageChange)="goTo($event)"
+          />
+        </div>
+      }
     }
   </div>
 </app-load-state>

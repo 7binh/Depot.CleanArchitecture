@@ -1,7 +1,5 @@
-import { LineOperator } from '../catalogs/line-operators/line-operator.service';
-import { Container } from '../containers/container.service';
 import { PlaceIndex } from './place-index';
-import { StayRecord } from './stay.service';
+import { StayRecord, StayListItem } from './stay.service';
 
 /** A stay with the container, operator and place worked out, ready to show in a table. */
 export interface StayRow {
@@ -38,28 +36,17 @@ function placeOf(stay: StayRecord, places: PlaceIndex): string {
   return `${block.code}${bayAndRow}, tầng ${stay.tier}`;
 }
 
-export function toStayRows(
-  stays: StayRecord[],
-  containers: Container[],
-  operators: LineOperator[],
-  places: PlaceIndex,
-): StayRow[] {
-  const containerById = new Map(containers.map((c) => [c.id, c]));
-  const operatorCodes = new Map(operators.map((o) => [o.id, o.code]));
-  return [...stays]
-    .sort((a, b) => b.gateInAt.localeCompare(a.gateInAt))
-    .map((stay) => {
-      const container = containerById.get(stay.containerId);
-      return {
-        id: stay.id,
-        number: container?.number ?? '',
-        operator: (container && operatorCodes.get(container.lineOperatorId)) ?? '',
-        gateIn: formatDateTime(stay.gateInAt),
-        gateOut: stay.gateOutAt ? formatDateTime(stay.gateOutAt) : 'Chưa ra',
-        place: placeOf(stay, places),
-        condition: stay.condition === 'Damaged' ? 'Hư hỏng' : 'Bình thường',
-        isDamaged: stay.condition === 'Damaged',
-        inYard: stay.gateOutAt === null,
-      };
-    });
+/** The API already sends the stays newest gate in first, so the order is kept. */
+export function toStayRows(stays: StayListItem[], places: PlaceIndex): StayRow[] {
+  return stays.map((stay) => ({
+    id: stay.id,
+    number: stay.containerNumber,
+    operator: stay.lineOperatorCode,
+    gateIn: formatDateTime(stay.gateInAt),
+    gateOut: stay.gateOutAt ? formatDateTime(stay.gateOutAt) : 'Chưa ra',
+    place: placeOf(stay, places),
+    condition: stay.condition === 'Damaged' ? 'Hư hỏng' : 'Bình thường',
+    isDamaged: stay.condition === 'Damaged',
+    inYard: stay.gateOutAt === null,
+  }));
 }
