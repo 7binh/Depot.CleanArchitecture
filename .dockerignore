@@ -1,0 +1,13 @@
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.angular
+.git
+.env
+.claude
+.codex
+web
+tests
+docs
+database

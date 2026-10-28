@@ -6,6 +6,7 @@ using Depot.Application;
 using Depot.Application.Abstractions;
 using Depot.Infrastructure;
 using Depot.Infrastructure.Identity;
+using Depot.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +34,12 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference().AllowAnonymous();
 }
 
-app.UseHttpsRedirection();
+// Behind the web server of the Docker setup the traffic is plain HTTP, so the redirect is switched off there.
+if (app.Configuration.GetValue("Https:Redirect", true))
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors(CorsExtensions.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
@@ -49,6 +55,12 @@ app.MapContainerEndpoints();
 app.MapReleaseOrderEndpoints();
 app.MapContainerStayEndpoints();
 app.MapReportEndpoints();
+
+// Off by default; the Docker setup turns it on so a new database has its tables before the admin is seeded.
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    await app.Services.MigrateDatabaseAsync();
+}
 
 await app.Services.SeedAdminAsync();
 

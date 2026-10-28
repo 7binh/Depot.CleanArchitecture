@@ -17,5 +17,37 @@ services:
       retries: 10
       start_period: 10s
 
+  api:
+    build:
+      context: .
+      dockerfile: src/Depot.Api/Dockerfile
+    container_name: depot-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-depot};Username=${POSTGRES_USER:-depot};Password=${POSTGRES_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET:?Set JWT_SECRET (at least 32 characters) in .env}
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:?Set SEED_ADMIN_EMAIL in .env}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD in .env}
+      Database__MigrateOnStartup: "true"
+      Https__Redirect: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: web
+    container_name: depot-web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
 volumes:
   postgres-data:
