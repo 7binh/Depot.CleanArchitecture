@@ -1,0 +1,149 @@
+<app-page-header
+  title="Trang chủ"
+  description="Tình hình bãi hôm nay và sản lượng gate của 7 ngày gần nhất."
+>
+  <a appButton routerLink="/gate-out">
+    <app-icon name="ship" />
+    Gate Out
+  </a>
+  <a appButton variant="primary" routerLink="/gate-in">
+    <app-icon name="plus" />
+    Gate In
+  </a>
+</app-page-header>
+
+<app-load-state [status]="loader.status()" [failure]="loader.failure()" (retry)="loader.load()">
+  @if (summary(); as data) {
+    <div class="flex flex-col gap-6">
+      <section
+        aria-label="Chỉ số trong ngày"
+        class="grid grid-cols-2 gap-x-6 gap-y-6 rounded-inset bg-surface-sunken p-5 lg:grid-cols-5"
+      >
+        <div class="flex flex-col gap-1.5">
+          <p class="text-body text-ink">Trong bãi</p>
+          <p class="flex items-start gap-1.5">
+            <span class="text-metric text-ink-display tabular-nums">{{ data.inYard }}</span>
+            <span class="pt-1 text-note text-ink-2">container</span>
+          </p>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <p class="text-body text-ink">Tồn từ 10 ngày</p>
+          <p class="flex items-start gap-1.5">
+            <span class="text-metric text-ink-display tabular-nums">{{ data.longStay }}</span>
+            <span class="pt-1 text-note text-ink-2 tabular-nums">{{ data.longStayPercent }}%</span>
+          </p>
+          <app-tick-gauge
+            [percent]="data.longStayPercent"
+            [label]="'Tồn lâu ' + data.longStayPercent + '% số container trong bãi'"
+          />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <p class="text-body text-ink">Gate In hôm nay</p>
+          <p class="text-metric text-ink-display tabular-nums">{{ data.today.gateIns }}</p>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <p class="text-body text-ink">Gate Out hôm nay</p>
+          <p class="text-metric text-ink-display tabular-nums">{{ data.today.gateOuts }}</p>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <p class="text-body text-ink">Lệnh giao còn hiệu lực</p>
+          <p class="text-metric text-ink-display tabular-nums">{{ data.openOrders }}</p>
+        </div>
+      </section>
+
+      <div class="grid gap-6 lg:grid-cols-3">
+        <section class="flex flex-col gap-2 lg:col-span-2" aria-labelledby="home-stock">
+          <div class="flex items-center justify-between gap-4">
+            <h2 id="home-stock" class="text-section text-ink">Tồn bãi theo hãng</h2>
+            <a
+              routerLink="/bao-cao/ton-bai"
+              class="rounded-control text-small font-medium text-ink-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              Xem báo cáo
+            </a>
+          </div>
+          @if (data.operators.length === 0) {
+            <app-empty-state icon="box" message="Hiện chưa có container nào trong bãi." />
+          } @else {
+            <ul class="flex flex-col gap-1">
+              @for (row of data.operators; track row.id) {
+                <li
+                  class="flex min-h-9 items-center gap-4 rounded-card border border-transparent px-4 transition-colors duration-150 ease-out hover:border-line-card hover:bg-surface motion-reduce:transition-none"
+                >
+                  <span class="min-w-0 flex-1 truncate text-body font-medium text-ink">
+                    {{ row.operator }}
+                  </span>
+                  <span class="w-12 text-right text-body text-ink-body tabular-nums">
+                    {{ row.total }}
+                  </span>
+                  <span class="hidden items-center gap-3 sm:flex">
+                    <app-tick-gauge
+                      [percent]="row.longStayPercent"
+                      [label]="'Tồn lâu ' + row.longStayPercent + '%'"
+                    />
+                    <span class="w-9 text-right text-caption text-ink-2 tabular-nums">
+                      {{ row.longStayPercent }}%
+                    </span>
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="flex flex-col gap-2" aria-labelledby="home-trend">
+          <div class="flex items-center justify-between gap-4">
+            <h2 id="home-trend" class="text-section text-ink">Sản lượng 7 ngày</h2>
+            <a
+              routerLink="/bao-cao/san-luong"
+              class="rounded-control text-small font-medium text-ink-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            >
+              Chi tiết
+            </a>
+          </div>
+          <div class="flex items-end justify-between gap-4 px-4 pt-1 pb-3">
+            <p class="flex items-start gap-1.5">
+              <span class="text-metric text-ink-display tabular-nums">{{ trendTotal() }}</span>
+              <span class="pt-1 text-note text-ink-2">lượt vào, ra</span>
+            </p>
+            <app-sparkline
+              [values]="trend()"
+              [label]="'Số lượt vào, ra mỗi ngày trong 7 ngày: ' + trend().join(', ')"
+            />
+          </div>
+          <ul class="flex flex-col gap-1">
+            @for (day of data.days; track day.date) {
+              <li
+                class="flex min-h-8 items-center gap-4 rounded-card border border-transparent px-4 text-body hover:border-line-card hover:bg-surface"
+              >
+                <span class="flex-1 text-ink-body tabular-nums">{{ day.label }}</span>
+                <span class="w-14 text-right text-ink-2 tabular-nums">vào {{ day.gateIns }}</span>
+                <span class="w-14 text-right text-ink-2 tabular-nums">ra {{ day.gateOuts }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+      </div>
+
+      <section class="flex flex-col gap-2" aria-labelledby="home-shortcuts">
+        <h2 id="home-shortcuts" class="text-section text-ink">Đi nhanh tới</h2>
+        <ul class="grid gap-1 sm:grid-cols-2 lg:grid-cols-4">
+          @for (item of shortcuts; track item.path) {
+            <li>
+              <a
+                [routerLink]="item.path"
+                class="flex min-h-14 items-center gap-3 rounded-card border border-transparent px-4 py-2 text-ink-2 transition-colors duration-150 ease-out hover:border-line-card hover:bg-surface hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transition-none"
+              >
+                <app-icon [name]="item.icon" />
+                <span class="flex min-w-0 flex-col">
+                  <span class="text-card text-ink">{{ item.label }}</span>
+                  <span class="truncate text-caption text-ink-2">{{ item.hint }}</span>
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  }
+</app-load-state>
