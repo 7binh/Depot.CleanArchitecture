@@ -1,0 +1,100 @@
+<app-page-header
+  title="Báo cáo sản lượng"
+  description="Số container gate in và gate out của từng hãng khai thác mỗi ngày, tính cả ngày đầu và ngày cuối."
+/>
+
+<div class="grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
+  <app-text-field
+    label="Từ ngày"
+    icon="calendar"
+    type="date"
+    [control]="from"
+    [messages]="dateMessages"
+  />
+  <app-text-field
+    label="Đến ngày"
+    icon="calendar"
+    type="date"
+    [control]="to"
+    [messages]="dateMessages"
+  />
+</div>
+
+@if (rangeError(); as message) {
+  <app-error-banner class="max-w-xl">{{ message }}</app-error-banner>
+}
+
+<app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
+  <div>
+    @if (list.items().length === 0) {
+      <app-empty-state
+        icon="ship"
+        message="Không có container nào vào hoặc ra trong khoảng ngày này."
+      />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full border-separate border-spacing-y-1 text-left">
+          <caption class="sr-only">
+            Sản lượng theo ngày và hãng khai thác
+          </caption>
+          <thead>
+            <tr>
+              @for (label of headings; track label; let index = $index) {
+                <th
+                  scope="col"
+                  class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
+                  [class.text-right]="index >= 2"
+                >
+                  {{ label }}
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of list.items(); track row.id) {
+              <tr class="group">
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body font-medium whitespace-nowrap text-ink tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.date }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body whitespace-nowrap text-ink-body first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.operator }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-right text-body text-ink-body tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.gateIns }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-right text-body text-ink-body tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.gateOuts }}
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" class="h-12 border-t border-line px-4 text-body font-medium text-ink">
+                Tổng
+              </td>
+              <td
+                class="h-12 border-t border-line px-4 text-right text-body font-medium text-ink tabular-nums"
+              >
+                {{ totals().gateIns }}
+              </td>
+              <td
+                class="h-12 border-t border-line px-4 text-right text-body font-medium text-ink tabular-nums"
+              >
+                {{ totals().gateOuts }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+  </div>
+</app-load-state>
