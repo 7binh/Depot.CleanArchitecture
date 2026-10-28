@@ -71,6 +71,12 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'bao-cao/ton-bai',
+        title: 'Báo cáo tồn bãi - Depot',
+        loadComponent: () =>
+          import('./features/reports/yard-stock-page').then((m) => m.YardStockPage),
+      },
+      {
         path: 'danh-muc/hang-khai-thac',
         title: 'Hãng khai thác - Depot',
         loadComponent: () =>

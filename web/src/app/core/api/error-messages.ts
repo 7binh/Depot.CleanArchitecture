@@ -96,4 +96,6 @@ export const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'BayRange.Invalid': 'Bay bắt đầu phải từ 1, không lớn hơn bay kết thúc, tối đa 999.',
   'RowCount.Invalid': 'Số row mỗi bay phải từ 1 đến 99.',
   'Layout.Changed': 'Cấu trúc bãi vừa được thay đổi ở nơi khác. Hãy thử lại.',
+
+  'DateRange.Invalid': 'Từ ngày không được sau đến ngày.',
 };

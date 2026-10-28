@@ -30,6 +30,10 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    label: 'Báo cáo',
+    items: [{ label: 'Tồn bãi', path: '/bao-cao/ton-bai', icon: 'box' }],
+  },
+  {
     label: 'Danh mục',
     items: [
       { label: 'Cấu trúc bãi', path: '/cau-truc-bai', icon: 'layers' },

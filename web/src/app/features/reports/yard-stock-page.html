@@ -1,0 +1,107 @@
+<app-page-header
+  title="Báo cáo tồn bãi"
+  description="Số container trong bãi theo hãng khai thác vào cuối ngày đã chọn, tách container mới vào và container tồn từ 10 ngày."
+/>
+
+<div class="max-w-xs">
+  <app-text-field
+    label="Ngày"
+    icon="calendar"
+    type="date"
+    [control]="date"
+    [messages]="dateMessages"
+  />
+</div>
+
+<app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
+  <div>
+    @if (list.items().length === 0) {
+      <app-empty-state icon="box" message="Không có container nào trong bãi vào ngày này." />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full border-separate border-spacing-y-1 text-left">
+          <caption class="sr-only">
+            Tồn bãi theo hãng khai thác
+          </caption>
+          <thead>
+            <tr>
+              @for (label of headings; track label; let first = $first) {
+                <th
+                  scope="col"
+                  class="h-9 border-b border-line px-4 text-label whitespace-nowrap text-ink-3 uppercase"
+                  [class.text-right]="!first && label !== 'Tồn lâu'"
+                >
+                  {{ label }}
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of list.items(); track row.id) {
+              <tr class="group">
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body font-medium whitespace-nowrap text-ink first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.operator }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-right text-body text-ink-body tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.recent }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-right text-body text-ink-body tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.longStay }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-right text-body font-medium text-ink tabular-nums first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  {{ row.total }}
+                </td>
+                <td
+                  class="h-12 border-y border-transparent px-4 text-body whitespace-nowrap first:rounded-l-card first:border-l last:rounded-r-card last:border-r group-hover:border-line-card group-hover:bg-surface"
+                >
+                  <span class="flex items-center gap-3">
+                    <app-tick-gauge
+                      [percent]="row.longStayPercent"
+                      [label]="'Tồn lâu ' + row.longStayPercent + '%'"
+                    />
+                    <span class="text-caption text-ink-2 tabular-nums"
+                      >{{ row.longStayPercent }}%</span
+                    >
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="h-12 border-t border-line px-4 text-body font-medium text-ink">
+                {{ total().operator }}
+              </td>
+              <td
+                class="h-12 border-t border-line px-4 text-right text-body font-medium text-ink tabular-nums"
+              >
+                {{ total().recent }}
+              </td>
+              <td
+                class="h-12 border-t border-line px-4 text-right text-body font-medium text-ink tabular-nums"
+              >
+                {{ total().longStay }}
+              </td>
+              <td
+                class="h-12 border-t border-line px-4 text-right text-body font-medium text-ink tabular-nums"
+              >
+                {{ total().total }}
+              </td>
+              <td class="h-12 border-t border-line px-4 text-caption text-ink-2 tabular-nums">
+                {{ total().longStayPercent }}%
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+  </div>
+</app-load-state>
