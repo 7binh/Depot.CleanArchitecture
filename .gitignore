@@ -14,3 +14,5 @@ dist/
 .agents/
 CLAUDE.md
 AGENTS.md
+GEMINI.md
+scripts/claude-stop-hook.sh
