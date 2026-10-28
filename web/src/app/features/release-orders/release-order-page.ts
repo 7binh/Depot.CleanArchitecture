@@ -36,15 +36,22 @@ export class ReleaseOrderPage implements OnInit {
       this.operators.list(),
       this.customers.list(),
       this.types.list(),
+      this.orders.deliveries(this.id),
     ]).pipe(
-      map(([order, operators, customers, types]) => [
-        toOrderDetail(order, operators, customers, types),
+      map(([order, operators, customers, types, deliveries]) => [
+        toOrderDetail(order, operators, customers, types, deliveries),
       ]),
     ),
   );
   protected readonly order = computed(() => this.loader.items()[0]);
+  /** Gate Out can still take a container only while the order is neither expired nor fully delivered. */
+  protected readonly canGateOut = computed(() => {
+    const status = this.order()?.status;
+    return status === 'NotDelivered' || status === 'Delivering';
+  });
   protected readonly statuses = ORDER_STATUSES;
   protected readonly headings = ['Loại', 'Cỡ', 'Số lượng', 'Đã giao', 'Còn lại', 'Tiến độ'];
+  protected readonly deliveryHeadings = ['Số container', 'Loại', 'Cỡ', 'Giờ ra', 'Phương tiện'];
 
   ngOnInit(): void {
     this.loader.load();

@@ -19,7 +19,9 @@ const CONTAINERS = [
     id: 'c1',
     number: 'CSQU3054383',
     lineOperatorId: 'o1',
+    lineOperatorCode: 'CSQ',
     containerTypeId: 't1',
+    containerTypeCode: '20GP',
     isoCode: '22G1',
     sizeFeet: 20,
     maxWeightKg: 30480,
@@ -30,7 +32,9 @@ const CONTAINERS = [
     id: 'c2',
     number: 'MSKU0000000',
     lineOperatorId: 'o2',
+    lineOperatorCode: 'MSK',
     containerTypeId: 't2',
+    containerTypeCode: '40HC',
     isoCode: '45G1',
     sizeFeet: 40,
     maxWeightKg: 32500,
@@ -39,14 +43,22 @@ const CONTAINERS = [
   },
 ];
 
-function setup(containers = CONTAINERS) {
+function paged(items: typeof CONTAINERS, totalCount = items.length, page = 1) {
+  return { items, totalCount, page, pageSize: 20, totalPages: Math.ceil(totalCount / 20) };
+}
+
+function searchRequest(http: HttpTestingController) {
+  return http.expectOne((r) => r.url === `${API}/containers/search`);
+}
+
+function setup(items = CONTAINERS, totalCount = items.length) {
   stubDialog();
   TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
   const http = TestBed.inject(HttpTestingController);
   const fixture = TestBed.createComponent(ContainersPage);
   const element = fixture.nativeElement as HTMLElement;
   fixture.detectChanges();
-  http.expectOne(`${API}/containers`).flush(containers);
+  searchRequest(http).flush(paged(items, totalCount));
   http.expectOne(`${API}/line-operators`).flush(OPERATORS);
   http.expectOne(`${API}/container-types`).flush(TYPES);
   fixture.detectChanges();
@@ -58,7 +70,7 @@ function rowTexts(element: HTMLElement): string[] {
 }
 
 describe('ContainersPage list', () => {
-  it('shows each container with its operator and type names', () => {
+  it('shows each container with its operator and type codes', () => {
     const { element } = setup();
     const [first] = rowTexts(element);
     expect(first).toContain('CSQU3054383');
@@ -69,19 +81,103 @@ describe('ContainersPage list', () => {
     expect(first).toContain('09/03/2024');
   });
 
-  it('filters by line operator and by type', () => {
-    const { fixture, element } = setup();
-    choose(fixture, 'Hãng', 'o2');
-    expect(rowTexts(element).length).toBe(1);
-    expect(rowTexts(element)[0]).toContain('MSKU0000000');
-
-    choose(fixture, 'Loại', 't1');
-    expect(element.textContent).toContain('Không có container nào khớp bộ lọc.');
-  });
-
   it('says so when there are no containers', () => {
     const { element } = setup([]);
     expect(element.textContent).toContain('Chưa có container nào.');
+  });
+
+  it('asks for the first page of 20 with no filter', () => {
+    stubDialog();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    TestBed.createComponent(ContainersPage).detectChanges();
+    const { params } = searchRequest(http).request;
+    expect(params.keys().sort()).toEqual(['page', 'pageSize']);
+    expect(params.get('page')).toBe('1');
+    expect(params.get('pageSize')).toBe('20');
+  });
+});
+
+describe('ContainersPage filters', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('asks the API for the chosen operator, type and size once typing pauses', () => {
+    const { http, fixture, element } = setup();
+    choose(fixture, 'Hãng', 'o2');
+    choose(fixture, 'Loại', 't2');
+    choose(fixture, 'Kích cỡ', '40');
+    http.expectNone((r) => r.url === `${API}/containers/search`);
+
+    vi.advanceTimersByTime(300);
+    const request = searchRequest(http);
+    expect(request.request.params.get('lineOperatorId')).toBe('o2');
+    expect(request.request.params.get('containerTypeId')).toBe('t2');
+    expect(request.request.params.get('sizeFeet')).toBe('40');
+    request.flush(paged([CONTAINERS[1]]));
+    fixture.detectChanges();
+    expect(rowTexts(element).length).toBe(1);
+    expect(rowTexts(element)[0]).toContain('MSKU0000000');
+  });
+
+  it('sends the typed number and ISO code', () => {
+    const { http, fixture } = setup();
+    type(fixture, 'Tìm số container', 'csq');
+    type(fixture, 'Tìm mã ISO', '22g');
+    vi.advanceTimersByTime(300);
+    const { params } = searchRequest(http).request;
+    expect(params.get('number')).toBe('csq');
+    expect(params.get('isoCode')).toBe('22g');
+  });
+
+  it('says no container matches when a filtered search finds none', () => {
+    const { http, fixture, element } = setup();
+    choose(fixture, 'Hãng', 'o2');
+    vi.advanceTimersByTime(300);
+    searchRequest(http).flush(paged([]));
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Không có container nào khớp bộ lọc.');
+  });
+});
+
+describe('ContainersPage paging', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('shows the range and the page count', () => {
+    const { element } = setup(CONTAINERS, 45);
+    expect(element.querySelector('nav')?.textContent).toContain('1–20 / 45');
+    expect(element.querySelector('nav')?.textContent).toContain('1 / 3');
+  });
+
+  it('disables Trước on the first page and Sau on the last', () => {
+    const { fixture, element } = setup(CONTAINERS, 2);
+    const buttons = [...element.querySelectorAll<HTMLButtonElement>('nav button')];
+    expect(buttons.map((b) => b.disabled)).toEqual([true, true]);
+    expect(fixture).toBeTruthy();
+  });
+
+  it('asks for the next page when Sau is clicked', () => {
+    const { http, fixture, element } = setup(CONTAINERS, 45);
+    click(fixture, 'Sau');
+    const request = searchRequest(http);
+    expect(request.request.params.get('page')).toBe('2');
+    request.flush(paged(CONTAINERS, 45, 2));
+    fixture.detectChanges();
+    expect(element.querySelector('nav')?.textContent).toContain('21–40 / 45');
+  });
+
+  it('goes back to page 1 when a filter changes', () => {
+    const { http, fixture } = setup(CONTAINERS, 45);
+    click(fixture, 'Sau');
+    searchRequest(http).flush(paged(CONTAINERS, 45, 2));
+    fixture.detectChanges();
+
+    choose(fixture, 'Hãng', 'o1');
+    vi.advanceTimersByTime(300);
+    expect(searchRequest(http).request.params.get('page')).toBe('1');
   });
 });
 
@@ -123,7 +219,7 @@ describe('ContainersPage validation', () => {
 });
 
 describe('ContainersPage create', () => {
-  it('sends the container, closes the dialog and reloads', () => {
+  it('sends the container, closes the dialog and reloads the list', () => {
     const page = openDialog();
     fill(page, 'csqu3054383');
     const request = page.http.expectOne((r) => r.method === 'POST');
@@ -139,9 +235,7 @@ describe('ContainersPage create', () => {
     request.flush(CONTAINERS[0]);
     page.fixture.detectChanges();
     expect(page.element.querySelector('dialog')).toBeNull();
-    page.http.expectOne(`${API}/containers`);
-    page.http.expectOne(`${API}/line-operators`);
-    page.http.expectOne(`${API}/container-types`);
+    searchRequest(page.http);
   });
 
   it('shows a duplicate number under the number field', () => {

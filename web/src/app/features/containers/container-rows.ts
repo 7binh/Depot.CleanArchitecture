@@ -1,6 +1,6 @@
 import { LineOperator } from '../catalogs/line-operators/line-operator.service';
 import { ContainerType } from '../catalogs/container-types/container-type.service';
-import { Container } from './container.service';
+import { Container, ContainerListItem } from './container.service';
 
 /** A container with the operator and type names worked out, ready to show in a table. */
 export interface ContainerRow {
@@ -12,6 +12,19 @@ export interface ContainerRow {
   containerType: string;
   isoCode: string;
   sizeFeet: number;
+  size: string;
+  maxWeight: string;
+  tareWeight: string;
+  manufactureDate: string;
+}
+
+/** A row of the paged container table: the API already sent the codes, so only the text is formatted. */
+export interface ContainerTableRow {
+  id: string;
+  number: string;
+  lineOperator: string;
+  containerType: string;
+  isoCode: string;
   size: string;
   maxWeight: string;
   tareWeight: string;
@@ -42,6 +55,20 @@ export function toContainerRows(
     containerType: typeCodes.get(c.containerTypeId) ?? '',
     isoCode: c.isoCode,
     sizeFeet: c.sizeFeet,
+    size: `${c.sizeFeet} ft`,
+    maxWeight: KG.format(c.maxWeightKg),
+    tareWeight: KG.format(c.tareWeightKg),
+    manufactureDate: formatDate(c.manufactureDate),
+  }));
+}
+
+export function toContainerTableRows(containers: ContainerListItem[]): ContainerTableRow[] {
+  return containers.map((c) => ({
+    id: c.id,
+    number: c.number,
+    lineOperator: c.lineOperatorCode,
+    containerType: c.containerTypeCode,
+    isoCode: c.isoCode,
     size: `${c.sizeFeet} ft`,
     maxWeight: KG.format(c.maxWeightKg),
     tareWeight: KG.format(c.tareWeightKg),

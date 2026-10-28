@@ -26,6 +26,7 @@ export const GATE_IN_MESSAGES = {
     ...ERROR_MESSAGES,
     required: 'Nhập số container.',
     unknown: 'Chưa có hồ sơ cho số container này.',
+    checking: 'Đang kiểm tra số container.',
   },
   condition: ERROR_MESSAGES,
   note: { ...ERROR_MESSAGES, required: 'Mô tả tình trạng hư hỏng.' },
@@ -58,13 +59,16 @@ function text(initial: string, validators: ValidatorFn[] = []): FormControl<stri
 
 /** What the form needs to know about its surroundings to validate itself. */
 export interface GateInContext {
-  hasContainer: (number: string) => boolean;
+  /** `checking` while the number is still being looked up, then `known` or `unknown`. */
+  numberStatus: (number: string) => 'checking' | 'known' | 'unknown';
   isRealBlock: (blockId: string) => boolean;
 }
 
 export function buildGateInForm(context: GateInContext) {
-  const unknownContainer: ValidatorFn = (c) =>
-    context.hasContainer(c.value) ? null : { unknown: true };
+  const unknownContainer: ValidatorFn = (c) => {
+    const status = context.numberStatus(c.value);
+    return status === 'known' ? null : { [status]: true };
+  };
   const damageNoteRequired: ValidatorFn = (c) =>
     c.parent?.get('condition')?.value === 'Damaged' && c.value.trim() === ''
       ? { required: true }

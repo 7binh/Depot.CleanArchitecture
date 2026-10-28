@@ -3,15 +3,18 @@ import {
   Component,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { forkJoin, map, tap } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { errorCode, toMessage } from '../../core/api/api-error';
 import { ERROR_MESSAGES } from '../../core/api/error-messages';
-import { ListLoader, worstStatus } from '../../core/api/list-loader';
+import { ListLoader } from '../../core/api/list-loader';
 import { notBlank } from '../../shared/forms/not-blank.validator';
 import { Button } from '../../shared/ui/button';
 import { Card } from '../../shared/ui/card';
@@ -21,16 +24,9 @@ import { PageHeader } from '../../shared/ui/page-header';
 import { SearchSelect } from '../../shared/ui/search-select';
 import { SelectField, SelectOption } from '../../shared/ui/select-field';
 import { TextField } from '../../shared/ui/text-field';
-import {
-  ContainerType,
-  ContainerTypeService,
-} from '../catalogs/container-types/container-type.service';
-import {
-  LineOperator,
-  LineOperatorService,
-} from '../catalogs/line-operators/line-operator.service';
-import { ContainerRow, toContainerRows } from '../containers/container-rows';
-import { ContainerService } from '../containers/container.service';
+import { ContainerTypeService } from '../catalogs/container-types/container-type.service';
+import { LineOperatorService } from '../catalogs/line-operators/line-operator.service';
+import { ContainerListItem, ContainerService } from '../containers/container.service';
 import { ReleaseOrder, ReleaseOrderService } from '../release-orders/release-order.service';
 import { VEHICLE_OPTIONS, nowLocal, notInFuture } from './gate-in-form';
 import { GateService, NewGateOut, VehicleType } from './gate.service';
@@ -52,12 +48,17 @@ const FIELD_OF_ERROR: Record<string, Field> = {
   'GateOutAt.BeforeGateIn': 'gateOutAt',
 };
 
+/** Orders and containers come one page at a time; a page this big holds all that are open in practice. */
+const PAGE_SIZE = 100;
+/** Typing waits this long for a pause before the containers are searched again. */
+const SEARCH_DELAY_MS = 300;
+
 function text(initial: string, required = false): FormControl<string> {
   return new FormControl(initial, { nonNullable: true, validators: required ? [notBlank] : [] });
 }
 
 /** An order can take this container when it is the same operator, still valid and has room on the matching line. */
-function canRelease(order: ReleaseOrder, container: ContainerRow): boolean {
+function canRelease(order: ReleaseOrder, container: ContainerListItem): boolean {
   return (
     order.lineOperatorId === container.lineOperatorId &&
     !order.isExpired &&
@@ -68,11 +69,6 @@ function canRelease(order: ReleaseOrder, container: ContainerRow): boolean {
         item.remaining > 0,
     )
   );
-}
-
-/** An order can still take containers while it is valid and some line has room. */
-function hasRoom(order: ReleaseOrder): boolean {
-  return !order.isExpired && order.items.some((item) => item.remaining > 0);
 }
 
 @Component({
@@ -98,26 +94,37 @@ export class GateOutPage implements OnInit {
   private readonly types = inject(ContainerTypeService);
   private readonly orderService = inject(ReleaseOrderService);
   private readonly gate = inject(GateService);
+  private readonly route = inject(ActivatedRoute);
+  /** An order id from the address (the Gate Out button of the order page), chosen once the open orders arrive. */
+  private preselected = this.route.snapshot.queryParamMap.get('order');
 
-  private readonly operatorList = signal<LineOperator[]>([]);
-  private readonly typeList = signal<ContainerType[]>([]);
-  private readonly containers = new ListLoader<ContainerRow>(() =>
-    forkJoin([this.containerService.list(), this.operators.list(), this.types.list()]).pipe(
-      tap(([, operators, types]) => {
-        this.operatorList.set(operators);
-        this.typeList.set(types);
-      }),
-      map(([containers, operators, types]) => toContainerRows(containers, operators, types)),
-    ),
+  /** Names for the order summary; the form works without them, so they never block the page. */
+  private readonly operatorNames = new ListLoader(() => this.operators.list());
+  private readonly typeNames = new ListLoader(() => this.types.list());
+  private readonly orders = new ListLoader(() =>
+    this.orderService.searchOpen(1, PAGE_SIZE).pipe(map((paged) => paged.items)),
   );
-  private readonly stays = new ListLoader(() => this.gate.inYard());
-  private readonly orders = new ListLoader(() => this.orderService.list());
+  private readonly containerQuery = signal('');
+  /** The containers in the yard that belong to the chosen order's operator and match the typed text. */
+  private readonly containers = new ListLoader<ContainerListItem>(() =>
+    this.containerService
+      .search(
+        {
+          number: this.containerQuery(),
+          lineOperatorId: this.order()?.lineOperatorId,
+          inYard: true,
+        },
+        1,
+        PAGE_SIZE,
+      )
+      .pipe(map((paged) => paged.items)),
+  );
+  private readonly typed = new Subject<string>();
 
-  protected readonly status = computed(() =>
-    worstStatus([this.containers.status(), this.stays.status(), this.orders.status()]),
-  );
-  protected readonly failure = computed(
-    () => this.containers.failure() || this.stays.failure() || this.orders.failure(),
+  protected readonly status = this.orders.status;
+  protected readonly failure = this.orders.failure;
+  protected readonly containerFailure = computed(() =>
+    this.containers.status() === 'failed' ? this.containers.failure() : null,
   );
 
   protected readonly form = new FormGroup({
@@ -152,7 +159,6 @@ export class GateOutPage implements OnInit {
   protected readonly orderOptions = computed<SelectOption[]>(() =>
     this.orders
       .items()
-      .filter(hasRoom)
       .map((order) => ({ value: order.id, label: order.orderNo, hint: order.exportVessel })),
   );
   protected readonly order = computed(() =>
@@ -163,36 +169,33 @@ export class GateOutPage implements OnInit {
     if (!order) {
       return null;
     }
-    const operator = this.operatorList().find((o) => o.id === order.lineOperatorId);
+    const operator = this.operatorNames.items().find((o) => o.id === order.lineOperatorId);
     const lines = order.items.map((item) => {
-      const type = this.typeList().find((t) => t.id === item.containerTypeId);
+      const type = this.typeNames.items().find((t) => t.id === item.containerTypeId);
       return `${type?.code ?? '?'} cỡ ${item.sizeFeet} ft: còn ${item.remaining}/${item.quantity}`;
     });
     return { operator: operator?.code ?? '?', order, lines };
   });
 
-  private readonly inYard = computed(() => {
-    const ids = new Set(this.stays.items().map((stay) => stay.containerId));
-    return this.containers.items().filter((row) => ids.has(row.id));
-  });
   protected readonly containerOptions = computed<SelectOption[]>(() => {
     const order = this.order();
     if (!order) {
       return [];
     }
-    return this.inYard()
+    return this.containers
+      .items()
       .filter((row) => canRelease(order, row))
       .map((row) => ({
         value: row.id,
         label: row.number,
-        hint: `${row.lineOperator} · ${row.containerType} · ${row.size}`,
+        hint: `${row.lineOperatorCode} · ${row.containerTypeCode} · ${row.sizeFeet} ft`,
       }));
   });
   protected readonly containerEmpty = computed(() =>
     this.order() ? 'Không có container nào trong bãi khớp lệnh này.' : 'Chọn lệnh giao trước.',
   );
   protected readonly chosen = computed(() =>
-    this.inYard().find((row) => row.id === this.containerId()),
+    this.containers.items().find((row) => row.id === this.containerId()),
   );
 
   protected readonly notice = signal<string | null>(null);
@@ -200,15 +203,30 @@ export class GateOutPage implements OnInit {
   protected readonly done = signal<string | null>(null);
 
   constructor() {
-    this.form.controls.releaseOrderId.valueChanges.subscribe(() => {
-      this.form.controls.containerId.setValue('');
+    this.form.controls.releaseOrderId.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(() => {
+        this.form.controls.containerId.setValue('');
+        this.searchContainers('');
+      });
+    this.typed
+      .pipe(debounceTime(SEARCH_DELAY_MS), takeUntilDestroyed())
+      .subscribe((text) => this.searchContainers(text));
+    effect(() => {
+      const ready = this.orders.status() === 'ready';
+      const items = this.orders.items();
+      untracked(() => this.choosePreselected(ready, items));
     });
   }
 
   ngOnInit(): void {
-    this.containers.load();
-    this.stays.load();
     this.orders.load();
+    this.operatorNames.load();
+    this.typeNames.load();
+  }
+
+  protected typeContainer(text: string): void {
+    this.typed.next(text.trim());
   }
 
   protected submit(): void {
@@ -242,8 +260,28 @@ export class GateOutPage implements OnInit {
     this.done.set(number);
     this.form.reset();
     this.form.controls.gateOutAt.setValue(nowLocal());
-    this.stays.load(true);
     this.orders.load(true);
+  }
+
+  /** Chooses the order named in the address, if it is still open; an order that is not open is left unchosen. */
+  private choosePreselected(ready: boolean, orders: ReleaseOrder[]): void {
+    if (!ready || this.preselected === null) {
+      return;
+    }
+    if (orders.some((order) => order.id === this.preselected)) {
+      this.form.controls.releaseOrderId.setValue(this.preselected);
+    }
+    this.preselected = null;
+  }
+
+  /** Asks the server for the containers in the yard; with no order chosen there is nothing to offer. */
+  private searchContainers(text: string): void {
+    this.containerQuery.set(text);
+    if (this.order()) {
+      this.containers.load(true);
+    } else {
+      this.containers.items.set([]);
+    }
   }
 
   private fail(error: unknown): void {

@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
@@ -104,6 +105,8 @@ export class SearchSelect {
   /** Also match the text against each option's hint, not only its label. */
   readonly matchHint = input(false);
   readonly messages = input<Record<string, string>>({});
+  /** The text as the user types it, for a page that fetches the options from the server. */
+  readonly queryChange = output<string>();
 
   protected readonly id = `search-select-${nextId++}`;
   protected readonly open = signal(false);
@@ -143,6 +146,15 @@ export class SearchSelect {
       });
       onCleanup(() => sub.unsubscribe());
     });
+    // Options that arrive later (from the server) may now hold exactly the text typed: choose it,
+    // or name a value that was set before its option was known.
+    effect(() => {
+      const options = this.options();
+      untracked(() => {
+        this.pickTypedText(options);
+        this.nameValue(options);
+      });
+    });
   }
 
   protected optionId(index: number): string {
@@ -155,6 +167,7 @@ export class SearchSelect {
     this.filter.set(value);
     this.active.set(0);
     this.open.set(true);
+    this.queryChange.emit(value);
     const exact = this.options().find((o) => squash(o.label) === squash(value));
     if (exact) {
       this.pick(exact);
@@ -189,6 +202,25 @@ export class SearchSelect {
   protected leave(): void {
     this.open.set(false);
     this.control().markAsTouched();
+  }
+
+  private nameValue(options: readonly SelectOption[]): void {
+    const value = this.control().value;
+    const label = options.find((o) => o.value === value)?.label;
+    if (value !== '' && label !== undefined && !this.typing && this.text() !== label) {
+      this.text.set(label);
+    }
+  }
+
+  private pickTypedText(options: readonly SelectOption[]): void {
+    const typed = squash(this.text());
+    if (typed === '' || this.control().value !== '') {
+      return;
+    }
+    const exact = options.find((o) => squash(o.label) === typed);
+    if (exact) {
+      this.pick(exact);
+    }
   }
 
   private pick(option: SelectOption): void {

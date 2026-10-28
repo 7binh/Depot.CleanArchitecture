@@ -4,6 +4,7 @@ using Depot.Application.Features.Containers;
 using Depot.Application.Features.Containers.Create;
 using Depot.Application.Features.Containers.GetAll;
 using Depot.Application.Features.Containers.GetById;
+using Depot.Application.Features.Containers.Search;
 using Depot.Domain.Common;
 
 namespace Depot.Api.Endpoints;
@@ -22,6 +23,10 @@ public static class ContainerEndpoints
         group.MapGet("/", GetAll)
             .WithName("GetContainers")
             .WithSummary("List all containers, ordered by number");
+
+        group.MapGet("/search", Search)
+            .WithName("SearchContainers")
+            .WithSummary("List containers one page at a time, filtered by number, operator, type, size or ISO code");
 
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetContainerById")
@@ -44,6 +49,15 @@ public static class ContainerEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new GetContainersQuery(), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> Search(
+        [AsParameters] SearchContainersQuery query,
+        IQueryHandler<SearchContainersQuery, Result<PagedResult<ContainerListItem>>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(query, cancellationToken);
         return result.ToHttpResult();
     }
 

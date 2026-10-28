@@ -3,11 +3,7 @@
   description="Ghi nhận container vào bãi: đối chiếu hồ sơ, tình trạng và vị trí xếp."
 />
 
-<app-load-state
-  [status]="containers.status() === 'ready' ? blocks.status() : containers.status()"
-  [failure]="containers.failure() || blocks.failure()"
-  (retry)="ngOnInit()"
->
+<app-load-state [status]="blocks.status()" [failure]="blocks.failure()" (retry)="ngOnInit()">
   <app-card size="large" class="max-w-4xl">
     <form class="flex flex-col" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       @if (done(); as number) {
@@ -34,11 +30,11 @@
           />
           @if (found(); as container) {
             <p class="rounded-control bg-surface-sunken p-4 text-small text-ink">
-              Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
-              {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực
-              tế.
+              Hồ sơ: hãng {{ container.lineOperatorCode }}, loại {{ container.containerTypeCode }},
+              cỡ {{ container.sizeFeet }} ft, ISO {{ container.isoCode }}. Hãy đối chiếu với
+              container thực tế.
             </p>
-          } @else if (typedSomething()) {
+          } @else if (unknown()) {
             <div class="flex flex-wrap items-center gap-4">
               <p class="text-small text-ink-2">Chưa có hồ sơ cho số container này.</p>
               <button appButton type="button" (click)="declaring.set(true)">

@@ -3,7 +3,9 @@ using Depot.Application.Abstractions.Messaging;
 using Depot.Application.Features.ReleaseOrders;
 using Depot.Application.Features.ReleaseOrders.Create;
 using Depot.Application.Features.ReleaseOrders.GetAll;
+using Depot.Application.Features.ReleaseOrders.GetDeliveries;
 using Depot.Application.Features.ReleaseOrders.GetById;
+using Depot.Application.Features.ReleaseOrders.Search;
 using Depot.Domain.Common;
 
 namespace Depot.Api.Endpoints;
@@ -23,9 +25,17 @@ public static class ReleaseOrderEndpoints
             .WithName("GetReleaseOrders")
             .WithSummary("List release orders, newest first, with an IsExpired flag");
 
+        group.MapGet("/search", Search)
+            .WithName("SearchReleaseOrders")
+            .WithSummary("List release orders one page at a time; openOnly=true keeps the ones that can still deliver");
+
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetReleaseOrderById")
             .WithSummary("Get one release order with its lines");
+
+        group.MapGet("/{id:guid}/deliveries", GetDeliveries)
+            .WithName("GetReleaseOrderDeliveries")
+            .WithSummary("List the containers that have left the depot on this release order, latest gate out first");
     }
 
     private static async Task<IResult> Create(
@@ -44,6 +54,24 @@ public static class ReleaseOrderEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new GetReleaseOrdersQuery(), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> Search(
+        [AsParameters] SearchReleaseOrdersQuery query,
+        IQueryHandler<SearchReleaseOrdersQuery, Result<PagedResult<ReleaseOrderResponse>>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(query, cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetDeliveries(
+        Guid id,
+        IQueryHandler<GetReleaseOrderDeliveriesQuery, Result<IReadOnlyList<ReleaseOrderDeliveryResponse>>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new GetReleaseOrderDeliveriesQuery(id), cancellationToken);
         return result.ToHttpResult();
     }
 

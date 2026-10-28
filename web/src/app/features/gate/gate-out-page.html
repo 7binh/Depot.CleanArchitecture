@@ -38,11 +38,16 @@
         [control]="form.controls.containerId"
         [options]="containerOptions()"
         [messages]="messages.container"
+        (queryChange)="typeContainer($event)"
       />
+      @if (containerFailure(); as message) {
+        <app-error-banner>{{ message }}</app-error-banner>
+      }
       @if (chosen(); as container) {
         <p class="rounded-control bg-surface-sunken p-4 text-small text-ink">
-          Hồ sơ: hãng {{ container.lineOperator }}, loại {{ container.containerType }}, cỡ
-          {{ container.size }}, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực tế.
+          Hồ sơ: hãng {{ container.lineOperatorCode }}, loại {{ container.containerTypeCode }}, cỡ
+          {{ container.sizeFeet }} ft, ISO {{ container.isoCode }}. Hãy đối chiếu với container thực
+          tế.
         </p>
       }
 

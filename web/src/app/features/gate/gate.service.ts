@@ -49,11 +49,4 @@ export class GateService {
   gateOut(request: NewGateOut): Observable<ContainerStay> {
     return this.http.post<ContainerStay>(`${this.url}/api/gate-out`, request);
   }
-
-  /** Stays of the containers that are in the yard now. */
-  inYard(): Observable<ContainerStay[]> {
-    return this.http.get<ContainerStay[]>(`${this.url}/api/container-stays`, {
-      params: { inYard: true },
-    });
-  }
 }

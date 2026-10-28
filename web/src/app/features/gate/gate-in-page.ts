@@ -9,7 +9,15 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 import { errorCode, toMessage } from '../../core/api/api-error';
 import { ListLoader } from '../../core/api/list-loader';
 import { Button } from '../../shared/ui/button';
@@ -20,10 +28,7 @@ import { LoadState } from '../../shared/ui/load-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { SelectField, SelectOption } from '../../shared/ui/select-field';
 import { TextField } from '../../shared/ui/text-field';
-import { ContainerTypeService } from '../catalogs/container-types/container-type.service';
-import { LineOperatorService } from '../catalogs/line-operators/line-operator.service';
-import { ContainerRow, toContainerRows } from '../containers/container-rows';
-import { Container, ContainerService } from '../containers/container.service';
+import { Container, ContainerListItem, ContainerService } from '../containers/container.service';
 import { CreateContainerDialog } from '../containers/create-container-dialog';
 import { Bay, Block, YardRow, YardService, baySize } from '../yard/yard.service';
 import {
@@ -63,10 +68,20 @@ const FIELD_OF_ERROR: Record<string, Field> = {
   'Bay.NeighboursMissing': 'bayId',
 };
 
-/** Case-insensitive match on the typed number, spaces ignored. */
-function findByNumber(rows: ContainerRow[], typed: string): ContainerRow | undefined {
-  const wanted = typed.replace(/\s/g, '').toUpperCase();
-  return wanted === '' ? undefined : rows.find((row) => row.number.toUpperCase() === wanted);
+/** Typing waits this long for a pause before the number is looked up. */
+const LOOKUP_DELAY_MS = 300;
+/** A full number matches at most one container; a few rows are enough to find it. */
+const LOOKUP_PAGE_SIZE = 5;
+
+/** What the server answered for a number: its container, or null when there is none. */
+interface Lookup {
+  number: string;
+  container: ContainerListItem | null;
+}
+
+/** Case and spaces do not matter when a number is typed. */
+function normalizeNumber(typed: string): string {
+  return typed.replace(/\s/g, '').toUpperCase();
 }
 
 @Component({
@@ -89,21 +104,15 @@ function findByNumber(rows: ContainerRow[], typed: string): ContainerRow | undef
 })
 export class GateInPage implements OnInit {
   private readonly containerService = inject(ContainerService);
-  private readonly operators = inject(LineOperatorService);
-  private readonly types = inject(ContainerTypeService);
   private readonly yard = inject(YardService);
   private readonly gate = inject(GateService);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly containers = new ListLoader<ContainerRow>(() =>
-    forkJoin([this.containerService.list(), this.operators.list(), this.types.list()]).pipe(
-      map(([containers, operators, types]) => toContainerRows(containers, operators, types)),
-    ),
-  );
+  private readonly lookup = signal<Lookup | null>(null);
   protected readonly blocks = new ListLoader<Block>(() => this.yard.blocks());
 
   protected readonly form = buildGateInForm({
-    hasContainer: (number) => findByNumber(this.containers.items(), number) !== undefined,
+    numberStatus: (number) => this.statusOf(normalizeNumber(number)),
     isRealBlock: (id) => this.isRealBlock(id),
   });
   protected readonly messages = GATE_IN_MESSAGES;
@@ -123,10 +132,15 @@ export class GateInPage implements OnInit {
   private readonly bayId = toSignal(this.form.controls.bayId.valueChanges, { initialValue: '' });
   private readonly rowId = toSignal(this.form.controls.rowId.valueChanges, { initialValue: '' });
 
-  protected readonly found = computed(() =>
-    findByNumber(this.containers.items(), this.typedNumber()),
-  );
+  protected readonly found = computed(() => {
+    const result = this.lookup();
+    return result?.number === normalizeNumber(this.typedNumber()) ? result.container : null;
+  });
   protected readonly typedSomething = computed(() => this.typedNumber().trim() !== '');
+  /** The server answered for the number on screen, and it has no container. */
+  protected readonly unknown = computed(
+    () => this.typedSomething() && this.statusOf(normalizeNumber(this.typedNumber())) === 'unknown',
+  );
   protected readonly damaged = computed(() => this.condition() === 'Damaged');
   protected readonly positioned = computed(() => this.isRealBlock(this.blockId()));
 
@@ -196,17 +210,29 @@ export class GateInPage implements OnInit {
       controls.tier.setValue('');
       controls.tier.updateValueAndValidity();
     });
+    controls.number.valueChanges
+      .pipe(
+        map(normalizeNumber),
+        distinctUntilChanged(),
+        debounceTime(LOOKUP_DELAY_MS),
+        switchMap((key) => this.lookUp(key)),
+        takeUntilDestroyed(),
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.lookup.set(result);
+          controls.number.updateValueAndValidity();
+        }
+      });
     this.fillPlace();
   }
 
   ngOnInit(): void {
-    this.containers.load();
     this.blocks.load();
   }
 
-  /** A container declared inside the Gate In flow: reload the list, then pick it. */
+  /** A container declared inside the Gate In flow: put its number in, which looks it up. */
   protected declared(container: Container): void {
-    this.containers.load();
     this.form.controls.number.setValue(container.number);
   }
 
@@ -223,6 +249,30 @@ export class GateInPage implements OnInit {
       next: () => this.succeed(container.number),
       error: (error: unknown) => this.fail(error),
     });
+  }
+
+  private statusOf(key: string): 'checking' | 'known' | 'unknown' {
+    const result = this.lookup();
+    if (result?.number !== key) {
+      return 'checking';
+    }
+    return result.container ? 'known' : 'unknown';
+  }
+
+  private lookUp(key: string): Observable<Lookup | null> {
+    if (key === '') {
+      return of(null);
+    }
+    return this.containerService.search({ number: key }, 1, LOOKUP_PAGE_SIZE).pipe(
+      map((paged) => ({
+        number: key,
+        container: paged.items.find((c) => c.number === key) ?? null,
+      })),
+      catchError((error: unknown) => {
+        this.notice.set(toMessage(error));
+        return of(null);
+      }),
+    );
   }
 
   /** A place picked on the yard map arrives in the address; look up its bay and row, then fill the position. */

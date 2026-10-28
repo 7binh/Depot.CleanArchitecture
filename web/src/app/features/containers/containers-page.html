@@ -8,35 +8,65 @@
   </button>
 </app-page-header>
 
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+  <app-text-field
+    label="Tìm số container"
+    icon="search"
+    placeholder="Một phần số"
+    [control]="filters.controls.number"
+  />
+  <app-select-field
+    label="Hãng"
+    placeholder="Tất cả hãng"
+    [control]="filters.controls.lineOperatorId"
+    [options]="operatorOptions()"
+  />
+  <app-select-field
+    label="Loại"
+    placeholder="Tất cả loại"
+    [control]="filters.controls.containerTypeId"
+    [options]="typeOptions()"
+  />
+  <app-select-field
+    label="Kích cỡ"
+    placeholder="Tất cả cỡ"
+    [control]="filters.controls.sizeFeet"
+    [options]="sizeOptions"
+  />
+  <app-text-field
+    label="Tìm mã ISO"
+    icon="search"
+    placeholder="Một phần mã"
+    [control]="filters.controls.isoCode"
+  />
+</div>
+
 <app-load-state [status]="list.status()" [failure]="list.failure()" (retry)="list.load()">
   <div>
     @if (list.items().length === 0) {
-      <app-empty-state icon="box" message="Chưa có container nào.">
-        <button appButton type="button" (click)="creating.set(true)">
-          <app-icon name="plus" [size]="16" />
-          Thêm container
-        </button>
-      </app-empty-state>
-    } @else {
-      <div class="mb-6 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
-        <app-select-field
-          label="Hãng"
-          placeholder="Tất cả hãng"
-          [control]="operatorFilter"
-          [options]="operatorOptions()"
-        />
-        <app-select-field
-          label="Loại"
-          placeholder="Tất cả loại"
-          [control]="typeFilter"
-          [options]="typeOptions()"
-        />
-      </div>
-      @if (visible().length === 0) {
+      @if (filtered()) {
         <app-empty-state icon="box" message="Không có container nào khớp bộ lọc." />
       } @else {
-        <div class="overflow-x-auto">
-          <app-data-table caption="Danh sách container" [columns]="columns" [rows]="visible()" />
+        <app-empty-state icon="box" message="Chưa có container nào.">
+          <button appButton type="button" (click)="creating.set(true)">
+            <app-icon name="plus" [size]="16" />
+            Thêm container
+          </button>
+        </app-empty-state>
+      }
+    } @else {
+      <div class="overflow-x-auto">
+        <app-data-table caption="Danh sách container" [columns]="columns" [rows]="list.items()" />
+      </div>
+      @if (paging(); as paged) {
+        <div class="mt-4">
+          <app-pagination
+            [page]="paged.page"
+            [pageSize]="paged.pageSize"
+            [totalCount]="paged.totalCount"
+            [totalPages]="paged.totalPages"
+            (pageChange)="goTo($event)"
+          />
         </div>
       }
     }
